@@ -1,6 +1,6 @@
 import './App.css';
 import { useState, useEffect, useRef } from 'react';
-import { Dumbbell, Zap, Users, TrendingUp, Shield, Star, Menu, X, ArrowRight, ChevronRight, Clock, CheckCircle2 } from 'lucide-react';
+import { Dumbbell, Zap, Users, TrendingUp, AlertTriangle, Star, Menu, X, ArrowRight, ChevronRight, Clock, CheckCircle2 } from 'lucide-react';
 
 // ─── HOOKS ────────────────────────────────────────────────────────────────────
 
@@ -66,9 +66,9 @@ function PrototypeBanner({ onToggle }: { onToggle: (show: boolean) => void }) {
   const [show, setShow] = useState(true);
   if (!show) return null;
   return (
-    <div id="proto-banner" style={{ background: '#f59e0b', color: '#030712', padding: '0.45rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', fontSize: '0.62rem', fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', position: 'relative', zIndex: 1100, fontFamily: 'monospace' }}>
-      <Shield size={14} />
-      <span>PROTOTYPE — Design System v1.0.4 • Content for preview only.</span>
+    <div id="proto-banner" style={{ background: '#f59e0b', color: '#030712', padding: '0.45rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.05em', position: 'relative', zIndex: 1100 }}>
+      <AlertTriangle size={14} />
+      <span>DESIGN PROTOTYPE — DEMO DATA ONLY. ALL BRANDING IS LIVE.</span>
       <button onClick={() => { setShow(false); onToggle(false); }} style={{ position: 'absolute', right: '1rem', color: '#030712', background: 'none', border: 'none', cursor: 'pointer' }}><X size={14}/></button>
     </div>
   );
@@ -222,7 +222,7 @@ function WhatsIncluded() {
     { icon: Clock, title: '6x/week Access', desc: 'Unrestricted access to all zones, any time, any day.' },
     { icon: Dumbbell, title: 'Olympic Equipment', desc: 'Rogue racks, platforms, and premium iron — no compromises.' },
     { icon: Users, title: 'Expert Coaching', desc: 'Guided sessions with certified performance coaches on-site.' },
-    { icon: Shield, title: 'Institutional Standards', desc: 'A meticulously maintained, professional-grade environment.' },
+    { icon: CheckCircle2, title: 'Institutional Standards', desc: 'A meticulously maintained, professional-grade environment.' },
     { icon: TrendingUp, title: 'Progress Tracking', desc: 'Built-in structure to track your lifts, habits, and results.' },
     { icon: Star, title: 'Community Network', desc: 'Train alongside a community of 500+ dedicated athletes.' },
   ];
