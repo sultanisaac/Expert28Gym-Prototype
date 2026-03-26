@@ -10,7 +10,7 @@ export default function JoinModal({ isOpen, onClose, selectedPlan }: JoinModalPr
   if (!isOpen) return null;
 
   const planValue = selectedPlan.toLowerCase().includes('base') ? 'base' : selectedPlan.toLowerCase().includes('trial') ? 'trial' : 'elite';
-  const price = planValue === 'base' ? '$29' : planValue === 'trial' ? '$8' : '$49';
+  const price = planValue === 'base' ? '$100' : planValue === 'trial' ? '$40' : '$149';
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
