@@ -447,7 +447,7 @@ function Facilities() {
 
 // ─── PRICING ──────────────────────────────────────────────────────────────────
 
-function Pricing({ goto, openModal }: any) {
+function Pricing({ openModal }: any) {
   const { ref, visible } = useReveal();
   const plans = [
     { name: 'Base Expert', price: 29, per: '/mo', desc: 'Full access for the consistent athlete.', popular: false, badge: null, features: ['Unlimited Facility Access', 'All 6 Training Zones', 'Locker Access', 'Open 7 days/week'] },
