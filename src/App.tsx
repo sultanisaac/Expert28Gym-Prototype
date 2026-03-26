@@ -1,6 +1,6 @@
 import './App.css';
-import { useState, useEffect, useRef } from 'react';
-import { Dumbbell, Zap, Users, TrendingUp, AlertTriangle, Star, Menu, X, ArrowRight, ChevronRight, Clock, CheckCircle2 } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Dumbbell, Zap, Users, TrendingUp, AlertTriangle, Star, Menu, X, ArrowRight, ChevronRight, ChevronDown, Clock, CheckCircle2, Shield } from 'lucide-react';
 
 // ─── HOOKS ────────────────────────────────────────────────────────────────────
 
@@ -17,45 +17,103 @@ function useReveal() {
   return { ref, visible };
 }
 
+function useCountUp(target: number, decimals = 0, visible = false) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (!visible) return;
+    let start = 0;
+    const duration = 1400;
+    const step = 16;
+    const increment = target / (duration / step);
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= target) { setCount(target); clearInterval(timer); }
+      else setCount(parseFloat(start.toFixed(decimals)));
+    }, step);
+    return () => clearInterval(timer);
+  }, [visible, target, decimals]);
+  return count;
+}
+
+function addRipple(e: React.MouseEvent<HTMLButtonElement>) {
+  const btn = e.currentTarget;
+  const circle = document.createElement('span');
+  const diameter = Math.max(btn.clientWidth, btn.clientHeight);
+  const radius = diameter / 2;
+  const rect = btn.getBoundingClientRect();
+  circle.style.cssText = `width:${diameter}px;height:${diameter}px;left:${e.clientX - rect.left - radius}px;top:${e.clientY - rect.top - radius}px;`;
+  circle.classList.add('ripple');
+  btn.querySelector('.ripple')?.remove();
+  btn.appendChild(circle);
+}
+
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 
 export default function App() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [scrollPct, setScrollPct] = useState(0);
   const [bannerVisible, setBannerVisible] = useState(true);
 
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 40);
+    const fn = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      setScrolled(scrollTop > 40);
+      setScrollPct(docHeight > 0 ? (scrollTop / docHeight) * 100 : 0);
+    };
     window.addEventListener('scroll', fn);
     return () => window.removeEventListener('scroll', fn);
   }, []);
 
-  const goto = (id: string) => {
+  const goto = useCallback((id: string) => {
     setMobileOpen(false);
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, []);
 
   return (
-    <div style={{ background: '#030712', minHeight: '100vh', color: '#f9fafb', position: 'relative', overflowX: 'hidden' }}>
-      {/* Background Orbs */}
-      <div className="orb" style={{ width: '40vw', height: '40vw', background: 'var(--emerald)', top: '-10%', left: '-10%' }} />
-      <div className="orb" style={{ width: '30vw', height: '30vw', background: 'var(--blue-cta)', bottom: '10%', right: '-5%', animationDelay: '-5s' }} />
-      <div className="orb" style={{ width: '25vw', height: '25vw', background: 'var(--amber)', top: '40%', right: '10%', animationDelay: '-10s', opacity: 0.05 }} />
+    <div style={{ background: '#030712', minHeight: '100vh', color: '#f9fafb', position: 'relative', overflowX: 'hidden' }} className="mobile-sticky-pad">
+
+      {/* Scroll Progress Bar */}
+      <div id="scroll-progress-bar" style={{ width: `${scrollPct}%` }} />
+
+      {/* Background Orbs — higher opacity, reduced blur */}
+      <div className="orb" style={{ width: '42vw', height: '42vw', background: 'var(--emerald)', top: '-12%', left: '-12%' }} />
+      <div className="orb" style={{ width: '32vw', height: '32vw', background: 'var(--blue-cta)', bottom: '8%', right: '-6%', animationDelay: '-5s' }} />
+      <div className="orb" style={{ width: '28vw', height: '28vw', background: 'var(--amber)', top: '38%', right: '8%', animationDelay: '-10s', opacity: 0.12 }} />
 
       <PrototypeBanner onToggle={setBannerVisible} />
       <Header scrolled={scrolled} goto={goto} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bannerVisible={bannerVisible} />
       <main>
         <Hero goto={goto} />
+        <div className="section-sep" />
         <Ticker />
+        <div className="section-sep" />
         <WhatsIncluded />
+        <div className="section-sep" />
         <Facilities />
+        <div className="section-sep" />
         <Pricing goto={goto} />
+        <div className="section-sep" />
         <Testimonials />
+        <div className="section-sep" />
         <FAQ />
+        <div className="section-sep" />
         <FinalCTA goto={goto} />
       </main>
       <Footer goto={goto} />
+
+      {/* Floating CTA — desktop only */}
       <FloatingCTA goto={goto} />
+
+      {/* Mobile sticky bottom bar */}
+      <div className="mobile-sticky-bar">
+        <div>
+          <p style={{ fontWeight: 800, fontSize: '0.85rem', lineHeight: 1 }}>Join Expert<span style={{ color: '#10b981' }}>28</span></p>
+          <p style={{ color: '#6b7280', fontSize: '0.65rem', marginTop: '0.15rem' }}>From <span style={{ color: '#10b981' }}>$8</span> / week</p>
+        </div>
+        <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '0.75rem 1.5rem', fontSize: '0.78rem', flexShrink: 0 }} onMouseDown={addRipple}>Join Now</button>
+      </div>
     </div>
   );
 }
@@ -66,9 +124,9 @@ function PrototypeBanner({ onToggle }: { onToggle: (show: boolean) => void }) {
   const [show, setShow] = useState(true);
   if (!show) return null;
   return (
-    <div id="proto-banner" style={{ background: '#f59e0b', color: '#030712', padding: '0.45rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.05em', position: 'relative', zIndex: 1100 }}>
-      <AlertTriangle size={14} />
-      <span>DESIGN PROTOTYPE — DEMO DATA ONLY. ALL BRANDING IS LIVE.</span>
+    <div id="proto-banner" className="prototype-banner" style={{ background: '#f59e0b', color: '#030712', padding: '0.4rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', fontWeight: 900, letterSpacing: '0.05em', position: 'relative', zIndex: 1100 }}>
+      <AlertTriangle size={13} />
+      <span style={{ fontSize: '0.63rem' }}>DESIGN PROTOTYPE — DEMO DATA ONLY. ALL BRANDING IS LIVE.</span>
       <button onClick={() => { setShow(false); onToggle(false); }} style={{ position: 'absolute', right: '1rem', color: '#030712', background: 'none', border: 'none', cursor: 'pointer' }}><X size={14}/></button>
     </div>
   );
@@ -85,113 +143,153 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible }: an
     { label: 'FAQ', id: 'faq' },
   ];
   return (
-    <header style={{
-      position: 'fixed', top: bannerVisible ? '1.8rem' : 0, left: 0, right: 0, zIndex: 100,
-      background: scrolled ? 'rgba(3,7,18,0.9)' : (bannerVisible ? '#030712' : 'transparent'),
-      backdropFilter: scrolled ? 'blur(20px)' : 'none',
-      borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : 'none',
-      padding: '0.9rem 2rem', display: 'flex', alignItems: 'center',
-      justifyContent: 'space-between', transition: 'all 0.3s',
-    }}>
-      <div onClick={() => window.scrollTo(0,0)} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
-        <img src="/Logo.png" alt="Expert28" style={{ height: 32, width: 'auto', borderRadius: '0.2rem' }} />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-          <span style={{ fontWeight: 800, fontSize: '0.95rem', letterSpacing: '-0.02em', lineHeight: 1 }}>Expert<span style={{ color: '#10b981' }}>28</span></span>
-          <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#f59e0b', letterSpacing: '0.05em' }}>PROTOTYPE</span>
+    <>
+      <header style={{
+        position: 'fixed', top: bannerVisible ? '1.75rem' : 0, left: 0, right: 0, zIndex: 100,
+        background: scrolled ? 'rgba(3,7,18,0.92)' : (bannerVisible ? '#030712' : 'transparent'),
+        backdropFilter: scrolled ? 'blur(20px)' : 'none',
+        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : 'none',
+        padding: '0.9rem 2rem', display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between', transition: 'all 0.3s',
+      }}>
+        <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+          <img src="/Logo.png" alt="Expert28" style={{ height: 32, width: 'auto', borderRadius: '0.2rem' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+            <span style={{ fontWeight: 800, fontSize: '0.95rem', letterSpacing: '-0.02em', lineHeight: 1, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              Expert<span style={{ color: '#10b981' }}>28</span>
+              {/* Amber pulsing dot */}
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b', display: 'inline-block', animation: 'pulse-amber 2s ease-in-out infinite' }} />
+            </span>
+            <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#f59e0b', letterSpacing: '0.06em' }}>PROTOTYPE</span>
+          </div>
         </div>
-      </div>
 
-      <nav className="nav-desktop">
-        {links.map(l => (
-          <button key={l.id} onClick={() => goto(l.id)} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s', letterSpacing: '0.05em', textTransform: 'uppercase', position: 'relative' }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#f9fafb'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#9ca3af'; }}>
-            {l.label}
-          </button>
-        ))}
-      </nav>
-
-      <div className="nav-desktop">
-        <button onClick={() => goto('pricing')} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', marginRight: '0.75rem' }}>Log in</button>
-        <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '0.5rem 1.25rem', fontSize: '0.8rem' }}>Join Expert28</button>
-      </div>
-
-      <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', padding: '0.4rem', color: '#f9fafb', cursor: 'pointer' }}>
-        {mobileOpen ? <X size={18}/> : <Menu size={18}/>}
-      </button>
-
-      {mobileOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(3,7,18,0.98)', backdropFilter: 'blur(10px)', zIndex: -1, paddingTop: '7rem', padding: '7rem 2rem 2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <nav className="nav-desktop">
           {links.map(l => (
-            <button key={l.id} onClick={() => goto(l.id)} style={{ background: 'none', border: 'none', textAlign: 'left', fontSize: '2rem', fontWeight: 900, color: '#f9fafb', cursor: 'pointer', letterSpacing: '-0.02em' }}>{l.label}</button>
+            <button key={l.id} onClick={() => goto(l.id)} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', transition: 'color 0.2s', letterSpacing: '0.05em', textTransform: 'uppercase' }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#f9fafb'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = '#9ca3af'; }}>
+              {l.label}
+            </button>
           ))}
-          <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1.25rem', fontSize: '1rem', marginTop: '2rem', borderRadius: '1rem' }}>Join Expert28</button>
+        </nav>
+
+        <div className="nav-desktop">
+          <button onClick={() => goto('pricing')} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', marginRight: '0.75rem' }}>Log in</button>
+          <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '0.5rem 1.25rem', fontSize: '0.8rem' }} onMouseDown={addRipple}>Join Expert28</button>
         </div>
-      )}
-    </header>
+
+        <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', padding: '0.4rem', color: '#f9fafb', cursor: 'pointer', zIndex: 101, position: 'relative' }}>
+          {mobileOpen ? <X size={18}/> : <Menu size={18}/>}
+        </button>
+      </header>
+
+      {/* Mobile menu overlay */}
+      <div className={`mobile-menu-overlay ${mobileOpen ? 'open' : ''}`} onClick={() => setMobileOpen(false)} />
+
+      {/* Mobile slide-in menu */}
+      <div className={`mobile-menu ${mobileOpen ? 'open' : ''}`}>
+        {links.map(l => (
+          <button key={l.id} onClick={() => goto(l.id)} style={{ background: 'none', border: 'none', textAlign: 'left', fontSize: '1.75rem', fontWeight: 900, color: '#f9fafb', cursor: 'pointer', letterSpacing: '-0.02em', padding: '0.25rem 0', minHeight: '48px' }}>{l.label}</button>
+        ))}
+        <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1.1rem', fontSize: '1rem', marginTop: '2rem', borderRadius: '1rem', minHeight: '48px' }} onMouseDown={addRipple}>Join Expert28</button>
+      </div>
+
+      <style>{`
+        @keyframes pulse-amber {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50%       { opacity: 0.5; transform: scale(0.7); }
+        }
+      `}</style>
+    </>
   );
 }
 
 // ─── HERO ─────────────────────────────────────────────────────────────────────
 
 function Hero({ goto }: any) {
+  const { ref, visible } = useReveal();
+  const members = useCountUp(500, 0, visible);
+  const rating  = useCountUp(4.9, 1, visible);
+  const days    = useCountUp(7, 0, visible);
+
   return (
-    <section id="hero" style={{ paddingTop: '7rem', paddingBottom: '5rem', maxWidth: '1280px', margin: '0 auto', padding: '7rem 2rem 5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }} className="grid-hero">
+    <section id="hero" style={{ position: 'relative', maxWidth: '1280px', margin: '0 auto', padding: '7rem 2rem 5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }} className="grid-hero">
+
+      {/* "28" watermark */}
+      <div style={{ position: 'absolute', right: '-2%', top: '50%', transform: 'translateY(-50%)', fontSize: 'clamp(280px, 40vw, 600px)', fontWeight: 900, lineHeight: 1, color: '#f9fafb', opacity: 0.032, userSelect: 'none', pointerEvents: 'none', letterSpacing: '-0.06em', zIndex: 0 }}>28</div>
+
+      {/* Radial glow behind headline */}
+      <div style={{ position: 'absolute', top: '30%', left: '0', width: '50%', height: '60%', background: 'radial-gradient(ellipse at center, rgba(16,185,129,0.12) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
+
       {/* Left */}
-      <div>
+      <div style={{ position: 'relative', zIndex: 1 }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '999px', padding: '0.3rem 0.85rem', marginBottom: '1.75rem' }}>
           <Zap size={11} color="#10b981" />
           <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#10b981' }}>Expert28 Gym — Join Now</span>
         </div>
 
         <h1 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: '1.5rem' }}>
-          Get Stronger.<br />
-          <span style={{ color: '#10b981' }}>Train Smarter.</span><br />
-          In 28 Days.
+          <span className="hero-line hero-line-1" style={{ display: 'block' }}>Get Stronger.</span>
+          <span className="hero-line hero-line-2" style={{ display: 'block', color: '#10b981' }}>Train Smarter.</span>
+          <span className="hero-line hero-line-3" style={{ display: 'block' }}>In 28 Days.</span>
         </h1>
 
         <p style={{ color: '#9ca3af', fontSize: '1rem', lineHeight: 1.7, maxWidth: '440px', marginBottom: '2rem' }}>
           6x/week access · Elite equipment · Expert coaching — designed for athletes who refuse to settle for average results.
         </p>
 
-        {/* Stats */}
-        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', marginBottom: '2.5rem' }}>
-          <div><p style={{ fontWeight: 900, fontSize: '1.75rem', letterSpacing: '-0.03em', lineHeight: 1 }}>500+</p><p style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 500, marginTop: '0.2rem' }}>Active Members</p></div>
+        {/* Stats with count-up */}
+        <div ref={ref} className={`reveal hero-stats ${visible ? 'visible' : ''}`} style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', marginBottom: '2.5rem', flexWrap: 'wrap' }}>
+          <div><p style={{ fontWeight: 900, fontSize: '1.75rem', letterSpacing: '-0.03em', lineHeight: 1 }}>{members}+</p><p style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 500, marginTop: '0.2rem' }}>Active Members</p></div>
           <div className="stat-divider" />
-          <div><p style={{ fontWeight: 900, fontSize: '1.75rem', letterSpacing: '-0.03em', lineHeight: 1 }}>4.9/5</p><p style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 500, marginTop: '0.2rem' }}>Member Rating</p></div>
+          <div><p style={{ fontWeight: 900, fontSize: '1.75rem', letterSpacing: '-0.03em', lineHeight: 1 }}>{rating}/5</p><p style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 500, marginTop: '0.2rem' }}>Member Rating</p></div>
           <div className="stat-divider" />
-          <div><p style={{ fontWeight: 900, fontSize: '1.75rem', letterSpacing: '-0.03em', lineHeight: 1 }}>7</p><p style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 500, marginTop: '0.2rem' }}>Days a Week</p></div>
+          <div><p style={{ fontWeight: 900, fontSize: '1.75rem', letterSpacing: '-0.03em', lineHeight: 1 }}>{days}</p><p style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 500, marginTop: '0.2rem' }}>Days a Week</p></div>
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '0.85rem 2rem', fontSize: '0.85rem' }}>Join Expert28</button>
-          <button onClick={() => goto('facilities')} className="btn-outline-white" style={{ padding: '0.85rem 2rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '0.85rem 2rem', fontSize: '0.85rem' }} onMouseDown={addRipple}>Join Expert28</button>
+          <button onClick={() => goto('facilities')} className="btn-outline-white" style={{ padding: '0.85rem 2rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', minHeight: '48px' }}>
             View Facility <ChevronRight size={14}/>
           </button>
         </div>
       </div>
 
-      {/* Right — Photo card */}
-      <div className="hero-image-card" style={{ aspectRatio: '4/5', background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <img
-          src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1000&auto=format"
-          alt="Expert28 Gym"
-          style={{ width: '100%', height: '80%', objectFit: 'cover' }}
-          onError={(e: any) => e.target.src = 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=1000'}
-        />
-        <div style={{ padding: '1.25rem', background: 'rgba(255,255,255,0.03)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-          <p style={{ color: '#10b981', fontWeight: 700, fontSize: '0.9rem' }}>Expert28 Gym</p>
-          <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.15rem' }}>Industrial Zone — Open 7 Days</p>
-          <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', animation: 'pulse 2s infinite' }} />
-            <span style={{ fontSize: '0.65rem', color: '#10b981', fontWeight: 600 }}>Open Now</span>
+      {/* Right — Photo card (taller) */}
+      <div className="hero-image-card" style={{ aspectRatio: '3/4', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
+        <div style={{ position: 'relative', flex: 1, overflow: 'hidden' }}>
+          <img
+            src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1000&auto=format"
+            alt="Expert28 Gym"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            onError={(e: any) => e.target.src = 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=1000'}
+          />
+          {/* Gradient overlay */}
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '55%', background: 'linear-gradient(to top, rgba(3,7,18,0.95) 0%, rgba(3,7,18,0.5) 50%, transparent 100%)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', bottom: '1.25rem', left: '1.25rem', right: '1.25rem' }}>
+            <p style={{ color: '#10b981', fontWeight: 700, fontSize: '0.9rem' }}>Expert28 Gym</p>
+            <p style={{ color: '#9ca3af', fontSize: '0.75rem', marginTop: '0.15rem' }}>Industrial Zone — Open 7 Days</p>
+            <div style={{ marginTop: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', animation: 'pulse-dot 2s infinite' }} />
+              <span style={{ fontSize: '0.65rem', color: '#10b981', fontWeight: 600 }}>Open Now</span>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Scroll chevron */}
+      <div style={{ position: 'absolute', bottom: '1.5rem', left: '50%', transform: 'translateX(-50%)' }} className="scroll-chevron">
+        <span style={{ fontSize: '0.55rem', fontWeight: 600, letterSpacing: '0.1em', color: '#4b5563', textTransform: 'uppercase' }}>Scroll</span>
+        <ChevronDown size={16} color="#4b5563" />
+      </div>
+
       <style>{`
-        @media (max-width: 768px) { .grid-hero { grid-template-columns: 1fr !important; padding-top: 5rem !important; } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        @media (max-width: 768px) {
+          .grid-hero { grid-template-columns: 1fr !important; padding-top: 5rem !important; }
+          .scroll-chevron { display: none; }
+        }
+        @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
       `}</style>
     </section>
   );
@@ -205,8 +303,9 @@ function Ticker() {
     <div className="ticker-wrap" style={{ padding: '0.75rem 0', margin: '2rem 0' }}>
       <div className="ticker-track">
         {items.map((item, i) => (
-          <span key={i} style={{ padding: '0 2rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.15em', color: '#4b5563' }}>
-            {item} <span style={{ color: '#10b981', marginLeft: '2rem' }}>•</span>
+          <span key={i} style={{ padding: '0 1.75rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.15em', color: '#9ca3af', display: 'inline-flex', alignItems: 'center', gap: '1.75rem' }}>
+            {item}
+            <span style={{ color: '#10b981', fontSize: '0.5rem' }}>●</span>
           </span>
         ))}
       </div>
@@ -241,8 +340,11 @@ function WhatsIncluded() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
           {items.map((item, i) => {
             const Icon = item.icon;
+            const index = String(i + 1).padStart(2, '0');
             return (
-              <div key={i} className="glass-card" style={{ padding: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start', transitionDelay: `${i * 60}ms` }}>
+              <div key={i} className={`glass-card stagger-child ${visible ? 'visible' : ''}`} style={{ padding: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start', transitionDelay: `${i * 75}ms`, position: 'relative', overflow: 'hidden' }}>
+                {/* Background index number */}
+                <div style={{ position: 'absolute', top: '0.5rem', right: '0.85rem', fontSize: '3.5rem', fontWeight: 900, color: '#f9fafb', opacity: 0.04, lineHeight: 1, userSelect: 'none', pointerEvents: 'none', letterSpacing: '-0.04em' }}>{index}</div>
                 <div style={{ width: 36, height: 36, borderRadius: '0.5rem', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Icon size={18} color="#10b981" />
                 </div>
@@ -266,14 +368,14 @@ function Facilities() {
   const zones = [
     { badge: 'Strength', badgeClass: 'badge-emerald', title: 'The Expert Pit', desc: 'Olympic platforms, deadlift jacks, squat stands, and heavy iron from Rogue.', capacity: '20 slots', duration: 'Unlimited access', image: 'https://images.unsplash.com/photo-1534367610401-9f5ed68180aa?q=80&w=800' },
     { badge: 'Conditioning', badgeClass: 'badge-amber', title: 'High-Octane Turf', desc: 'Sleds, battle ropes, 30m sprint turf, and functional training rigs.', capacity: '15 slots', duration: 'Unlimited access', image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=800' },
-    { badge: 'Coaching', badgeClass: 'badge-blue', title: 'The Crucible', desc: 'Dedicated coaching zone for guided high-intensity circuits and assessments.', capacity: '10 slots', duration: 'Expert-led' , image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=800' },
+    { badge: 'Coaching', badgeClass: 'badge-blue', title: 'The Crucible', desc: 'Dedicated coaching zone for guided high-intensity circuits and assessments.', capacity: '10 slots', duration: 'Expert-led', image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=800' },
     { badge: 'Hypertrophy', badgeClass: 'badge-purple', title: 'Isolation Zone', desc: 'Hammer Strength machines, cables, and premium isolation equipment.', capacity: '25 slots', duration: 'Unlimited access', image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=800' },
     { badge: 'Recovery', badgeClass: 'badge-emerald', title: 'Recovery Vault', desc: 'Foam rollers, stretching area, and professional-grade recovery tools.', capacity: 'Open', duration: 'Unlimited access', image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=800' },
     { badge: 'Community', badgeClass: 'badge-blue', title: 'The Arena', desc: 'A shared training floor for group sessions, challenges, and open workouts.', capacity: '30 slots', duration: 'All members', image: 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=800' },
   ];
 
   return (
-    <section id="facilities" style={{ background: 'rgba(255,255,255,0.015)', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: 'var(--section-pad) 2rem' }}>
+    <section id="facilities" style={{ background: 'rgba(16,185,129,0.025)', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: 'var(--section-pad) 2rem' }}>
       <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
         <div ref={ref} className={`reveal ${visible ? 'visible' : ''}`}>
           <p className="section-label" style={{ marginBottom: '0.75rem' }}>The Facility</p>
@@ -284,10 +386,19 @@ function Facilities() {
             Six purpose-built performance zones, each dialed to a specific training goal.
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+          <div className="facilities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
             {zones.map((zone, i) => (
-              <div key={i} className="glass-card" style={{ overflow: 'hidden', transitionDelay: `${i * 60}ms` }}>
-                <img src={zone.image} alt={zone.title} style={{ width: '100%', height: '180px', objectFit: 'cover' }} onError={(e: any) => e.target.src = 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=800'} />
+              <div key={i} className={`glass-card stagger-child ${visible ? 'visible' : ''}`} style={{ overflow: 'hidden', transitionDelay: `${i * 75}ms` }}>
+                <div style={{ overflow: 'hidden', height: '200px' }}>
+                  <img
+                    src={zone.image}
+                    alt={zone.title}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s cubic-bezier(0.16,1,0.3,1)' }}
+                    onMouseEnter={e => (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.07)'}
+                    onMouseLeave={e => (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'}
+                    onError={(e: any) => e.target.src = 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=800'}
+                  />
+                </div>
                 <div style={{ padding: '1.25rem' }}>
                   <div style={{ marginBottom: '0.75rem' }}>
                     <span className={`badge ${zone.badgeClass}`}>{zone.badge}</span>
@@ -329,9 +440,13 @@ function Pricing({ goto }: any) {
           No hidden fees, no long-term lock-ins. Just access to the best training environment in the city.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', alignItems: 'center' }}>
           {plans.map((plan, i) => (
-            <div key={i} className="glass-card" style={{ padding: '2rem', position: 'relative', border: plan.popular ? '1px solid rgba(16,185,129,0.4)' : '1px solid rgba(255,255,255,0.08)', background: plan.popular ? 'rgba(16,185,129,0.06)' : undefined }}>
+            <div
+              key={i}
+              className={`glass-card stagger-child ${plan.popular ? 'pricing-popular' : ''} ${visible ? 'visible' : ''}`}
+              style={{ padding: '2rem', position: 'relative', transitionDelay: `${i * 80}ms` }}
+            >
               {plan.badge && (
                 <div style={{ position: 'absolute', top: '-0.75rem', left: '50%', transform: 'translateX(-50%)', background: '#10b981', color: '#030712', fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '0.25rem 0.9rem', borderRadius: '999px' }}>
                   {plan.badge}
@@ -351,9 +466,10 @@ function Pricing({ goto }: any) {
                   </div>
                 ))}
               </div>
-              <button onClick={() => goto('pricing')} style={{ width: '100%', padding: '0.85rem', borderRadius: '0.5rem', fontWeight: 700, fontSize: '0.82rem', letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer', border: 'none', background: plan.popular ? '#2563eb' : 'rgba(255,255,255,0.07)', color: '#f9fafb', transition: 'background 0.2s' }}
-                onMouseEnter={e => e.currentTarget.style.background = plan.popular ? '#1d4ed8' : 'rgba(255,255,255,0.12)'}
-                onMouseLeave={e => e.currentTarget.style.background = plan.popular ? '#2563eb' : 'rgba(255,255,255,0.07)'}>
+              <button onClick={() => goto('pricing')} style={{ width: '100%', padding: '0.85rem', borderRadius: '0.5rem', fontWeight: 700, fontSize: '0.82rem', letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer', border: 'none', background: plan.popular ? '#2563eb' : 'rgba(255,255,255,0.07)', color: '#f9fafb', transition: 'background 0.2s, transform 0.15s', minHeight: '48px', position: 'relative', overflow: 'hidden' }}
+                onMouseDown={addRipple}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = plan.popular ? '#1d4ed8' : 'rgba(255,255,255,0.12)'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = plan.popular ? '#2563eb' : 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)'; }}>
                 Join Expert28
               </button>
             </div>
@@ -384,8 +500,22 @@ function Testimonials() {
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
             {reviews.map((r, i) => (
-              <div key={i} className="glass-card" style={{ padding: '1.75rem' }}>
-                <p style={{ color: '#d1d5db', fontSize: '0.88rem', lineHeight: 1.7, marginBottom: '1.5rem', fontStyle: 'italic' }}>"{r.text}"</p>
+              <div key={i} className={`glass-card testimonial-card stagger-child ${visible ? 'visible' : ''}`} style={{ padding: '1.75rem', position: 'relative', transitionDelay: `${i * 80}ms` }}>
+                {/* Large quote anchor */}
+                <div style={{ position: 'absolute', top: '0.75rem', left: '1rem', fontSize: '6rem', lineHeight: 1, color: '#10b981', opacity: 0.08, fontFamily: 'Georgia, serif', userSelect: 'none', pointerEvents: 'none' }}>"</div>
+
+                {/* VERIFIED badge */}
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '0.35rem', padding: '0.2rem 0.6rem', marginBottom: '0.85rem' }}>
+                  <CheckCircle2 size={10} color="#10b981" />
+                  <span style={{ fontSize: '0.55rem', fontWeight: 800, color: '#10b981', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Verified Member</span>
+                </div>
+
+                {/* 5 stars */}
+                <div style={{ display: 'flex', gap: '0.2rem', marginBottom: '0.85rem' }}>
+                  {[...Array(5)].map((_, s) => <Star key={s} size={12} color="#f59e0b" fill="#f59e0b" />)}
+                </div>
+
+                <p style={{ color: '#d1d5db', fontSize: '0.88rem', lineHeight: 1.7, marginBottom: '1.5rem', fontStyle: 'italic', position: 'relative', zIndex: 1 }}>"{r.text}"</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(16,185,129,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.75rem', color: '#10b981' }}>{r.name[0]}</div>
                   <div>
@@ -424,15 +554,15 @@ function FAQ() {
         </h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {faqs.map((faq, i) => (
-            <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${open === i ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.06)'}`, borderRadius: '1rem', overflow: 'hidden', transition: 'all 0.3s' }}>
-              <button onClick={() => setOpen(open === i ? null : i)} style={{ width: '100%', padding: '1.25rem 1.5rem', background: 'none', border: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', color: open === i ? '#10b981' : '#f9fafb', fontWeight: 700, fontSize: '0.95rem', textAlign: 'left', gap: '1rem' }}>
+            <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${open === i ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.06)'}`, borderRadius: '1rem', overflow: 'hidden', transition: 'border-color 0.3s' }}>
+              <button onClick={() => setOpen(open === i ? null : i)} style={{ width: '100%', padding: '1.25rem 1.5rem', background: 'none', border: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', color: open === i ? '#10b981' : '#f9fafb', fontWeight: 700, fontSize: '0.95rem', textAlign: 'left', gap: '1rem', minHeight: '48px' }}>
                 {faq.q}
-                <div style={{ width: 24, height: 24, borderRadius: '50%', background: open === i ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}>
+                <div style={{ width: 24, height: 24, borderRadius: '50%', background: open === i ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s', flexShrink: 0 }}>
                   <ChevronRight size={14} style={{ transform: open === i ? 'rotate(90deg)' : 'none', transition: 'transform 0.3s' }} />
                 </div>
               </button>
               <div className={`faq-answer ${open === i ? 'open' : ''}`}>
-                <div style={{ padding: '0 1.5rem 1.5rem', color: '#9ca3af', fontSize: '0.88rem', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '1.25rem' }}>{faq.a}</div>
+                <div style={{ padding: '0 1.5rem 1.5rem', color: '#9ca3af', paddingTop: '0.25rem' }}>{faq.a}</div>
               </div>
             </div>
           ))}
@@ -446,19 +576,27 @@ function FAQ() {
 
 function FinalCTA({ goto }: any) {
   return (
-    <section style={{ background: 'rgba(16,185,129,0.05)', borderTop: '1px solid rgba(16,185,129,0.15)', borderBottom: '1px solid rgba(16,185,129,0.15)', padding: 'var(--section-pad) 2rem', textAlign: 'center' }}>
-      <p className="section-label" style={{ marginBottom: '1rem' }}>Start Today</p>
-      <h2 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '1rem' }}>
-        Join the <span style={{ color: '#10b981' }}>Expert28</span> Community.
-      </h2>
-      <p style={{ color: '#6b7280', fontSize: '1rem', maxWidth: '440px', margin: '0 auto 2.5rem', lineHeight: 1.7 }}>
-        The ultimate environment for athletes who refuse to settle for average. Join 500+ members today.
-      </p>
-      <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-        <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1rem 2.5rem', fontSize: '0.9rem' }}>Join Expert28</button>
-        <button onClick={() => goto('facilities')} className="btn-outline-white" style={{ padding: '1rem 2.5rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          View Facility <ArrowRight size={14}/>
-        </button>
+    <section style={{ position: 'relative', overflow: 'hidden', borderTop: '1px solid rgba(16,185,129,0.15)', borderBottom: '1px solid rgba(16,185,129,0.15)', padding: 'var(--section-pad) 2rem', textAlign: 'center' }}>
+      {/* Radial emerald glow */}
+      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 60% at 50% 50%, rgba(16,185,129,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+      {/* JOIN watermark */}
+      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 'clamp(120px, 22vw, 280px)', fontWeight: 900, letterSpacing: '-0.04em', color: '#f9fafb', opacity: 0.025, userSelect: 'none', pointerEvents: 'none', whiteSpace: 'nowrap' }}>JOIN</div>
+
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <p className="section-label" style={{ marginBottom: '1rem' }}>Start Today</p>
+        <h2 style={{ fontSize: 'clamp(2.5rem, 6vw, 5rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.05, marginBottom: '1rem' }}>
+          Join the <span style={{ color: '#10b981' }}>Expert28</span> Community.
+        </h2>
+        <p style={{ color: '#6b7280', fontSize: '1rem', maxWidth: '440px', margin: '0 auto 2.5rem', lineHeight: 1.7 }}>
+          The ultimate environment for athletes who refuse to settle for average. Join 500+ members today.
+        </p>
+        <div className="cta-group-box" style={{ margin: '0 auto' }}>
+          <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1rem 2.5rem', fontSize: '0.9rem', minHeight: '48px' }} onMouseDown={addRipple}>Join Expert28</button>
+          <button onClick={() => goto('facilities')} className="btn-outline-white" style={{ padding: '1rem 2.5rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', minHeight: '48px' }}>
+            View Facility <ArrowRight size={14}/>
+          </button>
+        </div>
       </div>
     </section>
   );
@@ -475,14 +613,16 @@ function Footer({ goto }: any) {
           <span style={{ fontWeight: 800, fontSize: '0.95rem' }}>Expert<span style={{ color: '#10b981' }}>28</span></span>
         </div>
         <p style={{ color: '#4b5563', fontSize: '0.78rem', lineHeight: 1.7, maxWidth: '240px' }}>Modern institutional gym for unrelenting athletes. Open 7 days.</p>
+        {/* Footer prototype badge — clean [P] tag */}
         <div style={{ marginTop: '1.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', padding: '0.25rem 0.6rem', borderRadius: '0.4rem', color: '#f59e0b', fontSize: '0.6rem', fontWeight: 800 }}>
-          <span>🧬 PROTOTYPE STATUS</span>
+          <Shield size={10} />
+          <span>[P] PROTOTYPE STATUS</span>
         </div>
       </div>
       <div>
         <p style={{ color: '#9ca3af', fontWeight: 700, fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '1rem' }}>Navigate</p>
         {['Facilities', "What's Included", 'Pricing', 'Results'].map((item, i) => (
-          <button key={i} onClick={() => goto(['facilities', 'included', 'pricing', 'testimonials'][i])} style={{ display: 'block', background: 'none', border: 'none', color: '#4b5563', fontSize: '0.8rem', marginBottom: '0.6rem', cursor: 'pointer', padding: 0, textAlign: 'left' }}
+          <button key={i} onClick={() => goto(['facilities', 'included', 'pricing', 'testimonials'][i])} style={{ display: 'block', background: 'none', border: 'none', color: '#4b5563', fontSize: '0.8rem', marginBottom: '0.6rem', cursor: 'pointer', padding: 0, textAlign: 'left', minHeight: '48px', lineHeight: 1 }}
             onMouseEnter={e => e.currentTarget.style.color = '#f9fafb'}
             onMouseLeave={e => e.currentTarget.style.color = '#4b5563'}>
             {item}
@@ -508,7 +648,7 @@ function Footer({ goto }: any) {
 
 function FloatingCTA({ goto }: any) {
   return (
-    <button onClick={() => goto('pricing')} className="floating-cta">
+    <button onClick={() => goto('pricing')} className="floating-cta" onMouseDown={addRipple}>
       <Zap size={13} />
       Join Expert28
       <ChevronRight size={12} />

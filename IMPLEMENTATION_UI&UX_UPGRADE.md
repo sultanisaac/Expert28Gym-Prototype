@@ -96,5 +96,45 @@ clo# UI/UX UPGRADE: IMPLEMENTATION PLAN
 - [x] **Technical Branding**: Upgraded the prototype banner to a monospaced "v1.0.4" technical disclosure with a security shield icon.
 - [x] **Premium Mobile Navigation**: Enabled backdrop-blur filters and high-contrast styling for the mobile full-screen menu.
 
+## Phase 12 — Deep Polish & Dynamism ✅
+- [x] **Scroll Progress Bar**: Fixed 2px lime gradient bar at page top fills as user scrolls — w/ emerald glow shadow
+- [x] **Orb Visibility**: Increased orb opacity from 0.15 → 0.32, reduced filter blur from 80px → 60px for clear depth
+- [x] **Dot-Matrix Backdrop**: Added CSS `radial-gradient` dot pattern at 3.5% opacity via `body::after` for structural depth
+- [x] **Section Separators**: Full-width gradient lines (transparent → emerald → transparent) between every section
+- [x] **"28" Watermark**: Large faded `28` text (~600px font) at 3.2% opacity in hero background for brand drama
+- [x] **Hero Radial Glow**: Emerald radial bloom centered behind the hero headline text
+- [x] **Staggered Headline**: Three-line hero headline with CSS keyframe entrance (100ms offsets per line)
+- [x] **Hero Card Taller**: Changed hero image aspect ratio from 4/5 → 3/4 for more height
+- [x] **Hero Gradient Overlay**: Gradient overlay inside photo card (rgba→dark fade from bottom) for atmospheric depth
+- [x] **Hero Border Pulse**: Hero card CSS keyframe animates border-color between transparent and emerald
+- [x] **Scroll Chevron**: Bouncing chevron + "Scroll" label at bottom of hero section (hidden on mobile)
+- [x] **Ticker Readable**: Ticker item color upgraded from `#4b5563` → `#9ca3af`, dots are full `#10b981` green
+- [x] **Ticker Fade Masks**: `::before`/`::after` gradient masks on ticker edges (disappear into black)
+- [x] **Ticker Speed**: Increased animation speed from 30s → 22s for more energy
+- [x] **WhatsIncluded Numbered Index**: Large `01–06` background text in top-right of each card at 4% opacity
+- [x] **Facilities Hover Lift**: Cards now `translateY(-4px)` + shadow increase on hover (glass-card upgrade)
+- [x] **Pricing Popular Scale**: `.pricing-popular` applies `transform: scale(1.04)`, `box-shadow: 0 0 40px rgba(16,185,129,0.15)`, and animated pulsing top border
+- [x] **Testimonial Quote Anchor**: Massive `"` character in top-left at 8% opacity as visual anchor
+- [x] **Testimonial Star Ratings**: 5 filled amber stars above each quote
+- [x] **Testimonial Verified Badge**: Green "VERIFIED MEMBER" badge with checkmark icon on each card
+- [x] **Testimonial Hover Sweep**: `::after` pseudo-element diagonal gradient sweep on hover
+- [x] **Stagger Children**: Cards use `.stagger-child` with per-index `transitionDelay` (left-to-right reveal)
+- [x] **Count-Up Stats**: Hero stats (500, 4.9, 7) animate up with `useCountUp()` hook on scroll reveal
+- [x] **Button Shine Sweep**: `.btn-blue::after` pseudo-element sweeps a white gradient left-to-right on hover
+- [x] **Ripple Effect**: Click ripple on all primary CTA buttons via `addRipple()` helper
+- [x] **Floating CTA Pulse Glow**: Persistent `cta-pulse-glow` keyframe — animates box-shadow ring
+- [x] **FinalCTA Radial Glow**: Full emerald radial gradient behind the CTA section headline
+- [x] **FinalCTA JOIN Watermark**: Large faded `JOIN` text (~280px) behind the CTA buttons
+- [x] **FinalCTA Headline Larger**: Font size pushed to `5rem` desktop with `clamp(2.5rem, 6vw, 5rem)`
+- [x] **FinalCTA Animated Border Box**: `.cta-group-box` wraps the two CTA buttons with a pulsing emerald border
+- [x] **Mobile Sticky Bar**: Full-width `position: fixed; bottom: 0` bar with "Join Expert28 — From $8" and CTA button; floating pill hidden on mobile
+- [x] **Mobile Menu Slide-In**: Replaced instant overlay with `transform: translateX(100%)` → slide from right + backdrop overlay
+- [x] **48px Tap Targets**: All interactive elements have `minHeight: 48px` for WCAG mobile compliance
+- [x] **Mobile Stat Dividers**: Stats flexbox switches to `flex-direction: column` on mobile; dividers become horizontal lines
+- [x] **Facilities Swipe**: `.facilities-grid` becomes `display: flex; overflow-x: auto; scroll-snap-type: x mandatory` on mobile
+- [x] **Footer Badge Polish**: Replaced emoji with `Shield` icon + clean `[P] PROTOTYPE STATUS` text
+- [x] **Header Amber Pulse Dot**: 6px amber dot next to logo pulses with `pulse-amber` keyframe
+- [x] **Banner Mobile Font**: `prototype-banner span` reduced via responsive class for clean wrap on mobile
+
 ---
-*All phase updates successfully implemented and verified via browser audit. The Expert28 Gym Prototype is now in a high-fidelity "Performance Lab" state, fully aligned with the Personal Trainer 28 design language.*
+*All phase updates successfully implemented and verified. The Expert28 Gym Prototype is now in a comprehensive "Deep Polish" state with all 10 advanced upgrade areas complete.*
