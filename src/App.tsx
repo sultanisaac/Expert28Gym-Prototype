@@ -22,6 +22,7 @@ function useReveal() {
 export default function App() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [bannerVisible, setBannerVisible] = useState(true);
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 40);
@@ -36,8 +37,8 @@ export default function App() {
 
   return (
     <div style={{ background: '#030712', minHeight: '100vh', color: '#f9fafb' }}>
-      <PrototypeBanner />
-      <Header scrolled={scrolled} goto={goto} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+      <PrototypeBanner onToggle={setBannerVisible} />
+      <Header scrolled={scrolled} goto={goto} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bannerVisible={bannerVisible} />
       <main>
         <Hero goto={goto} />
         <Ticker />
@@ -56,21 +57,22 @@ export default function App() {
 
 // ─── PROTOTYPE BANNER ─────────────────────────────────────────────────────────
 
-function PrototypeBanner() {
+function PrototypeBanner({ onToggle }: { onToggle: (show: boolean) => void }) {
   const [show, setShow] = useState(true);
   if (!show) return null;
   return (
-    <div style={{ background: 'rgba(245,158,11,0.15)', borderBottom: '1px solid rgba(245,158,11,0.3)', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.05em', color: '#f59e0b' }}>
-      <span>⚠</span>
-      <span>PROTOTYPE — This is a design prototype. Content is for demo purposes only.</span>
-      <button onClick={() => setShow(false)} style={{ marginLeft: 'auto', color: '#f59e0b', background: 'none', border: 'none', cursor: 'pointer' }}><X size={14}/></button>
+    <div id="proto-banner" style={{ background: '#f59e0b', color: '#030712', padding: '0.4rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', position: 'relative', zIndex: 1100 }}>
+      <span>🧬 PROTOTYPE</span>
+      <span>•</span>
+      <span>This is a design prototype. The branding is live but data is for demo purposes only.</span>
+      <button onClick={() => { setShow(false); onToggle(false); }} style={{ position: 'absolute', right: '1rem', color: '#030712', background: 'none', border: 'none', cursor: 'pointer' }}><X size={14}/></button>
     </div>
   );
 }
 
 // ─── HEADER ───────────────────────────────────────────────────────────────────
 
-function Header({ scrolled, goto, mobileOpen, setMobileOpen }: any) {
+function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible }: any) {
   const links = [
     { label: 'Facilities', id: 'facilities' },
     { label: "What's Included", id: 'included' },
@@ -80,8 +82,8 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen }: any) {
   ];
   return (
     <header style={{
-      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-      background: scrolled ? 'rgba(3,7,18,0.9)' : 'transparent',
+      position: 'fixed', top: bannerVisible ? '1.8rem' : 0, left: 0, right: 0, zIndex: 100,
+      background: scrolled ? 'rgba(3,7,18,0.9)' : (bannerVisible ? '#030712' : 'transparent'),
       backdropFilter: scrolled ? 'blur(20px)' : 'none',
       borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : 'none',
       padding: '0.9rem 2rem', display: 'flex', alignItems: 'center',
@@ -89,10 +91,13 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen }: any) {
     }}>
       <div onClick={() => window.scrollTo(0,0)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
         <div style={{ width: 32, height: 32, background: '#10b981', borderRadius: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.75rem', color: '#030712' }}>28</div>
-        <span style={{ fontWeight: 800, fontSize: '1rem', letterSpacing: '-0.02em' }}>Expert<span style={{ color: '#10b981' }}>28</span></span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+          <span style={{ fontWeight: 800, fontSize: '1rem', letterSpacing: '-0.02em', lineHeight: 1 }}>Expert<span style={{ color: '#10b981' }}>28</span></span>
+          <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#f59e0b', letterSpacing: '0.05em' }}>PROTOTYPE</span>
+        </div>
       </div>
 
-      <nav style={{ display: 'flex', gap: '2rem', alignItems: 'center' }} className="hidden md:flex">
+      <nav className="nav-desktop">
         {links.map(l => (
           <button key={l.id} onClick={() => goto(l.id)} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', transition: 'color 0.2s' }}
             onMouseEnter={e => (e.currentTarget.style.color = '#f9fafb')}
@@ -102,8 +107,8 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen }: any) {
         ))}
       </nav>
 
-      <div className="hidden md:flex" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-        <button onClick={() => goto('pricing')} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer' }}>Log in</button>
+      <div className="nav-desktop">
+        <button onClick={() => goto('pricing')} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', marginRight: '0.75rem' }}>Log in</button>
         <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '0.5rem 1.25rem', fontSize: '0.8rem' }}>Join Expert28</button>
       </div>
 
@@ -219,7 +224,7 @@ function WhatsIncluded() {
   ];
 
   return (
-    <section id="included" style={{ maxWidth: '1280px', margin: '0 auto', padding: '6rem 2rem' }}>
+    <section id="included" style={{ maxWidth: '1280px', margin: '0 auto', padding: 'var(--section-pad) 2rem' }}>
       <div ref={ref} className={`reveal ${visible ? 'visible' : ''}`}>
         <p className="section-label" style={{ marginBottom: '0.75rem' }}>What You'll Get</p>
         <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '1rem' }}>
@@ -264,7 +269,7 @@ function Facilities() {
   ];
 
   return (
-    <section id="facilities" style={{ background: 'rgba(255,255,255,0.015)', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '6rem 2rem' }}>
+    <section id="facilities" style={{ background: 'rgba(255,255,255,0.015)', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: 'var(--section-pad) 2rem' }}>
       <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
         <div ref={ref} className={`reveal ${visible ? 'visible' : ''}`}>
           <p className="section-label" style={{ marginBottom: '0.75rem' }}>The Facility</p>
@@ -310,7 +315,7 @@ function Pricing({ goto }: any) {
   ];
 
   return (
-    <section id="pricing" style={{ maxWidth: '1280px', margin: '0 auto', padding: '6rem 2rem' }}>
+    <section id="pricing" style={{ maxWidth: '1280px', margin: '0 auto', padding: 'var(--section-pad) 2rem' }}>
       <div ref={ref} className={`reveal ${visible ? 'visible' : ''}`}>
         <p className="section-label" style={{ marginBottom: '0.75rem', textAlign: 'center' }}>Membership</p>
         <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: '1rem', textAlign: 'center' }}>
@@ -366,7 +371,7 @@ function Testimonials() {
   ];
 
   return (
-    <section id="testimonials" style={{ background: 'rgba(255,255,255,0.015)', borderTop: '1px solid rgba(255,255,255,0.06)', padding: '6rem 2rem' }}>
+    <section id="testimonials" style={{ background: 'rgba(255,255,255,0.015)', borderTop: '1px solid rgba(255,255,255,0.06)', padding: 'var(--section-pad) 2rem' }}>
       <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
         <div ref={ref} className={`reveal ${visible ? 'visible' : ''}`}>
           <p className="section-label" style={{ marginBottom: '0.75rem', textAlign: 'center' }}>Proven Results</p>
@@ -407,7 +412,7 @@ function FAQ() {
   ];
 
   return (
-    <section id="faq" style={{ maxWidth: '760px', margin: '0 auto', padding: '6rem 2rem' }}>
+    <section id="faq" style={{ maxWidth: '760px', margin: '0 auto', padding: 'var(--section-pad) 2rem' }}>
       <div ref={ref} className={`reveal ${visible ? 'visible' : ''}`}>
         <p className="section-label" style={{ marginBottom: '0.75rem', textAlign: 'center' }}>FAQ</p>
         <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: '3rem', textAlign: 'center' }}>
@@ -435,7 +440,7 @@ function FAQ() {
 
 function FinalCTA({ goto }: any) {
   return (
-    <section style={{ background: 'rgba(16,185,129,0.05)', borderTop: '1px solid rgba(16,185,129,0.15)', borderBottom: '1px solid rgba(16,185,129,0.15)', padding: '6rem 2rem', textAlign: 'center' }}>
+    <section style={{ background: 'rgba(16,185,129,0.05)', borderTop: '1px solid rgba(16,185,129,0.15)', borderBottom: '1px solid rgba(16,185,129,0.15)', padding: 'var(--section-pad) 2rem', textAlign: 'center' }}>
       <p className="section-label" style={{ marginBottom: '1rem' }}>Start Today</p>
       <h2 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '1rem' }}>
         Join the <span style={{ color: '#10b981' }}>Expert28</span> Community.
@@ -457,13 +462,16 @@ function FinalCTA({ goto }: any) {
 
 function Footer({ goto }: any) {
   return (
-    <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '3rem 2rem', maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '3rem' }} className="footer-grid">
+    <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '3rem 2rem 6rem', maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '3rem' }} className="footer-grid">
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
           <div style={{ width: 28, height: 28, background: '#10b981', borderRadius: '0.35rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.65rem', color: '#030712' }}>28</div>
           <span style={{ fontWeight: 800, fontSize: '0.95rem' }}>Expert<span style={{ color: '#10b981' }}>28</span></span>
         </div>
         <p style={{ color: '#4b5563', fontSize: '0.78rem', lineHeight: 1.7, maxWidth: '240px' }}>Modern institutional gym for unrelenting athletes. Open 7 days.</p>
+        <div style={{ marginTop: '1.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', padding: '0.25rem 0.6rem', borderRadius: '0.4rem', color: '#f59e0b', fontSize: '0.6rem', fontWeight: 800 }}>
+          <span>🧬 PROTOTYPE STATUS</span>
+        </div>
       </div>
       <div>
         <p style={{ color: '#9ca3af', fontWeight: 700, fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '1rem' }}>Navigate</p>

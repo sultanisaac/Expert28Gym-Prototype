@@ -84,5 +84,10 @@
 - [x] **Branding Realignment (Expert28)**: Removed all "Iron Hub" or generic naming; standardized 100% on the **Expert28** brand name.
 - [x] **Interactive Reveal Hooks**: Optimized `useReveal` hook for smooth staggered entrances of all major UI blocks.
 
+## Phase 10 — Prototype Identity ✅
+- [x] **Enhanced Global Banner**: Added a high-contrast amber banner to the top of every page.
+- [x] **Header branding**: Added "PROTOTYPE" status label directly under the primary logo.
+- [x] **Footer disclaimer**: Integrated a dedicated "PROTOTYPE STATUS" badge in the footer for consistent disclosure.
+
 ---
 *All phase updates successfully implemented and verified via browser audit. The Expert28 Gym Prototype is now in a high-fidelity "Performance Lab" state, fully aligned with the Personal Trainer 28 design language.*
