@@ -1,6 +1,8 @@
-import './App.css';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Dumbbell, Zap, Users, TrendingUp, AlertTriangle, Star, Menu, X, ArrowRight, ChevronRight, ChevronDown, Clock, CheckCircle2, Shield } from 'lucide-react';
+import ApplyPage from './pages/ApplyPage';
+import SuccessPage from './pages/SuccessPage';
+import JoinModal from './components/JoinModal';
 
 // ─── HOOKS ────────────────────────────────────────────────────────────────────
 
@@ -50,10 +52,20 @@ function addRipple(e: React.MouseEvent<HTMLButtonElement>) {
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 
 export default function App() {
+  const [pathname, setPathname] = useState(window.location.pathname);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [scrollPct, setScrollPct] = useState(0);
   const [bannerVisible, setBannerVisible] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState('Elite Expert');
+
+  // Listen for browser navigation
+  useEffect(() => {
+    const handleLocationChange = () => setPathname(window.location.pathname);
+    window.addEventListener('popstate', handleLocationChange);
+    return () => window.removeEventListener('popstate', handleLocationChange);
+  }, []);
 
   useEffect(() => {
     const fn = () => {
@@ -66,10 +78,18 @@ export default function App() {
     return () => window.removeEventListener('scroll', fn);
   }, []);
 
+  const openPlanModal = (planName: string) => {
+    setSelectedPlan(planName);
+    setModalOpen(true);
+  };
+
   const goto = useCallback((id: string) => {
     setMobileOpen(false);
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   }, []);
+
+  if (pathname === '/apply') return <ApplyPage />;
+  if (pathname === '/success') return <SuccessPage />;
 
   return (
     <div style={{ background: '#030712', minHeight: '100vh', color: '#f9fafb', position: 'relative', overflowX: 'hidden' }} className="mobile-sticky-pad">
@@ -83,9 +103,9 @@ export default function App() {
       <div className="orb" style={{ width: '28vw', height: '28vw', background: 'var(--amber)', top: '38%', right: '8%', animationDelay: '-10s', opacity: 0.12 }} />
 
       <PrototypeBanner onToggle={setBannerVisible} />
-      <Header scrolled={scrolled} goto={goto} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bannerVisible={bannerVisible} />
+      <Header scrolled={scrolled} goto={goto} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bannerVisible={bannerVisible} openModal={() => openPlanModal('Elite Expert')} />
       <main>
-        <Hero goto={goto} />
+        <Hero goto={goto} openModal={() => openPlanModal('Elite Expert')} />
         <div className="section-sep" />
         <Ticker />
         <div className="section-sep" />
@@ -93,18 +113,18 @@ export default function App() {
         <div className="section-sep" />
         <Facilities />
         <div className="section-sep" />
-        <Pricing goto={goto} />
+        <Pricing goto={goto} openModal={openPlanModal} />
         <div className="section-sep" />
         <Testimonials />
         <div className="section-sep" />
         <FAQ />
         <div className="section-sep" />
-        <FinalCTA goto={goto} />
+        <FinalCTA goto={goto} openModal={() => openPlanModal('Elite Expert')} />
       </main>
       <Footer goto={goto} />
 
       {/* Floating CTA — desktop only */}
-      <FloatingCTA goto={goto} />
+      <FloatingCTA openModal={() => openPlanModal('Elite Expert')} />
 
       {/* Mobile sticky bottom bar */}
       <div className="mobile-sticky-bar">
@@ -112,8 +132,14 @@ export default function App() {
           <p style={{ fontWeight: 800, fontSize: '0.85rem', lineHeight: 1 }}>Join Expert<span style={{ color: '#10b981' }}>28</span></p>
           <p style={{ color: '#6b7280', fontSize: '0.65rem', marginTop: '0.15rem' }}>From <span style={{ color: '#10b981' }}>$8</span> / week</p>
         </div>
-        <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '0.75rem 1.5rem', fontSize: '0.78rem', flexShrink: 0 }} onMouseDown={addRipple}>Join Now</button>
+        <button onClick={() => openPlanModal('7-Day Trial')} className="btn-blue" style={{ padding: '0.75rem 1.5rem', fontSize: '0.78rem', flexShrink: 0 }} onMouseDown={addRipple}>Join Now</button>
       </div>
+
+      <JoinModal 
+        isOpen={modalOpen} 
+        onClose={() => setModalOpen(false)} 
+        selectedPlan={selectedPlan} 
+      />
     </div>
   );
 }
@@ -134,7 +160,7 @@ function PrototypeBanner({ onToggle }: { onToggle: (show: boolean) => void }) {
 
 // ─── HEADER ───────────────────────────────────────────────────────────────────
 
-function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible }: any) {
+function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, openModal }: any) {
   const links = [
     { label: 'Facilities', id: 'facilities' },
     { label: "What's Included", id: 'included' },
@@ -175,8 +201,8 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible }: an
         </nav>
 
         <div className="nav-desktop">
-          <button onClick={() => goto('pricing')} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', marginRight: '0.75rem' }}>Log in</button>
-          <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '0.5rem 1.25rem', fontSize: '0.8rem' }} onMouseDown={addRipple}>Join Expert28</button>
+          <button onClick={() => goto('pricing')} style={{ background: 'none', border: 'none', color: '#4b5563', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', marginRight: '0.75rem' }}>Log in</button>
+          <button onClick={openModal} className="btn-blue" style={{ padding: '0.5rem 1.25rem', fontSize: '0.8rem' }} onMouseDown={addRipple}>Join Expert28</button>
         </div>
 
         <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', padding: '0.4rem', color: '#f9fafb', cursor: 'pointer', zIndex: 101, position: 'relative' }}>
@@ -192,7 +218,7 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible }: an
         {links.map(l => (
           <button key={l.id} onClick={() => goto(l.id)} style={{ background: 'none', border: 'none', textAlign: 'left', fontSize: '1.75rem', fontWeight: 900, color: '#f9fafb', cursor: 'pointer', letterSpacing: '-0.02em', padding: '0.25rem 0', minHeight: '48px' }}>{l.label}</button>
         ))}
-        <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1.1rem', fontSize: '1rem', marginTop: '2rem', borderRadius: '1rem', minHeight: '48px' }} onMouseDown={addRipple}>Join Expert28</button>
+        <button onClick={openModal} className="btn-blue" style={{ padding: '1.1rem', fontSize: '1rem', marginTop: '2rem', borderRadius: '1rem', minHeight: '48px' }} onMouseDown={addRipple}>Join Expert28</button>
       </div>
 
       <style>{`
@@ -207,7 +233,7 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible }: an
 
 // ─── HERO ─────────────────────────────────────────────────────────────────────
 
-function Hero({ goto }: any) {
+function Hero({ goto, openModal }: any) {
   const { ref, visible } = useReveal();
   const members = useCountUp(500, 0, visible);
   const rating  = useCountUp(4.9, 1, visible);
@@ -249,7 +275,7 @@ function Hero({ goto }: any) {
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '0.85rem 2rem', fontSize: '0.85rem' }} onMouseDown={addRipple}>Join Expert28</button>
+          <button onClick={openModal} className="btn-blue" style={{ padding: '0.85rem 2rem', fontSize: '0.85rem' }} onMouseDown={addRipple}>Join Expert28</button>
           <button onClick={() => goto('facilities')} className="btn-outline-white" style={{ padding: '0.85rem 2rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', minHeight: '48px' }}>
             View Facility <ChevronRight size={14}/>
           </button>
@@ -421,7 +447,7 @@ function Facilities() {
 
 // ─── PRICING ──────────────────────────────────────────────────────────────────
 
-function Pricing({ goto }: any) {
+function Pricing({ goto, openModal }: any) {
   const { ref, visible } = useReveal();
   const plans = [
     { name: 'Base Expert', price: 29, per: '/mo', desc: 'Full access for the consistent athlete.', popular: false, badge: null, features: ['Unlimited Facility Access', 'All 6 Training Zones', 'Locker Access', 'Open 7 days/week'] },
@@ -466,7 +492,7 @@ function Pricing({ goto }: any) {
                   </div>
                 ))}
               </div>
-              <button onClick={() => goto('pricing')} style={{ width: '100%', padding: '0.85rem', borderRadius: '0.5rem', fontWeight: 700, fontSize: '0.82rem', letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer', border: 'none', background: plan.popular ? '#2563eb' : 'rgba(255,255,255,0.07)', color: '#f9fafb', transition: 'background 0.2s, transform 0.15s', minHeight: '48px', position: 'relative', overflow: 'hidden' }}
+              <button onClick={() => openModal(plan.name)} style={{ width: '100%', padding: '0.85rem', borderRadius: '0.5rem', fontWeight: 700, fontSize: '0.82rem', letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer', border: 'none', background: plan.popular ? '#2563eb' : 'rgba(255,255,255,0.07)', color: '#f9fafb', transition: 'background 0.2s, transform 0.15s', minHeight: '48px', position: 'relative', overflow: 'hidden' }}
                 onMouseDown={addRipple}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = plan.popular ? '#1d4ed8' : 'rgba(255,255,255,0.12)'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = plan.popular ? '#2563eb' : 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)'; }}>
@@ -574,7 +600,7 @@ function FAQ() {
 
 // ─── FINAL CTA ────────────────────────────────────────────────────────────────
 
-function FinalCTA({ goto }: any) {
+function FinalCTA({ goto, openModal }: any) {
   return (
     <section style={{ position: 'relative', overflow: 'hidden', borderTop: '1px solid rgba(16,185,129,0.15)', borderBottom: '1px solid rgba(16,185,129,0.15)', padding: 'var(--section-pad) 2rem', textAlign: 'center' }}>
       {/* Radial emerald glow */}
@@ -592,7 +618,7 @@ function FinalCTA({ goto }: any) {
           The ultimate environment for athletes who refuse to settle for average. Join 500+ members today.
         </p>
         <div className="cta-group-box" style={{ margin: '0 auto' }}>
-          <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1rem 2.5rem', fontSize: '0.9rem', minHeight: '48px' }} onMouseDown={addRipple}>Join Expert28</button>
+          <button onClick={openModal} className="btn-blue" style={{ padding: '1rem 2.5rem', fontSize: '0.9rem', minHeight: '48px' }} onMouseDown={addRipple}>Join Expert28</button>
           <button onClick={() => goto('facilities')} className="btn-outline-white" style={{ padding: '1rem 2.5rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', minHeight: '48px' }}>
             View Facility <ArrowRight size={14}/>
           </button>
@@ -646,9 +672,9 @@ function Footer({ goto }: any) {
 
 // ─── FLOATING CTA ─────────────────────────────────────────────────────────────
 
-function FloatingCTA({ goto }: any) {
+function FloatingCTA({ openModal }: any) {
   return (
-    <button onClick={() => goto('pricing')} className="floating-cta" onMouseDown={addRipple}>
+    <button onClick={openModal} className="floating-cta" onMouseDown={addRipple}>
       <Zap size={13} />
       Join Expert28
       <ChevronRight size={12} />
