@@ -93,10 +93,10 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible }: an
       padding: '0.9rem 2rem', display: 'flex', alignItems: 'center',
       justifyContent: 'space-between', transition: 'all 0.3s',
     }}>
-      <div onClick={() => window.scrollTo(0,0)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-        <div style={{ width: 32, height: 32, background: '#10b981', borderRadius: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.75rem', color: '#030712' }}>28</div>
+      <div onClick={() => window.scrollTo(0,0)} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+        <img src="/Logo.png" alt="Expert28" style={{ height: 32, width: 'auto', borderRadius: '0.2rem' }} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-          <span style={{ fontWeight: 800, fontSize: '1rem', letterSpacing: '-0.02em', lineHeight: 1 }}>Expert<span style={{ color: '#10b981' }}>28</span></span>
+          <span style={{ fontWeight: 800, fontSize: '0.95rem', letterSpacing: '-0.02em', lineHeight: 1 }}>Expert<span style={{ color: '#10b981' }}>28</span></span>
           <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#f59e0b', letterSpacing: '0.05em' }}>PROTOTYPE</span>
         </div>
       </div>
@@ -470,8 +470,8 @@ function Footer({ goto }: any) {
   return (
     <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '3rem 2rem 6rem', maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '3rem' }} className="footer-grid">
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-          <div style={{ width: 28, height: 28, background: '#10b981', borderRadius: '0.35rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.65rem', color: '#030712' }}>28</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+          <img src="/Logo.png" alt="Expert28" style={{ height: 28, width: 'auto', borderRadius: '0.2rem' }} />
           <span style={{ fontWeight: 800, fontSize: '0.95rem' }}>Expert<span style={{ color: '#10b981' }}>28</span></span>
         </div>
         <p style={{ color: '#4b5563', fontSize: '0.78rem', lineHeight: 1.7, maxWidth: '240px' }}>Modern institutional gym for unrelenting athletes. Open 7 days.</p>
