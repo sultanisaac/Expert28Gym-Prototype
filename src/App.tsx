@@ -36,7 +36,12 @@ export default function App() {
   };
 
   return (
-    <div style={{ background: '#030712', minHeight: '100vh', color: '#f9fafb' }}>
+    <div style={{ background: '#030712', minHeight: '100vh', color: '#f9fafb', position: 'relative', overflowX: 'hidden' }}>
+      {/* Background Orbs */}
+      <div className="orb" style={{ width: '40vw', height: '40vw', background: 'var(--emerald)', top: '-10%', left: '-10%' }} />
+      <div className="orb" style={{ width: '30vw', height: '30vw', background: 'var(--blue-cta)', bottom: '10%', right: '-5%', animationDelay: '-5s' }} />
+      <div className="orb" style={{ width: '25vw', height: '25vw', background: 'var(--amber)', top: '40%', right: '10%', animationDelay: '-10s', opacity: 0.05 }} />
+
       <PrototypeBanner onToggle={setBannerVisible} />
       <Header scrolled={scrolled} goto={goto} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bannerVisible={bannerVisible} />
       <main>
@@ -61,10 +66,9 @@ function PrototypeBanner({ onToggle }: { onToggle: (show: boolean) => void }) {
   const [show, setShow] = useState(true);
   if (!show) return null;
   return (
-    <div id="proto-banner" style={{ background: '#f59e0b', color: '#030712', padding: '0.4rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', position: 'relative', zIndex: 1100 }}>
-      <span>🧬 PROTOTYPE</span>
-      <span>•</span>
-      <span>This is a design prototype. The branding is live but data is for demo purposes only.</span>
+    <div id="proto-banner" style={{ background: '#f59e0b', color: '#030712', padding: '0.45rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', fontSize: '0.62rem', fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', position: 'relative', zIndex: 1100, fontFamily: 'monospace' }}>
+      <Shield size={14} />
+      <span>PROTOTYPE — Design System v1.0.4 • Content for preview only.</span>
       <button onClick={() => { setShow(false); onToggle(false); }} style={{ position: 'absolute', right: '1rem', color: '#030712', background: 'none', border: 'none', cursor: 'pointer' }}><X size={14}/></button>
     </div>
   );
@@ -99,9 +103,9 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible }: an
 
       <nav className="nav-desktop">
         {links.map(l => (
-          <button key={l.id} onClick={() => goto(l.id)} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', transition: 'color 0.2s' }}
-            onMouseEnter={e => (e.currentTarget.style.color = '#f9fafb')}
-            onMouseLeave={e => (e.currentTarget.style.color = '#9ca3af')}>
+          <button key={l.id} onClick={() => goto(l.id)} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s', letterSpacing: '0.05em', textTransform: 'uppercase', position: 'relative' }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#f9fafb'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#9ca3af'; }}>
             {l.label}
           </button>
         ))}
@@ -117,11 +121,11 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible }: an
       </button>
 
       {mobileOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: '#030712', zIndex: -1, paddingTop: '5rem', padding: '6rem 2rem 2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(3,7,18,0.98)', backdropFilter: 'blur(10px)', zIndex: -1, paddingTop: '7rem', padding: '7rem 2rem 2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {links.map(l => (
-            <button key={l.id} onClick={() => goto(l.id)} style={{ background: 'none', border: 'none', textAlign: 'left', fontSize: '1.5rem', fontWeight: 700, color: '#f9fafb', cursor: 'pointer' }}>{l.label}</button>
+            <button key={l.id} onClick={() => goto(l.id)} style={{ background: 'none', border: 'none', textAlign: 'left', fontSize: '2rem', fontWeight: 900, color: '#f9fafb', cursor: 'pointer', letterSpacing: '-0.02em' }}>{l.label}</button>
           ))}
-          <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1rem', fontSize: '1rem', marginTop: '1rem' }}>Join Expert28</button>
+          <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1.25rem', fontSize: '1rem', marginTop: '2rem', borderRadius: '1rem' }}>Join Expert28</button>
         </div>
       )}
     </header>
@@ -420,14 +424,16 @@ function FAQ() {
         </h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {faqs.map((faq, i) => (
-            <div key={i} style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${open === i ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.07)'}`, borderRadius: '0.75rem', overflow: 'hidden', transition: 'border-color 0.2s' }}>
-              <button onClick={() => setOpen(open === i ? null : i)} style={{ width: '100%', padding: '1.1rem 1.25rem', background: 'none', border: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', color: '#f9fafb', fontWeight: 600, fontSize: '0.88rem', textAlign: 'left', gap: '1rem' }}>
+            <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${open === i ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.06)'}`, borderRadius: '1rem', overflow: 'hidden', transition: 'all 0.3s' }}>
+              <button onClick={() => setOpen(open === i ? null : i)} style={{ width: '100%', padding: '1.25rem 1.5rem', background: 'none', border: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', color: open === i ? '#10b981' : '#f9fafb', fontWeight: 700, fontSize: '0.95rem', textAlign: 'left', gap: '1rem' }}>
                 {faq.q}
-                <ChevronRight size={16} color="#6b7280" style={{ transform: open === i ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }} />
+                <div style={{ width: 24, height: 24, borderRadius: '50%', background: open === i ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}>
+                  <ChevronRight size={14} style={{ transform: open === i ? 'rotate(90deg)' : 'none', transition: 'transform 0.3s' }} />
+                </div>
               </button>
-              {open === i && (
-                <div style={{ padding: '0 1.25rem 1.1rem', color: '#6b7280', fontSize: '0.82rem', lineHeight: 1.7 }}>{faq.a}</div>
-              )}
+              <div className={`faq-answer ${open === i ? 'open' : ''}`}>
+                <div style={{ padding: '0 1.5rem 1.5rem', color: '#9ca3af', fontSize: '0.88rem', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '1.25rem' }}>{faq.a}</div>
+              </div>
             </div>
           ))}
         </div>
