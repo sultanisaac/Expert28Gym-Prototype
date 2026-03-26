@@ -40,22 +40,13 @@ h1 {
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
+  font-family: inherit;
 }
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: 2px solid rgba(163, 230, 53, 0.5);
+  outline-offset: 2px;
 }
 
 @media (prefers-color-scheme: light) {
@@ -248,6 +239,22 @@ button:focus-visible {
   animation: sweep 2s linear infinite;
 }
 
+/* FIX #7: Replaced broken border-sweep (z-index: -1 bug) with working glow-on-hover */
+.glow-on-hover {
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+.glow-on-hover:hover {
+  box-shadow: 0 0 0 1px rgba(163, 230, 53, 0.6),
+              0 0 24px rgba(163, 230, 53, 0.25);
+  transform: translateY(-1px);
+}
+
+/* bg-white/8 utility (not in Tailwind by default) */
+.bg-white\/8 {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
@@ -295,4 +302,123 @@ button:focus-visible {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #333;
+}
+
+/* ═══════════════════════════════════════
+   PHASE 7 — VISUAL POWER UPGRADES
+   ═══════════════════════════════════════ */
+
+/* 1. Animated Background Orbs */
+@keyframes orb-drift {
+  0%,  100% { transform: translate(0px,    0px)   scale(1);    }
+  25%        { transform: translate(40px,  -30px)  scale(1.06); }
+  50%        { transform: translate(-25px,  40px)  scale(0.94); }
+  75%        { transform: translate(25px,   25px)  scale(1.03); }
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: orb-drift var(--orb-dur, 10s) ease-in-out infinite;
+}
+
+.orb-lime-xl {
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(163,230,53,0.10) 0%, transparent 65%);
+  filter: blur(60px);
+  --orb-dur: 12s;
+}
+
+.orb-lime-md {
+  width: 450px;
+  height: 450px;
+  background: radial-gradient(circle, rgba(163,230,53,0.07) 0%, transparent 65%);
+  filter: blur(50px);
+  --orb-dur: 16s;
+  animation-delay: -5s;
+}
+
+.orb-lime-sm {
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(200,255,100,0.06) 0%, transparent 65%);
+  filter: blur(40px);
+  --orb-dur: 9s;
+  animation-delay: -2s;
+}
+
+/* 2. Hero Light Ray Sweep */
+@keyframes light-sweep {
+  0%   { transform: translateX(-150%) skewX(-15deg); opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 0.6; }
+  100% { transform: translateX(350%)  skewX(-15deg); opacity: 0; }
+}
+
+.light-ray {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 80px;
+  height: 100%;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(163,230,53,0.05) 40%,
+    rgba(163,230,53,0.08) 50%,
+    rgba(163,230,53,0.05) 60%,
+    transparent 100%
+  );
+  animation: light-sweep 8s ease-in-out infinite;
+  animation-delay: 3s;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Second ray — offset for layered effect */
+.light-ray-2 {
+  width: 40px;
+  animation-delay: 6.5s;
+  opacity: 0.6;
+}
+
+/* 3. Gradient Text */
+.gradient-text {
+  background: linear-gradient(125deg, #a3e635 0%, #d9f99d 50%, #ffffff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 4. Scroll Reveal */
+.reveal-item {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.65s ease-out, transform 0.65s ease-out;
+}
+
+.reveal-item.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 5. Diagonal Section Accent Bands */
+.section-angle-accent {
+  position: absolute;
+  left: -5%;
+  right: -5%;
+  height: 120px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.section-angle-accent.bottom {
+  bottom: -40px;
+  transform: skewY(-1.5deg);
+}
+
+.section-angle-accent.top {
+  top: -40px;
+  transform: skewY(-1.5deg);
 }

@@ -4,66 +4,67 @@
 **Primary Goal**: Transform from a "flat" layout to a "Premium Athletic Brand" experience.
 **Related Issue**: #2
 
-## 1. Hero Section — The Critical Fix
-- [x] **CSS Background**: Replace gradient blobs with a CSS-generated dark atmosphere (noise, diagonal lines, or mesh grid).
-- [x] **Lime Gradient Band**: Add a subtle angled lime band across the hero.
-- [x] **Headline Animation**: Staggered word-by-word entrance for "Train Hard. Get Stronger."
-- [x] **Watermark "28"**: Add large, partially off-screen "28" watermark in background.
-- [x] **Stats Row**: Style with glass-effect bar (backdrop-blur, semi-transparent border).
-- [x] **Scan Line Animation**: Add lime horizontal scan line/gradient sweep for energy.
+---
 
-## 2. Background and Section Depth
-- [x] **Section Alternation**: Use diagonal stripe texture at low opacity for "Why Choose Us".
-- [x] **Angular Graphics**: Add faint angular corner graphics to the "Facilities" section.
-- [x] **Pricing Glow**: Deep charcoal background for "Pricing" with a lime-tinted glow behind the featured card.
-- [x] **Global Grain**: Low-opacity noise texture across all dark surfaces.
-- [x] **Decorative Lines**: Add thin angled lime accents to Hero and Final CTA.
+## Phase 1 — Hero & Foundation ✅
+- [x] CSS Background (noise, diagonal lines, mesh grid)
+- [x] Lime Gradient Band
+- [x] Staggered Headline Animation
+- [x] "28" Watermark (scaled responsive)
+- [x] Stats Glass Row + Scanline
+- [x] Scan Line Animation
 
-## 3. Cards — Hierarchy & Variety
-- [x] **Feature Cards**: Large bleeding icons (20% lime tint on hover), plus top-border glow.
-- [x] **Facilities Detail**: Large Lucide icons as faded watermarks with small numbered tags (01, 02...).
-- [x] **Pricing Scale**: Featured card sized at `scale-105`, with a lime shadow and top bar separation.
-- [x] **Testimonials**: Scale opening quotation marks in lime as a background element.
+## Phase 2 — Section Depth & Typography ✅
+- [x] Diagonal stripe textures on alternating sections
+- [x] Angular graphics + lime glow on Facilities
+- [x] Pricing glow behind featured card
+- [x] Global noise texture overlay
+- [x] Decorative lime accent lines
+- [x] Responsive `text-7xl` headings with italic uppercase
+- [x] Lime overline labels above each section heading
+- [x] One lime-highlighted word per headline
 
-## 4. Scroll-Triggered Presence
-- [x] **Intersection Observer**: Trigger `fadeInUp` as sections enter view.
-- [x] **Staggered Entrance**: 100ms delays between card transitions.
-- [x] **Count-Up Animation**: Auto count-up for numbers (500+, 4.9/5) when scrolling into view.
-- [x] **Hero Parallax**: Subtle vertical offset for background elements.
+## Phase 3 — Cards & Interactivity ✅
+- [x] Feature Cards: icon hover + corner accent
+- [x] Facilities: numbered tags, faded watermarks
+- [x] Pricing: `scale-105` featured card with lime glow
+- [x] Testimonials: quote watermarks in background
+- [x] Pricing Toggle: Monthly/Yearly billing + live price
+- [x] Lucide `Check` icons on all feature lists
 
-## 5. Typography — Bolder & Expressive
-- [x] **Headline Upscaling**: Boost main headings to `text-5xl` or `text-6xl`.
-- [x] **Tighter Kerning**: Reduce `letter-spacing` on headings for "athletic" feel.
-- [x] **Overline Labels**: Add small caps, lime-colored overlines (e.g., "OUR FACILITIES").
-- [x] **Accent Focus**: Reserve lime usage for a single critical word per headline.
+## Phase 4 — Scroll & Animation ✅
+- [x] Intersection Observer for stats count-up (viewport-triggered)
+- [x] 100–700ms staggered hero entrance delays
+- [x] Animated metrics: Members, Rating, Days, Equipment
+- [x] Hero parallax watermark
 
-## 6. Premium Navigation
-- [x] **Animated Underline**: Sliding lime underline for active/hovered links.
-- [x] **Frosted Header**: Add glass-morphism (backdrop-blur + border) on scroll.
-- [x] **Urgency Micro-animation**: Pulsing lime dot next to "Join Today".
+## Phase 5 — Navigation & Conversion ✅
+- [x] Animated lime underline on nav hover
+- [x] Glazsmorphism header on scroll
+- [x] Pulsing urgency dot on header CTA
+- [x] "No lock-in contract" on all pricing cards
+- [x] Growth Bar: capacity indicator
 
-## 7. Conversion Optimization (Pricing)
-- [x] **Value Callout**: Add Monthly/Yearly toggle and "Save 30-40%" badges.
-- [x] **Visual Checkmarks**: Replace standard dots with Lucide `Check` icons.
-- [x] **Reassurance**: Add "No lock-in contract" footer to the section.
+## Phase 6 — Bug Fixes & UX Audit ✅
+- [x] FIX #1: Secondary CTAs visible (border-white/50 + bg-white/8)
+- [x] FIX #2: Header CTA visible pre-scroll
+- [x] FIX #3: Pricing non-popular CTAs visible + hover action
+- [x] FIX #4: Mobile CTA bar fully opaque (bg-black)
+- [x] FIX #5: Stats count label corrected (no "24h Equipment Zone")
+- [x] FIX #6: WhatsIncluded `id="included"` + nav link
+- [x] FIX #7: Border-sweep z-index bug → replaced with `.glow-on-hover`
+- [x] FIX #8: "28" watermark mobile overflow fixed
+- [x] FIX #9: Mobile section padding reduced (py-24 → py-16)
+- [x] FIX #10: Mid-section CTAs in WhyChooseUs + WhatsIncluded
+- [x] FIX #11: FAQ restored from 4 → 9 questions
+- [x] FIX #12: Mobile carousel dot indicators
 
-## 8. Social Proof & Trust
-- [x] **Gallery Grid**: CSS gradient panels for "Strength Zone", "Cardio Area", etc.
-- [x] **Growth Bar**: Progress-style visual ("500 members and growing") with capacity tag.
-- [x] **Visual Language**: Stronger result metrics with icons and progress indicators.
-
-## 9. Mobile UX Improvements
-- [x] **Touch Targets**: Min 48px height for all interactive elements.
-- [x] **Mobile CTA Fade**: Gradient fade-up for the bottom navigation bar.
-- [x] **Attention Bounce**: Micro-animation on First Page Load for the "Join Now" button.
-- [x] **Headline Stacking**: Limit mobile headline to 2 lines max at larger sizes.
-- [x] **Horizontal Scroll**: Use horizontal carousels for testimonials on mobile.
-
-## 10. Final CTA — Dramatic Finale
-- [x] **Gradient Band**: Diagonal gradient from charcoal to black with lime-tinted edge.
-- [x] **Watermark Text**: Background "JOIN NOW" text overlay.
-- [x] **Border Sweep**: Thin lime sweep animation around CTA buttons on hover.
-- [x] **Trust Line**: "No commitment required. Start today." subtext.
+## Phase 7 — Visual Power Upgrade ✅
+- [x] **Animated Orbs**: 3-tier lime radial gradient orbs (xl/md/sm) drift slowly across Hero, WhyChooseUs, WhatsIncluded, Pricing, SocialProof, FinalCTA
+- [x] **Hero Light Rays**: Two staggered CSS light-sweep animations (8s/6.5s offset) cross the hero periodically
+- [x] **Gradient Text**: `.gradient-text` (lime→cream→white) applied to all key headline words — "Hard.", "Progress.", "Better.", "Included.", "Plan.", "Members.", "Real Training"
+- [x] **Scroll-Reveal Cards**: `useRevealGrid()` hook — all card grids (WhyChooseUs, Facilities, WhatsIncluded, Pricing) reveal with staggered `fadeInUp` as they enter the viewport
+- [x] **Diagonal Section Accents**: Skewed CSS band at top of Facilities section for angular depth
 
 ---
-*Implementation should follow the GITHUB_ISSUES_GUIDE protocol. Each phase update is to be commented on Issue #2.*
+*All phase updates posted to Issue #2 per the GITHUB_ISSUES_GUIDE protocol.*
