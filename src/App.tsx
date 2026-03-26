@@ -1,136 +1,122 @@
 import './App.css';
-import { Button } from './components/ui/button';
-import { Card } from './components/ui/card';
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './components/ui/accordion';
-import { Dumbbell, Zap, Users, TrendingUp, Shield, Star, Menu, X, Check, ArrowRight } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { Dumbbell, Zap, Users, TrendingUp, Shield, Star, Menu, X, ArrowRight, ChevronRight, Clock, CheckCircle2 } from 'lucide-react';
 
-// ─── SCROLL REVEAL HOOK ───────────────────────────────────────────────────────
-function useRevealGrid() {
+// ─── HOOKS ────────────────────────────────────────────────────────────────────
+
+function useReveal() {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
-    if (!ref.current) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.unobserve(entry.target); } },
-      { threshold: 0.08 }
-    );
-    observer.observe(ref.current);
+    const observer = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) setVisible(true);
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
   }, []);
   return { ref, visible };
 }
 
-function App() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+// ─── ROOT ─────────────────────────────────────────────────────────────────────
+
+export default function App() {
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const fn = () => setScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', fn);
+    return () => window.removeEventListener('scroll', fn);
   }, []);
 
-  const scrollToSection = (id: string) => {
-    setMobileMenuOpen(false);
-    const element = document.getElementById(id);
-    element?.scrollIntoView({ behavior: 'smooth' });
+  const goto = (id: string) => {
+    setMobileOpen(false);
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
-    <div className="bg-black text-white min-h-screen noise-overlay selection:bg-lime-400 selection:text-black">
-      <Header scrolled={scrolled} scrollToSection={scrollToSection} mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
-
-      <Hero scrollToSection={scrollToSection} />
-      <StatsSection />
-      <WhyChooseUs scrollToSection={scrollToSection} />
-      <Facilities />
-      <WhatsIncluded scrollToSection={scrollToSection} />
-      <Pricing scrollToSection={scrollToSection} />
-      <SocialProof />
-      <FAQ />
-      <FinalCTA scrollToSection={scrollToSection} />
-      <Footer />
-      <MobileBottomCTA scrollToSection={scrollToSection} />
+    <div style={{ background: '#030712', minHeight: '100vh', color: '#f9fafb' }}>
+      <PrototypeBanner />
+      <Header scrolled={scrolled} goto={goto} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+      <main>
+        <Hero goto={goto} />
+        <Ticker />
+        <WhatsIncluded />
+        <Facilities />
+        <Pricing goto={goto} />
+        <Testimonials />
+        <FAQ />
+        <FinalCTA goto={goto} />
+      </main>
+      <Footer goto={goto} />
+      <FloatingCTA goto={goto} />
     </div>
   );
 }
 
-// ─── HEADER ──────────────────────────────────────────────────────────────────
+// ─── PROTOTYPE BANNER ─────────────────────────────────────────────────────────
 
-function Header({ scrolled, scrollToSection, mobileMenuOpen, setMobileMenuOpen }: any) {
-  const navLinks = [
-    { label: 'Why Us', id: 'why' },
+function PrototypeBanner() {
+  const [show, setShow] = useState(true);
+  if (!show) return null;
+  return (
+    <div style={{ background: 'rgba(245,158,11,0.15)', borderBottom: '1px solid rgba(245,158,11,0.3)', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.05em', color: '#f59e0b' }}>
+      <span>⚠</span>
+      <span>PROTOTYPE — This is a design prototype. Content is for demo purposes only.</span>
+      <button onClick={() => setShow(false)} style={{ marginLeft: 'auto', color: '#f59e0b', background: 'none', border: 'none', cursor: 'pointer' }}><X size={14}/></button>
+    </div>
+  );
+}
+
+// ─── HEADER ───────────────────────────────────────────────────────────────────
+
+function Header({ scrolled, goto, mobileOpen, setMobileOpen }: any) {
+  const links = [
     { label: 'Facilities', id: 'facilities' },
-    { label: 'Included', id: 'included' },
-    { label: 'Membership', id: 'pricing' },
-    { label: 'Results', id: 'social-proof' },
+    { label: "What's Included", id: 'included' },
+    { label: 'Pricing', id: 'pricing' },
+    { label: 'Results', id: 'testimonials' },
     { label: 'FAQ', id: 'faq' },
   ];
-
   return (
-    <header className={`sticky top-0 z-40 transition-all duration-500 ${scrolled ? 'bg-black/90 backdrop-blur-xl border-b border-white/5 py-3' : 'bg-black/20 backdrop-blur-sm py-5'}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-        <div className="text-2xl font-black tracking-tighter group cursor-pointer" onClick={() => scrollToSection('hero')}>
-          <span className="text-white">Expert</span><span className="text-lime-400 group-hover:drop-shadow-[0_0_8px_rgba(163,230,53,0.6)] transition-all">28</span>
-        </div>
-
-        <nav className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <button
-              key={link.id}
-              onClick={() => scrollToSection(link.id)}
-              className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors duration-200 relative group"
-            >
-              {link.label}
-              <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-lime-400 transition-all duration-300 group-hover:w-full" />
-            </button>
-          ))}
-        </nav>
-
-        {/* FIX #2: Header CTA visible in both transparent and scrolled states */}
-        <div className="hidden md:flex items-center gap-4">
-          <Button
-            onClick={() => scrollToSection('pricing')}
-            size="sm"
-            className={`font-black text-xs uppercase tracking-widest rounded-none h-10 px-6 transition-all duration-300 flex items-center gap-2 ${
-              scrolled
-                ? 'bg-lime-400 text-black hover:bg-lime-300'
-                : 'bg-white/10 border border-white/40 text-white hover:bg-lime-400 hover:text-black hover:border-lime-400'
-            }`}
-          >
-            <span className="pulsing-dot" />
-            Join Today
-          </Button>
-        </div>
-
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden text-white p-2 hover:text-lime-400 transition-colors"
-          aria-label="Toggle menu"
-        >
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+    <header style={{
+      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+      background: scrolled ? 'rgba(3,7,18,0.9)' : 'transparent',
+      backdropFilter: scrolled ? 'blur(20px)' : 'none',
+      borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : 'none',
+      padding: '0.9rem 2rem', display: 'flex', alignItems: 'center',
+      justifyContent: 'space-between', transition: 'all 0.3s',
+    }}>
+      <div onClick={() => window.scrollTo(0,0)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+        <div style={{ width: 32, height: 32, background: '#10b981', borderRadius: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.75rem', color: '#030712' }}>28</div>
+        <span style={{ fontWeight: 800, fontSize: '1rem', letterSpacing: '-0.02em' }}>Expert<span style={{ color: '#10b981' }}>28</span></span>
       </div>
 
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-black border-t border-white/5 px-4 py-8 animate-in fade-in slide-in-from-top-4 duration-200">
-          <nav className="flex flex-col gap-5">
-            {navLinks.map((link) => (
-              <button
-                key={link.id}
-                onClick={() => scrollToSection(link.id)}
-                className="text-base font-black uppercase tracking-tighter text-gray-300 hover:text-lime-400 transition-colors text-left border-b border-white/5 pb-5"
-              >
-                {link.label}
-              </button>
-            ))}
-            <Button onClick={() => scrollToSection('pricing')} className="w-full bg-lime-400 text-black hover:bg-lime-300 mt-2 rounded-none font-black h-14 text-xs uppercase tracking-widest">
-              JOIN EXPERT28 →
-            </Button>
-          </nav>
+      <nav style={{ display: 'flex', gap: '2rem', alignItems: 'center' }} className="hidden md:flex">
+        {links.map(l => (
+          <button key={l.id} onClick={() => goto(l.id)} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', transition: 'color 0.2s' }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#f9fafb')}
+            onMouseLeave={e => (e.currentTarget.style.color = '#9ca3af')}>
+            {l.label}
+          </button>
+        ))}
+      </nav>
+
+      <div className="hidden md:flex" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+        <button onClick={() => goto('pricing')} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer' }}>Log in</button>
+        <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '0.5rem 1.25rem', fontSize: '0.8rem' }}>Join Expert28</button>
+      </div>
+
+      <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', padding: '0.4rem', color: '#f9fafb', cursor: 'pointer' }}>
+        {mobileOpen ? <X size={18}/> : <Menu size={18}/>}
+      </button>
+
+      {mobileOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: '#030712', zIndex: -1, paddingTop: '5rem', padding: '6rem 2rem 2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {links.map(l => (
+            <button key={l.id} onClick={() => goto(l.id)} style={{ background: 'none', border: 'none', textAlign: 'left', fontSize: '1.5rem', fontWeight: 700, color: '#f9fafb', cursor: 'pointer' }}>{l.label}</button>
+          ))}
+          <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1rem', fontSize: '1rem', marginTop: '1rem' }}>Join Expert28</button>
         </div>
       )}
     </header>
@@ -139,185 +125,125 @@ function Header({ scrolled, scrollToSection, mobileMenuOpen, setMobileMenuOpen }
 
 // ─── HERO ─────────────────────────────────────────────────────────────────────
 
-function Hero({ scrollToSection }: any) {
+function Hero({ goto }: any) {
   return (
-    <section id="hero" className="relative min-h-[95vh] md:min-h-screen flex items-center justify-center overflow-hidden gym-grid">
-      {/* Animated Orbs */}
-      <div className="orb orb-lime-xl" style={{ top: '-200px', left: '-200px' }} />
-      <div className="orb orb-lime-md" style={{ bottom: '-100px', right: '-100px' }} />
-      <div className="orb orb-lime-sm" style={{ top: '40%', left: '60%' }} />
-
-      {/* Light Rays */}
-      <div className="light-ray" />
-      <div className="light-ray light-ray-2" />
-
-      <div className="absolute -left-1/4 top-0 w-1/2 h-full bg-lime-400/5 -skew-x-12 blur-3xl pointer-events-none" />
-      
-      {/* FIX #8: Watermark scaled down on mobile to prevent overflow */}
-      <div className="absolute -right-10 md:-right-20 -bottom-10 md:-bottom-20 select-none pointer-events-none opacity-[0.07] animate-in fade-in duration-1000 delay-500 overflow-hidden">
-        <h2 className="text-[10rem] md:text-[30rem] font-black italic tracking-tighter text-stroke-lime leading-none">28</h2>
-      </div>
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20 z-10">
-        <div className="inline-block mb-6 animate-in fade-in slide-in-from-bottom-2 duration-700 fill-mode-both">
-          <span className="text-xs font-black uppercase tracking-[0.4em] text-lime-400 border-l-2 border-lime-400 pl-3">
-            Premium Fitness Excellence
-          </span>
+    <section id="hero" style={{ paddingTop: '7rem', paddingBottom: '5rem', maxWidth: '1280px', margin: '0 auto', padding: '7rem 2rem 5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }} className="grid-hero">
+      {/* Left */}
+      <div>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '999px', padding: '0.3rem 0.85rem', marginBottom: '1.75rem' }}>
+          <Zap size={11} color="#10b981" />
+          <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#10b981' }}>Expert28 Gym — Join Now</span>
         </div>
 
-        <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[7.5rem] font-black tracking-tighter mb-8 leading-[0.85] uppercase italic">
-          <span className="block animate-in fade-in slide-in-from-right-8 duration-700 delay-100 fill-mode-both">
-            Train <span className="gradient-text">Hard.</span>
-          </span>
-          <span className="block animate-in fade-in slide-in-from-right-8 duration-700 delay-200 fill-mode-both">
-            Get <span className="text-white">Stronger.</span>
-          </span>
+        <h1 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: '1.5rem' }}>
+          Get Stronger.<br />
+          <span style={{ color: '#10b981' }}>Train Smarter.</span><br />
+          In 28 Days.
         </h1>
 
-        <p className="text-base md:text-xl text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed font-medium animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500 fill-mode-both">
-          Experience a professional training environment designed for real progress, quality equipment, and results-driven consistency.
+        <p style={{ color: '#9ca3af', fontSize: '1rem', lineHeight: 1.7, maxWidth: '440px', marginBottom: '2rem' }}>
+          6x/week access · Elite equipment · Expert coaching — designed for athletes who refuse to settle for average results.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-700 fill-mode-both">
-          <Button onClick={() => scrollToSection('pricing')} size="lg" className="bg-lime-400 text-black hover:bg-lime-300 font-black text-xs uppercase tracking-widest h-16 px-12 rounded-none glow-on-hover">
-            Start Your Journey
-          </Button>
-          <Button onClick={() => scrollToSection('pricing')} variant="outline" size="lg" className="border-white/50 bg-white/8 text-white hover:bg-white hover:text-black font-black text-xs uppercase tracking-widest h-16 px-12 rounded-none transition-all duration-300">
-            Claim Free Week
-          </Button>
+        {/* Stats */}
+        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', marginBottom: '2.5rem' }}>
+          <div><p style={{ fontWeight: 900, fontSize: '1.75rem', letterSpacing: '-0.03em', lineHeight: 1 }}>500+</p><p style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 500, marginTop: '0.2rem' }}>Active Members</p></div>
+          <div className="stat-divider" />
+          <div><p style={{ fontWeight: 900, fontSize: '1.75rem', letterSpacing: '-0.03em', lineHeight: 1 }}>4.9/5</p><p style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 500, marginTop: '0.2rem' }}>Member Rating</p></div>
+          <div className="stat-divider" />
+          <div><p style={{ fontWeight: 900, fontSize: '1.75rem', letterSpacing: '-0.03em', lineHeight: 1 }}>7</p><p style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 500, marginTop: '0.2rem' }}>Days a Week</p></div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '0.85rem 2rem', fontSize: '0.85rem' }}>Join Expert28</button>
+          <button onClick={() => goto('facilities')} className="btn-outline-white" style={{ padding: '0.85rem 2rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            View Facility <ChevronRight size={14}/>
+          </button>
         </div>
       </div>
-      
-      <div className="absolute bottom-10 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-lime-400/20 to-transparent" />
+
+      {/* Right — Photo card */}
+      <div className="hero-image-card" style={{ aspectRatio: '4/5', background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <img
+          src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1000&auto=format"
+          alt="Expert28 Gym"
+          style={{ width: '100%', height: '80%', objectFit: 'cover' }}
+          onError={(e: any) => e.target.src = 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=1000'}
+        />
+        <div style={{ padding: '1.25rem', background: 'rgba(255,255,255,0.03)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <p style={{ color: '#10b981', fontWeight: 700, fontSize: '0.9rem' }}>Expert28 Gym</p>
+          <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.15rem' }}>Industrial Zone — Open 7 Days</p>
+          <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', animation: 'pulse 2s infinite' }} />
+            <span style={{ fontSize: '0.65rem', color: '#10b981', fontWeight: 600 }}>Open Now</span>
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        @media (max-width: 768px) { .grid-hero { grid-template-columns: 1fr !important; padding-top: 5rem !important; } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+      `}</style>
     </section>
   );
 }
 
-// ─── STATS ────────────────────────────────────────────────────────────────────
+// ─── TICKER ───────────────────────────────────────────────────────────────────
 
-function StatsSection() {
-  const [counts, setCounts] = useState([0, 0, 0, 0]);
-  // FIX #5: Corrected stat labels and suffixes — no more "24h Equipment Zone"
-  const stats = [
-    { label: 'Active Members', display: 500, suffix: '+' },
-    { label: 'Member Rating', display: 4.9, suffix: '/5' },
-    { label: 'Days a Week', display: 7, suffix: '' },
-    { label: 'Pieces of Equipment', display: 80, suffix: '+' },
-  ];
-
-  useEffect(() => {
-    const section = document.getElementById('stats-section');
-    if (!section) return;
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        const duration = 2000;
-        const frameRate = 1000 / 60;
-        const totalFrames = Math.round(duration / frameRate);
-        let currentFrame = 0;
-        const timer = setInterval(() => {
-          currentFrame++;
-          const progress = currentFrame / totalFrames;
-          const newCounts = stats.map(stat => {
-            const val = stat.display * progress;
-            return stat.display % 1 === 0 ? Math.floor(val) : parseFloat(val.toFixed(1));
-          });
-          setCounts(newCounts);
-          if (currentFrame === totalFrames) clearInterval(timer);
-        }, frameRate);
-        observer.unobserve(section);
-      }
-    }, { threshold: 0.1 });
-    observer.observe(section);
-    return () => observer.disconnect();
-  }, []);
-
+function Ticker() {
+  const items = ['ELITE EQUIPMENT', 'EXPERT COACHING', '7-DAY ACCESS', 'ZERO LOCK-IN', '500+ MEMBERS', 'OPEN EVERY DAY', 'OLYMPIC PLATFORMS', 'INSTANT RESULTS', 'ELITE EQUIPMENT', 'EXPERT COACHING', '7-DAY ACCESS', 'ZERO LOCK-IN', '500+ MEMBERS', 'OPEN EVERY DAY', 'OLYMPIC PLATFORMS', 'INSTANT RESULTS'];
   return (
-    <section id="stats-section" className="py-16 bg-black relative z-10 -mt-16 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-white/5 border border-white/5 glass-panel overflow-hidden scanline">
-          {stats.map((stat, i) => (
-            <div key={i} className="py-10 md:py-14 px-6 text-center border-white/5 md:border-r last:border-0 hover:bg-white/5 transition-colors group">
-              <p className="text-lime-400 font-black text-3xl md:text-5xl tracking-tighter mb-1 group-hover:scale-110 transition-transform duration-500 italic">
-                {counts[i]}{stat.suffix}
-              </p>
-              <p className="text-gray-500 uppercase font-black text-[10px] tracking-[0.3em]">
-                {stat.label}
-              </p>
-            </div>
-          ))}
-        </div>
-        {/* Growth Bar */}
-        <div className="mt-10 max-w-2xl mx-auto">
-          <div className="flex justify-between items-end mb-2">
-            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-600 italic">Capacity reached</span>
-            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-lime-400 italic">500 Members & Growing</span>
-          </div>
-          <div className="h-[1px] w-full bg-white/5 relative">
-            <div className="absolute top-0 left-0 h-full bg-lime-400 w-3/4" />
-            <div className="absolute top-[-3px] left-[75%] w-[1px] h-[7px] bg-lime-400 shadow-[0_0_8px_rgba(163,230,53,0.8)]" />
-          </div>
-        </div>
+    <div className="ticker-wrap" style={{ padding: '0.75rem 0', margin: '2rem 0' }}>
+      <div className="ticker-track">
+        {items.map((item, i) => (
+          <span key={i} style={{ padding: '0 2rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.15em', color: '#4b5563' }}>
+            {item} <span style={{ color: '#10b981', marginLeft: '2rem' }}>•</span>
+          </span>
+        ))}
       </div>
-    </section>
+    </div>
   );
 }
 
-// ─── WHY CHOOSE US ────────────────────────────────────────────────────────────
+// ─── WHAT'S INCLUDED ──────────────────────────────────────────────────────────
 
-function WhyChooseUs({ scrollToSection }: any) {
-  const features = [
-    { title: 'Full Gym Equipment', icon: Dumbbell, description: 'Complete range of free weights, machines, and strength equipment for every goal.' },
-    { title: 'Strength & Cardio Zones', icon: Zap, description: 'Dedicated spaces for focused training — no crowding, no waiting.' },
-    { title: 'Clean Modern Facility', icon: Shield, description: 'Immaculate gym maintained to the highest standards every single day.' },
-    { title: 'Flexible Membership', icon: TrendingUp, description: 'Day passes, monthly, and premium plans that adapt to your lifestyle.' },
-    { title: 'Group Classes', icon: Users, description: 'High-energy guided classes for all levels, included in premium plans.' },
-    { title: 'Welcoming Environment', icon: Star, description: 'Train alongside people committed to progress, from beginners to advanced.' },
+function WhatsIncluded() {
+  const { ref, visible } = useReveal();
+  const items = [
+    { icon: Clock, title: '6x/week Access', desc: 'Unrestricted access to all zones, any time, any day.' },
+    { icon: Dumbbell, title: 'Olympic Equipment', desc: 'Rogue racks, platforms, and premium iron — no compromises.' },
+    { icon: Users, title: 'Expert Coaching', desc: 'Guided sessions with certified performance coaches on-site.' },
+    { icon: Shield, title: 'Institutional Standards', desc: 'A meticulously maintained, professional-grade environment.' },
+    { icon: TrendingUp, title: 'Progress Tracking', desc: 'Built-in structure to track your lifts, habits, and results.' },
+    { icon: Star, title: 'Community Network', desc: 'Train alongside a community of 500+ dedicated athletes.' },
   ];
-  const grid = useRevealGrid();
 
   return (
-    <section id="why" className="py-16 md:py-40 bg-black relative overflow-hidden diag-stripes">
-      {/* Orb */}
-      <div className="orb orb-lime-md" style={{ top: '10%', right: '-150px' }} />
+    <section id="included" style={{ maxWidth: '1280px', margin: '0 auto', padding: '6rem 2rem' }}>
+      <div ref={ref} className={`reveal ${visible ? 'visible' : ''}`}>
+        <p className="section-label" style={{ marginBottom: '0.75rem' }}>What You'll Get</p>
+        <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '1rem' }}>
+          Everything <span style={{ color: '#10b981' }}>Included.</span>
+        </h2>
+        <p style={{ color: '#6b7280', fontSize: '0.95rem', maxWidth: '480px', lineHeight: 1.7, marginBottom: '3.5rem' }}>
+          All memberships include full access to every zone, every feature, and every coach on-site.
+        </p>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-16 md:mb-24">
-          <span className="text-[10px] font-black uppercase tracking-[0.5em] text-lime-400 block mb-4">Why Choose Us</span>
-          <h2 className="text-4xl md:text-7xl font-black tracking-tighter uppercase italic">
-            Built for <span className="gradient-text">Progress.</span>
-          </h2>
-        </div>
-
-        <div ref={grid.ref} className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {features.map((feature, i) => {
-            const Icon = feature.icon;
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+          {items.map((item, i) => {
+            const Icon = item.icon;
             return (
-              <div
-                key={i}
-                className="reveal-item"
-                style={{ transitionDelay: grid.visible ? `${i * 80}ms` : '0ms' }}
-                ref={(el) => { if (el && grid.visible) el.classList.add('is-visible'); }}
-              >
-                <Card className="bg-white/5 border-white/5 hover:border-lime-400/30 transition-all duration-500 p-8 md:p-10 rounded-none group relative overflow-hidden transform hover:-translate-y-2 h-full">
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-lime-400/5 translate-x-8 -translate-y-8 rotate-45 group-hover:bg-lime-400/15 transition-colors duration-500" />
-                  <Icon className="w-12 h-12 text-lime-400 mb-6 group-hover:scale-110 transition-transform duration-500" />
-                  <h3 className="text-lg font-black uppercase tracking-tight mb-3 italic">{feature.title}</h3>
-                  <p className="text-gray-400 leading-relaxed text-sm font-medium">{feature.description}</p>
-                </Card>
+              <div key={i} className="glass-card" style={{ padding: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start', transitionDelay: `${i * 60}ms` }}>
+                <div style={{ width: 36, height: 36, borderRadius: '0.5rem', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon size={18} color="#10b981" />
+                </div>
+                <div>
+                  <p style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.25rem' }}>{item.title}</p>
+                  <p style={{ color: '#6b7280', fontSize: '0.78rem', lineHeight: 1.6 }}>{item.desc}</p>
+                </div>
               </div>
             );
           })}
-        </div>
-
-        {/* FIX #10: Mid-section CTA */}
-        <div className="text-center mt-16">
-          <button
-            onClick={() => scrollToSection('pricing')}
-            className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-widest text-gray-400 hover:text-lime-400 transition-colors duration-200 group"
-          >
-            See membership plans
-            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-          </button>
         </div>
       </div>
     </section>
@@ -327,106 +253,46 @@ function WhyChooseUs({ scrollToSection }: any) {
 // ─── FACILITIES ───────────────────────────────────────────────────────────────
 
 function Facilities() {
-  const facilities = [
-    { title: 'Strength Zone', description: 'Free weights, benches, racks, and machines for serious strength training.' },
-    { title: 'Cardio Area', description: 'Treadmills, bikes, and conditioning equipment for endurance.' },
-    { title: 'Functional Space', description: 'Room for mobility work, circuits, and dynamic training sessions.' },
-    { title: 'Class Studio', description: 'Space for high-energy classes and guided workouts.' },
-    { title: 'Recovery Area', description: 'Locker rooms and shower facilities for after your session.' },
-    { title: 'Clean Facility', description: 'Well-maintained gym designed for comfort and daily consistency.' },
-  ];
-
-  const grid = useRevealGrid();
-
-  return (
-    <section id="facilities" className="py-16 md:py-40 bg-zinc-950 relative overflow-hidden">
-      {/* Diagonal accent top */}
-      <div className="section-angle-accent top bg-zinc-900/40" />
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-lime-400/[0.04] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-16 md:mb-24">
-          <span className="text-[10px] font-black uppercase tracking-[0.5em] text-lime-400 block mb-4">Our Facility</span>
-          <h2 className="text-4xl md:text-7xl font-black tracking-tighter uppercase italic leading-none">
-            Train <span className="gradient-text">Better.</span>
-          </h2>
-        </div>
-
-        <div ref={grid.ref} className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {facilities.map((facility, i) => (
-            <div key={i} className="reveal-item" style={{ transitionDelay: grid.visible ? `${i * 80}ms` : '0ms' }}
-              ref={(el) => { if (el && grid.visible) el.classList.add('is-visible'); }}>
-              <Card className="bg-black/40 border-white/5 rounded-none overflow-hidden hover:border-lime-400/30 transition-all duration-500 group h-full">
-                <div className="h-48 bg-gradient-to-br from-white/10 via-white/5 to-transparent relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-10 group-hover:opacity-25 transition-all duration-700 group-hover:scale-110">
-                    <Dumbbell size={120} className="text-white transform -rotate-12 group-hover:rotate-0 transition-transform duration-700" />
-                  </div>
-                  <div className="absolute top-4 left-4 bg-lime-400 text-black px-3 py-1 text-[10px] font-black uppercase">
-                    {(i + 1).toString().padStart(2, '0')}
-                  </div>
-                  <div className="absolute bottom-4 right-4 text-lime-400 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500">
-                    <TrendingUp size={20} />
-                  </div>
-                </div>
-                <div className="p-8">
-                  <h3 className="text-lg font-black uppercase tracking-tight mb-3 italic">{facility.title}</h3>
-                  <p className="text-gray-400 leading-relaxed text-sm font-medium">{facility.description}</p>
-                </div>
-              </Card>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── WHAT'S INCLUDED ──────────────────────────────────────────────────────────
-
-function WhatsIncluded({ scrollToSection }: any) {
-  const benefits = [
-    { title: 'Full Equipment Access', description: 'Every machine, rack, and training tool available with your membership.' },
-    { title: 'Group Workout Classes', description: 'Participate in high-energy group fitness sessions included in premium plans.' },
-    { title: 'Flexible Membership Plans', description: 'Day pass, monthly, or premium. No lock-in. Cancel anytime.' },
-    { title: 'Free Trial Access', description: 'Try the gym risk-free for a full week before committing to a plan.' },
-    { title: 'Clean Professional Environment', description: 'Top-tier cleanliness maintained daily so you can focus on training.' },
-    { title: 'Beginner-Friendly', description: 'Welcoming atmosphere for all fitness levels — no judgment, only progress.' },
+  const { ref, visible } = useReveal();
+  const zones = [
+    { badge: 'Strength', badgeClass: 'badge-emerald', title: 'The Expert Pit', desc: 'Olympic platforms, deadlift jacks, squat stands, and heavy iron from Rogue.', capacity: '20 slots', duration: 'Unlimited access', image: 'https://images.unsplash.com/photo-1534367610401-9f5ed68180aa?q=80&w=800' },
+    { badge: 'Conditioning', badgeClass: 'badge-amber', title: 'High-Octane Turf', desc: 'Sleds, battle ropes, 30m sprint turf, and functional training rigs.', capacity: '15 slots', duration: 'Unlimited access', image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=800' },
+    { badge: 'Coaching', badgeClass: 'badge-blue', title: 'The Crucible', desc: 'Dedicated coaching zone for guided high-intensity circuits and assessments.', capacity: '10 slots', duration: 'Expert-led' , image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=800' },
+    { badge: 'Hypertrophy', badgeClass: 'badge-purple', title: 'Isolation Zone', desc: 'Hammer Strength machines, cables, and premium isolation equipment.', capacity: '25 slots', duration: 'Unlimited access', image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=800' },
+    { badge: 'Recovery', badgeClass: 'badge-emerald', title: 'Recovery Vault', desc: 'Foam rollers, stretching area, and professional-grade recovery tools.', capacity: 'Open', duration: 'Unlimited access', image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=800' },
+    { badge: 'Community', badgeClass: 'badge-blue', title: 'The Arena', desc: 'A shared training floor for group sessions, challenges, and open workouts.', capacity: '30 slots', duration: 'All members', image: 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=800' },
   ];
 
   return (
-    /* FIX #6: Added id="included" for nav link */
-    <section id="included" className="py-16 md:py-40 bg-black border-y border-white/5">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16 md:mb-24">
-          <span className="text-[10px] font-black uppercase tracking-[0.5em] text-lime-400 block mb-4">Gym Benefits</span>
-          <h2 className="text-4xl md:text-7xl font-black tracking-tighter uppercase italic">
-            What's <span className="text-lime-400">Included.</span>
+    <section id="facilities" style={{ background: 'rgba(255,255,255,0.015)', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '6rem 2rem' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+        <div ref={ref} className={`reveal ${visible ? 'visible' : ''}`}>
+          <p className="section-label" style={{ marginBottom: '0.75rem' }}>The Facility</p>
+          <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: '1rem' }}>
+            Your Training <span style={{ color: '#10b981' }}>Zones.</span>
           </h2>
-        </div>
+          <p style={{ color: '#6b7280', fontSize: '0.95rem', maxWidth: '480px', lineHeight: 1.7, marginBottom: '3.5rem' }}>
+            Six purpose-built performance zones, each dialed to a specific training goal.
+          </p>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {benefits.map((benefit, i) => (
-            <Card key={i} className="bg-white/5 border-white/5 p-8 rounded-none hover:border-lime-400/30 transition-all duration-500 group">
-              <div className="flex items-start gap-5">
-                <div className="w-4 h-4 rounded-full bg-lime-400 mt-1.5 flex-shrink-0 group-hover:scale-125 transition-transform duration-300" />
-                <div>
-                  <h3 className="text-base font-black uppercase tracking-tight mb-2 italic">{benefit.title}</h3>
-                  <p className="text-gray-400 text-sm leading-relaxed font-medium">{benefit.description}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+            {zones.map((zone, i) => (
+              <div key={i} className="glass-card" style={{ overflow: 'hidden', transitionDelay: `${i * 60}ms` }}>
+                <img src={zone.image} alt={zone.title} style={{ width: '100%', height: '180px', objectFit: 'cover' }} onError={(e: any) => e.target.src = 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=800'} />
+                <div style={{ padding: '1.25rem' }}>
+                  <div style={{ marginBottom: '0.75rem' }}>
+                    <span className={`badge ${zone.badgeClass}`}>{zone.badge}</span>
+                  </div>
+                  <h3 style={{ fontWeight: 800, fontSize: '1rem', marginBottom: '0.4rem', letterSpacing: '-0.01em' }}>{zone.title}</h3>
+                  <p style={{ color: '#6b7280', fontSize: '0.78rem', lineHeight: 1.6, marginBottom: '1rem' }}>{zone.desc}</p>
+                  <div style={{ display: 'flex', gap: '1rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)', fontSize: '0.65rem', fontWeight: 600, color: '#4b5563', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Users size={11} color="#10b981" />{zone.capacity}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Clock size={11} color="#10b981" />{zone.duration}</span>
+                  </div>
                 </div>
               </div>
-            </Card>
-          ))}
-        </div>
-
-        {/* FIX #10: Mid-section CTA */}
-        <div className="text-center mt-16">
-          <button
-            onClick={() => scrollToSection('pricing')}
-            className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-widest text-gray-400 hover:text-lime-400 transition-colors duration-200 group"
-          >
-            Choose your plan
-            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-          </button>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -435,132 +301,52 @@ function WhatsIncluded({ scrollToSection }: any) {
 
 // ─── PRICING ──────────────────────────────────────────────────────────────────
 
-function Pricing({ scrollToSection }: any) {
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
-  const grid = useRevealGrid();
-
+function Pricing({ goto }: any) {
+  const { ref, visible } = useReveal();
   const plans = [
-    {
-      name: 'Day Pass',
-      price: '$8',
-      period: '',
-      description: 'Perfect for first-timers. Try the full gym before committing to a plan.',
-      features: ['Full gym access', 'Valid for 1 day', 'No registration required'],
-      popular: false,
-      cta: 'Get Day Pass',
-      save: null,
-    },
-    {
-      name: 'Monthly',
-      price: billingCycle === 'monthly' ? '$29' : '$19',
-      period: '/month',
-      description: 'The most popular choice. Full access, flexible, no commitment.',
-      features: ['Full equipment access', 'Open 7 days a week', 'Locker access', 'Shower facilities'],
-      popular: true,
-      cta: 'Join Now',
-      save: billingCycle === 'yearly' ? 'Save 35%' : 'Best Value',
-    },
-    {
-      name: 'Premium',
-      price: billingCycle === 'monthly' ? '$49' : '$35',
-      period: '/month',
-      description: 'Everything in Monthly plus unlimited group classes and priority perks.',
-      features: ['All Monthly features', 'Unlimited group classes', 'Priority gym hours', 'Guest passes (2/month)'],
-      popular: false,
-      cta: 'Choose Premium',
-      save: billingCycle === 'yearly' ? 'Save 30%' : null,
-    },
+    { name: 'Base Expert', price: 29, per: '/mo', desc: 'Full access for the consistent athlete.', popular: false, badge: null, features: ['Unlimited Facility Access', 'All 6 Training Zones', 'Locker Access', 'Open 7 days/week'] },
+    { name: 'Elite Expert', price: 49, per: '/mo', desc: 'Maximum results with elite support.', popular: true, badge: 'Most Popular', features: ['Everything in Base', 'Expert Coaching Sessions', '2x Monthly Guest Passes', 'Priority Booking', 'Recovery Vault Access'] },
+    { name: '7-Day Trial', price: 8, per: '/week', desc: 'Zero commitment. Full access.', popular: false, badge: null, features: ['Full Facility Access', 'One-on-One Assessment', 'No lock-in', 'Cancellable anytime'] },
   ];
 
   return (
-    <section id="pricing" className="py-16 md:py-40 bg-zinc-950 relative overflow-hidden">
-      {/* Orbs for depth */}
-      <div className="orb orb-lime-xl" style={{ bottom: '-300px', left: '50%', transform: 'translateX(-50%)' }} />
-      <div className="orb orb-lime-md" style={{ top: '-100px', right: '-150px' }} />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <span className="text-[10px] font-black uppercase tracking-[0.5em] text-lime-400 block mb-4">Pricing Plans</span>
-          <h2 className="text-4xl md:text-7xl font-black tracking-tighter uppercase italic">
-            Pick Your <span className="gradient-text">Plan.</span>
-          </h2>
+    <section id="pricing" style={{ maxWidth: '1280px', margin: '0 auto', padding: '6rem 2rem' }}>
+      <div ref={ref} className={`reveal ${visible ? 'visible' : ''}`}>
+        <p className="section-label" style={{ marginBottom: '0.75rem', textAlign: 'center' }}>Membership</p>
+        <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: '1rem', textAlign: 'center' }}>
+          Choose Your <span style={{ color: '#10b981' }}>Plan.</span>
+        </h2>
+        <p style={{ color: '#6b7280', textAlign: 'center', fontSize: '0.95rem', marginBottom: '3.5rem', maxWidth: '440px', margin: '0 auto 3.5rem' }}>
+          No hidden fees, no long-term lock-ins. Just access to the best training environment in the city.
+        </p>
 
-          {/* Billing Toggle */}
-          <div className="flex items-center justify-center mt-10 gap-4">
-            <span className={`text-xs font-black uppercase tracking-widest transition-colors ${billingCycle === 'monthly' ? 'text-white' : 'text-gray-500'}`}>Monthly</span>
-            <button
-              onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
-              className="w-14 h-7 bg-white/10 border border-white/10 rounded-full relative focus:outline-none focus:ring-2 focus:ring-lime-400/50"
-              aria-label="Toggle billing cycle"
-            >
-              <div className={`absolute top-1 w-5 h-5 bg-lime-400 rounded-full transition-all duration-300 shadow-lg ${billingCycle === 'monthly' ? 'left-1' : 'left-8'}`} />
-            </button>
-            <span className={`text-xs font-black uppercase tracking-widest transition-colors ${billingCycle === 'yearly' ? 'text-white' : 'text-gray-500'}`}>
-              Yearly <span className="text-lime-400 ml-1">(-40%)</span>
-            </span>
-          </div>
-        </div>
-
-        <div ref={grid.ref} className="grid md:grid-cols-3 gap-6 lg:gap-8 items-center">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem', alignItems: 'start' }}>
           {plans.map((plan, i) => (
-            <div key={i} className="reveal-item" style={{ transitionDelay: grid.visible ? `${i * 100}ms` : '0ms' }}
-              ref={(el) => { if (el && grid.visible) el.classList.add('is-visible'); }}>
-              <Card
-                className={`relative border transition-all duration-500 rounded-none overflow-hidden flex flex-col ${
-                  plan.popular
-                    ? 'border-lime-400 bg-black scale-100 md:scale-105 z-10 lime-glow'
-                    : 'border-white/5 bg-white/5 hover:border-lime-400/20'
-                }`}
-              >
-              {plan.popular && (
-                <div className="bg-lime-400 text-black py-2 text-center text-[10px] font-black uppercase tracking-widest">
-                  Most Popular
+            <div key={i} className="glass-card" style={{ padding: '2rem', position: 'relative', border: plan.popular ? '1px solid rgba(16,185,129,0.4)' : '1px solid rgba(255,255,255,0.08)', background: plan.popular ? 'rgba(16,185,129,0.06)' : undefined }}>
+              {plan.badge && (
+                <div style={{ position: 'absolute', top: '-0.75rem', left: '50%', transform: 'translateX(-50%)', background: '#10b981', color: '#030712', fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '0.25rem 0.9rem', borderRadius: '999px' }}>
+                  {plan.badge}
                 </div>
               )}
-              {plan.save && !plan.popular && (
-                <div className="bg-white/5 border-b border-white/5 py-2 text-center text-[10px] font-black uppercase tracking-widest text-lime-400">
-                  {plan.save}
-                </div>
-              )}
-              {plan.popular && plan.save && (
-                <div className="absolute top-10 right-4 bg-lime-400/10 text-lime-400 px-3 py-1 text-[9px] font-black uppercase tracking-widest border border-lime-400/20">
-                  {plan.save}
-                </div>
-              )}
-
-              <div className="p-8 flex flex-col flex-1">
-                <h3 className="text-xl font-black uppercase tracking-tighter mb-3 italic">{plan.name}</h3>
-                <div className="mb-4 flex items-baseline gap-1">
-                  <span className="text-5xl font-black text-lime-400 tracking-tighter italic">{plan.price}</span>
-                  <span className="text-gray-500 font-bold text-xs uppercase tracking-widest">{plan.period}</span>
-                </div>
-                <p className="text-gray-400 text-sm mb-8 font-medium leading-relaxed">{plan.description}</p>
-
-                {/* FIX #3: Non-popular plan CTAs have clearly visible styling */}
-                <Button
-                  onClick={() => scrollToSection('pricing')}
-                  className={`w-full mb-8 font-black text-xs uppercase tracking-widest h-14 rounded-none transition-all duration-300 ${
-                    plan.popular
-                      ? 'bg-lime-400 text-black hover:bg-lime-300 shadow-[0_0_20px_rgba(163,230,53,0.3)]'
-                      : 'bg-white/10 border border-white/25 text-white hover:bg-lime-400 hover:text-black hover:border-lime-400'
-                  }`}
-                >
-                  {plan.cta}
-                </Button>
-
-                <div className="space-y-3 border-t border-white/10 pt-6 flex-1">
-                  {plan.features.map((feature, j) => (
-                    <div key={j} className="flex items-center gap-3 text-xs font-bold uppercase tracking-tight">
-                      <Check size={13} className="text-lime-400 flex-shrink-0" />
-                      <span className="text-gray-300">{feature}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <p className="mt-8 text-[9px] text-gray-600 font-bold text-center uppercase tracking-widest">
-                  No lock-in contract. Cancel anytime.
-                </p>
+              <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '0.3rem' }}>{plan.name}</h3>
+              <p style={{ color: '#6b7280', fontSize: '0.78rem', marginBottom: '1.5rem' }}>{plan.desc}</p>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <span style={{ fontSize: '2.75rem', fontWeight: 900, letterSpacing: '-0.04em', color: plan.popular ? '#10b981' : '#f9fafb' }}>${plan.price}</span>
+                <span style={{ color: '#6b7280', fontSize: '0.8rem', fontWeight: 500 }}>{plan.per}</span>
               </div>
-            </Card>
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '1rem 0', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                {plan.features.map((f, j) => (
+                  <div key={j} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.78rem', color: '#d1d5db' }}>
+                    <CheckCircle2 size={13} color="#10b981" />
+                    {f}
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => goto('pricing')} style={{ width: '100%', padding: '0.85rem', borderRadius: '0.5rem', fontWeight: 700, fontSize: '0.82rem', letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer', border: 'none', background: plan.popular ? '#2563eb' : 'rgba(255,255,255,0.07)', color: '#f9fafb', transition: 'background 0.2s' }}
+                onMouseEnter={e => e.currentTarget.style.background = plan.popular ? '#1d4ed8' : 'rgba(255,255,255,0.12)'}
+                onMouseLeave={e => e.currentTarget.style.background = plan.popular ? '#2563eb' : 'rgba(255,255,255,0.07)'}>
+                Join Expert28
+              </button>
             </div>
           ))}
         </div>
@@ -569,103 +355,38 @@ function Pricing({ scrollToSection }: any) {
   );
 }
 
-// ─── SOCIAL PROOF ─────────────────────────────────────────────────────────────
+// ─── TESTIMONIALS ─────────────────────────────────────────────────────────────
 
-function SocialProof() {
-  const [activeTestimonial, setActiveTestimonial] = useState(0);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  const results = [
-    { label: 'Lost 5kg', sub: 'In 8 Weeks', icon: TrendingUp },
-    { label: 'Strength +25%', sub: 'On main lifts', icon: Dumbbell },
-    { label: '90% Consistency', sub: 'Training routine', icon: Zap },
-    { label: 'Confidence', sub: 'Mental growth', icon: Star },
+function Testimonials() {
+  const { ref, visible } = useReveal();
+  const reviews = [
+    { name: 'Rafi M.', result: 'Lost 5kg · 8 weeks', text: 'Absolute elite environment. No crowds, top-tier iron, and a community that actually trains hard.' },
+    { name: 'Dina K.', result: 'Strength PR +15%', text: 'The standard here is institutional. Everything is built for real athletic progress, not casual fitness.' },
+    { name: 'Kevin A.', result: '5 days/week consistent', text: 'I finally found a gym that prioritizes tension and focus over distractions. Expert28 changed my training.' },
   ];
-
-  const testimonials = [
-    {
-      text: 'Expert28 gave me a place where I actually wanted to train consistently. The gym feels serious, clean, and motivating.',
-      author: 'Rafi',
-      age: 26,
-    },
-    {
-      text: 'I tried other gyms before, but Expert28 felt much better in terms of atmosphere and equipment. Worth every penny.',
-      author: 'Dina',
-      age: 24,
-    },
-    {
-      text: 'The membership was simple, the facility was great, and I felt comfortable training even as a beginner.',
-      author: 'Kevin',
-      age: 30,
-    },
-  ];
-
-  // FIX #12: Track scroll position for carousel dot indicators
-  const handleScroll = () => {
-    if (!scrollRef.current) return;
-    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-    const cardWidth = scrollWidth / testimonials.length;
-    setActiveTestimonial(Math.round(scrollLeft / cardWidth));
-  };
 
   return (
-    <section id="social-proof" className="py-16 md:py-40 bg-black relative overflow-hidden">
-      <div className="absolute top-10 left-10 text-[16rem] md:text-[20rem] font-black text-lime-400/[0.03] select-none pointer-events-none transform -rotate-12">"</div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-16 md:mb-24">
-          <span className="text-[10px] font-black uppercase tracking-[0.5em] text-lime-400 block mb-4">Community Results</span>
-          <h2 className="text-4xl md:text-7xl font-black tracking-tighter uppercase italic leading-none">
-            Real <span className="gradient-text">Members.</span>
+    <section id="testimonials" style={{ background: 'rgba(255,255,255,0.015)', borderTop: '1px solid rgba(255,255,255,0.06)', padding: '6rem 2rem' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+        <div ref={ref} className={`reveal ${visible ? 'visible' : ''}`}>
+          <p className="section-label" style={{ marginBottom: '0.75rem', textAlign: 'center' }}>Proven Results</p>
+          <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: '3.5rem', textAlign: 'center' }}>
+            Elite <span style={{ color: '#10b981' }}>Results.</span>
           </h2>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16 md:mb-24">
-          {results.map((item, i) => {
-            const Icon = item.icon;
-            return (
-              <Card key={i} className="bg-white/5 border-white/5 p-6 md:p-8 text-center rounded-none group hover:bg-white/10 transition-all duration-500 transform hover:-translate-y-1">
-                <div className="flex flex-col items-center">
-                  <Icon className="w-5 h-5 text-lime-400 mb-3 opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300" />
-                  <p className="text-white font-black uppercase tracking-tighter text-sm italic mb-1">{item.label}</p>
-                  <p className="text-gray-500 font-bold uppercase text-[9px] tracking-widest">{item.sub}</p>
-                  <div className="mt-3 w-6 h-[1px] bg-lime-400/30 group-hover:w-full transition-all duration-700" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
+            {reviews.map((r, i) => (
+              <div key={i} className="glass-card" style={{ padding: '1.75rem' }}>
+                <p style={{ color: '#d1d5db', fontSize: '0.88rem', lineHeight: 1.7, marginBottom: '1.5rem', fontStyle: 'italic' }}>"{r.text}"</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(16,185,129,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.75rem', color: '#10b981' }}>{r.name[0]}</div>
+                  <div>
+                    <p style={{ fontWeight: 700, fontSize: '0.85rem' }}>{r.name}</p>
+                    <p style={{ color: '#10b981', fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{r.result}</p>
+                  </div>
                 </div>
-              </Card>
-            );
-          })}
-        </div>
-
-        {/* FIX #12: Horizontal carousel with dot indicators */}
-        <div
-          ref={scrollRef}
-          onScroll={handleScroll}
-          className="flex md:grid md:grid-cols-3 gap-6 overflow-x-auto pb-6 md:pb-0 snap-x snap-mandatory scrollbar-hide"
-        >
-          {testimonials.map((testimonial, i) => (
-            <Card key={i} className="min-w-[85vw] md:min-w-0 bg-white/5 border-white/5 p-8 md:p-10 rounded-none relative transform hover:-translate-y-2 transition-all duration-500 snap-center flex-shrink-0">
-              <div className="flex gap-1 mb-5">
-                {[...Array(5)].map((_, j) => (
-                  <Star key={j} size={12} className="fill-lime-400 text-lime-400" />
-                ))}
               </div>
-              <p className="text-gray-300 text-base leading-relaxed mb-8 italic">"{testimonial.text}"</p>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-[2px] bg-lime-400" />
-                <p className="font-black uppercase tracking-tighter italic text-sm">{testimonial.author}, {testimonial.age}</p>
-              </div>
-            </Card>
-          ))}
-        </div>
-
-        {/* Mobile carousel dot indicators */}
-        <div className="flex md:hidden justify-center gap-2 mt-6">
-          {testimonials.map((_, i) => (
-            <div
-              key={i}
-              className={`h-[2px] transition-all duration-300 ${i === activeTestimonial ? 'w-6 bg-lime-400' : 'w-2 bg-white/20'}`}
-            />
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -675,68 +396,36 @@ function SocialProof() {
 // ─── FAQ ──────────────────────────────────────────────────────────────────────
 
 function FAQ() {
-  // FIX #11: Restored full FAQ — 9 questions covering all common objections
+  const [open, setOpen] = useState<number | null>(null);
+  const { ref, visible } = useReveal();
   const faqs = [
-    {
-      question: 'Can I try the gym before joining?',
-      answer: 'Yes. You can claim a free trial week or purchase a day pass for just $8 to experience Expert28 before choosing a membership plan.',
-    },
-    {
-      question: 'Is Expert28 beginner-friendly?',
-      answer: 'Absolutely. The gym is designed for all levels — whether you have never trained before or have years of experience. The environment is supportive, not intimidating.',
-    },
-    {
-      question: 'What equipment does the gym have?',
-      answer: 'Expert28 includes a full strength zone with free weights and machines, a dedicated cardio area, functional training space, and a group class studio.',
-    },
-    {
-      question: 'Are group classes included in my membership?',
-      answer: 'Group classes are included in the Premium membership plan. Monthly members can add them as an optional upgrade.',
-    },
-    {
-      question: 'Is there a long-term commitment required?',
-      answer: 'No. All memberships are flexible with no lock-in contracts. You can cancel anytime without fees or penalties.',
-    },
-    {
-      question: 'What are the opening hours?',
-      answer: 'Expert28 is open 7 days a week: Monday–Friday 6:00 AM – 10:00 PM, Saturday–Sunday 8:00 AM – 8:00 PM.',
-    },
-    {
-      question: 'Does the gym get crowded?',
-      answer: 'Expert28 is intentionally sized to avoid overcrowding. Premium members also have access to priority hours, which are typically quieter.',
-    },
-    {
-      question: 'Are there showers and lockers available?',
-      answer: 'Yes. All paying members have access to locker rooms and shower facilities, making it easy to fit training into a busy schedule.',
-    },
-    {
-      question: 'How do I sign up?',
-      answer: 'Simply pick your plan above, click the join button, and complete the short sign-up form. You can start as soon as today.',
-    },
+    { q: 'Is Expert28 for beginners?', a: 'Expert28 is for anyone serious about progress — whether you\'re returning from a gap or a seasoned lifter. The environment is professional, not elitist.' },
+    { q: 'Are there long-term contracts?', a: 'No. We believe in performance, not lock-ins. All memberships are flexible and cancellable monthly.' },
+    { q: 'What equipment is available?', a: 'Rogue, Hammer Strength, and Olympic standard iron across all zones. No compromises on quality.' },
+    { q: 'Will the gym be crowded?', a: 'Membership capacity is strictly managed to ensure zero crowding. Every zone has reserved capacity limits.' },
+    { q: 'What are the opening hours?', a: 'Open every day of the week. Early access available for Elite Expert members from 5:30 AM.' },
   ];
 
   return (
-    <section id="faq" className="py-16 md:py-40 bg-zinc-950 border-t border-white/5">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <span className="text-[10px] font-black uppercase tracking-[0.5em] text-lime-400 block mb-4">FAQ</span>
-          <h2 className="text-4xl md:text-7xl font-black tracking-tighter uppercase italic">
-            Got <span className="text-lime-400">Questions?</span>
-          </h2>
-        </div>
-
-        <Accordion type="single" collapsible className="w-full space-y-3">
+    <section id="faq" style={{ maxWidth: '760px', margin: '0 auto', padding: '6rem 2rem' }}>
+      <div ref={ref} className={`reveal ${visible ? 'visible' : ''}`}>
+        <p className="section-label" style={{ marginBottom: '0.75rem', textAlign: 'center' }}>FAQ</p>
+        <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: '3rem', textAlign: 'center' }}>
+          Common <span style={{ color: '#10b981' }}>Questions.</span>
+        </h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {faqs.map((faq, i) => (
-            <AccordionItem key={i} value={`item-${i}`} className="border border-white/5 bg-white/5 px-6 rounded-none hover:border-white/10 transition-colors">
-              <AccordionTrigger className="text-left hover:text-lime-400 transition-colors py-5">
-                <span className="font-black uppercase tracking-tight italic text-sm">{faq.question}</span>
-              </AccordionTrigger>
-              <AccordionContent className="text-gray-400 pb-5 text-sm font-medium leading-relaxed">
-                {faq.answer}
-              </AccordionContent>
-            </AccordionItem>
+            <div key={i} style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${open === i ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.07)'}`, borderRadius: '0.75rem', overflow: 'hidden', transition: 'border-color 0.2s' }}>
+              <button onClick={() => setOpen(open === i ? null : i)} style={{ width: '100%', padding: '1.1rem 1.25rem', background: 'none', border: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', color: '#f9fafb', fontWeight: 600, fontSize: '0.88rem', textAlign: 'left', gap: '1rem' }}>
+                {faq.q}
+                <ChevronRight size={16} color="#6b7280" style={{ transform: open === i ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }} />
+              </button>
+              {open === i && (
+                <div style={{ padding: '0 1.25rem 1.1rem', color: '#6b7280', fontSize: '0.82rem', lineHeight: 1.7 }}>{faq.a}</div>
+              )}
+            </div>
           ))}
-        </Accordion>
+        </div>
       </div>
     </section>
   );
@@ -744,35 +433,21 @@ function FAQ() {
 
 // ─── FINAL CTA ────────────────────────────────────────────────────────────────
 
-function FinalCTA({ scrollToSection }: any) {
+function FinalCTA({ goto }: any) {
   return (
-    <section className="py-16 md:py-40 bg-black relative overflow-hidden">
-      {/* Orbs for dramatic finale */}
-      <div className="orb orb-lime-xl" style={{ top: '-200px', left: '-200px' }} />
-      <div className="orb orb-lime-md" style={{ bottom: '-200px', right: '-150px' }} />
-
-      <div className="absolute inset-0 bg-gradient-to-r from-lime-400/5 to-transparent pointer-events-none" />
-      <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-lime-400/20 to-transparent" />
-
-      <div className="absolute -left-10 bottom-0 select-none pointer-events-none opacity-[0.04]">
-        <h2 className="text-[12rem] md:text-[20rem] font-black italic tracking-tighter text-white uppercase leading-none">JOIN</h2>
-      </div>
-
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-        <h2 className="text-4xl md:text-[6rem] font-black tracking-tighter mb-8 leading-[0.9] uppercase italic">
-          Built for <span className="gradient-text">Real Training</span>
-        </h2>
-        <p className="text-gray-400 text-base md:text-xl mb-12 max-w-2xl mx-auto font-medium leading-relaxed">
-          No commitment required. Clean, modern, and motivating. Try it free for a full week.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button onClick={() => scrollToSection('pricing')} size="lg" className="bg-lime-400 text-black hover:bg-lime-300 font-black text-xs uppercase tracking-widest h-16 px-14 rounded-none glow-on-hover">
-            Join Expert28 Today
-          </Button>
-          <Button onClick={() => scrollToSection('pricing')} variant="outline" size="lg" className="border-white/50 bg-white/8 text-white hover:bg-white hover:text-black font-black text-xs uppercase tracking-widest h-16 px-14 rounded-none transition-all duration-300">
-            Claim Free Trial
-          </Button>
-        </div>
+    <section style={{ background: 'rgba(16,185,129,0.05)', borderTop: '1px solid rgba(16,185,129,0.15)', borderBottom: '1px solid rgba(16,185,129,0.15)', padding: '6rem 2rem', textAlign: 'center' }}>
+      <p className="section-label" style={{ marginBottom: '1rem' }}>Start Today</p>
+      <h2 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '1rem' }}>
+        Join the <span style={{ color: '#10b981' }}>Expert28</span> Community.
+      </h2>
+      <p style={{ color: '#6b7280', fontSize: '1rem', maxWidth: '440px', margin: '0 auto 2.5rem', lineHeight: 1.7 }}>
+        The ultimate environment for athletes who refuse to settle for average. Join 500+ members today.
+      </p>
+      <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1rem 2.5rem', fontSize: '0.9rem' }}>Join Expert28</button>
+        <button onClick={() => goto('facilities')} className="btn-outline-white" style={{ padding: '1rem 2.5rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          View Facility <ArrowRight size={14}/>
+        </button>
       </div>
     </section>
   );
@@ -780,77 +455,49 @@ function FinalCTA({ scrollToSection }: any) {
 
 // ─── FOOTER ───────────────────────────────────────────────────────────────────
 
-function Footer() {
+function Footer({ goto }: any) {
   return (
-    <footer className="bg-black border-t border-white/5 py-16 pb-32 md:pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-16 mb-16">
-          <div className="col-span-2 md:col-span-1">
-            <h3 className="text-xl font-black italic mb-4">
-              <span className="text-white">Expert</span><span className="text-lime-400">28</span>
-            </h3>
-            <p className="text-gray-500 text-xs leading-relaxed font-medium uppercase tracking-tight">
-              Modern gym membership for serious training and real progress.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-white mb-5 italic">Membership</h4>
-            <ul className="space-y-3 text-gray-500 text-xs font-bold uppercase tracking-widest">
-              <li><a href="#pricing" className="hover:text-lime-400 transition-colors">Day Pass</a></li>
-              <li><a href="#pricing" className="hover:text-lime-400 transition-colors">Monthly</a></li>
-              <li><a href="#pricing" className="hover:text-lime-400 transition-colors">Premium</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-white mb-5 italic">Explore</h4>
-            <ul className="space-y-3 text-gray-500 text-xs font-bold uppercase tracking-widest">
-              <li><a href="#facilities" className="hover:text-lime-400 transition-colors">Facilities</a></li>
-              <li><a href="#included" className="hover:text-lime-400 transition-colors">What's Included</a></li>
-              <li><a href="#social-proof" className="hover:text-lime-400 transition-colors">Results</a></li>
-              <li><a href="#faq" className="hover:text-lime-400 transition-colors">FAQ</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-white mb-5 italic">Contact</h4>
-            <ul className="space-y-3 text-gray-500 text-xs font-bold uppercase tracking-widest">
-              <li><a href="mailto:hello@expert28.com" className="hover:text-lime-400 transition-colors normal-case">hello@expert28.com</a></li>
-              <li><a href="tel:+00000000000" className="hover:text-lime-400 transition-colors">+00 000 000 000</a></li>
-              <li><a href="#" className="hover:text-lime-400 transition-colors">Instagram</a></li>
-            </ul>
-          </div>
+    <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '3rem 2rem', maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '3rem' }} className="footer-grid">
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+          <div style={{ width: 28, height: 28, background: '#10b981', borderRadius: '0.35rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.65rem', color: '#030712' }}>28</div>
+          <span style={{ fontWeight: 800, fontSize: '0.95rem' }}>Expert<span style={{ color: '#10b981' }}>28</span></span>
         </div>
-
-        <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-gray-700 text-[9px] font-bold uppercase tracking-widest">
-            © 2026 Expert28 Gym Prototype. All rights reserved.
-          </p>
-          <div className="flex gap-6 text-[9px] font-bold uppercase tracking-widest text-gray-700">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-          </div>
-        </div>
+        <p style={{ color: '#4b5563', fontSize: '0.78rem', lineHeight: 1.7, maxWidth: '240px' }}>Modern institutional gym for unrelenting athletes. Open 7 days.</p>
       </div>
+      <div>
+        <p style={{ color: '#9ca3af', fontWeight: 700, fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '1rem' }}>Navigate</p>
+        {['Facilities', "What's Included", 'Pricing', 'Results'].map((item, i) => (
+          <button key={i} onClick={() => goto(['facilities', 'included', 'pricing', 'testimonials'][i])} style={{ display: 'block', background: 'none', border: 'none', color: '#4b5563', fontSize: '0.8rem', marginBottom: '0.6rem', cursor: 'pointer', padding: 0, textAlign: 'left' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#f9fafb'}
+            onMouseLeave={e => e.currentTarget.style.color = '#4b5563'}>
+            {item}
+          </button>
+        ))}
+      </div>
+      <div>
+        <p style={{ color: '#9ca3af', fontWeight: 700, fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '1rem' }}>Social</p>
+        {['Instagram', 'Strava', 'YouTube'].map((item) => (
+          <a key={item} href="#" style={{ display: 'block', color: '#4b5563', fontSize: '0.8rem', marginBottom: '0.6rem', textDecoration: 'none' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#10b981'}
+            onMouseLeave={e => e.currentTarget.style.color = '#4b5563'}>
+            {item}
+          </a>
+        ))}
+      </div>
+      <style>{`@media (max-width: 768px) { .footer-grid { grid-template-columns: 1fr !important; } }`}</style>
     </footer>
   );
 }
 
-// ─── MOBILE BOTTOM CTA ────────────────────────────────────────────────────────
+// ─── FLOATING CTA ─────────────────────────────────────────────────────────────
 
-function MobileBottomCTA({ scrollToSection }: any) {
+function FloatingCTA({ goto }: any) {
   return (
-    /* FIX #4: Fully opaque background — no content bleeding through */
-    <div className="fixed bottom-0 left-0 right-0 md:hidden bg-black border-t border-white/10 p-3 z-30">
-      <Button
-        onClick={() => scrollToSection('pricing')}
-        className="w-full bg-lime-400 text-black hover:bg-lime-300 font-black h-14 rounded-none text-xs uppercase tracking-widest"
-      >
-        Join Expert28 — From $8
-      </Button>
-    </div>
+    <button onClick={() => goto('pricing')} className="floating-cta">
+      <Zap size={13} />
+      Join Expert28
+      <ChevronRight size={12} />
+    </button>
   );
 }
-
-export default App;
