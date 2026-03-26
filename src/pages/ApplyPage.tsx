@@ -101,8 +101,8 @@ export default function ApplyPage() {
               <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>{selectedPlan}</h2>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <p style={{ fontSize: '1.5rem', fontWeight: 900, color: '#10b981' }}>{selectedPlan === 'Base Expert' ? '$29' : selectedPlan === '7-Day Trial' ? '$8' : '$49'}</p>
-              <p style={{ fontSize: '0.7rem', color: '#6b7280' }}>One-time payment</p>
+              <p style={{ fontSize: '1.5rem', fontWeight: 900, color: '#10b981' }}>{selectedPlan === 'Base Expert' ? '$100' : selectedPlan === '7-Day Trial' ? '$40' : '$149'}</p>
+              <p style={{ fontSize: '0.7rem', color: '#6b7280' }}>{selectedPlan === '7-Day Trial' ? 'One-time payment' : 'per month'}</p>
             </div>
           </div>
 
