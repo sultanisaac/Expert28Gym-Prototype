@@ -220,7 +220,7 @@ The modal **no longer contains a form**. It becomes a conversion teaser:
 ### Dev implementation order:
 - [ ] Install `stripe` npm package ✅ (already done)
 - [ ] Create GitHub Issue ✅ ([Issue #3](https://github.com/sultanisaac26-create/Expert28Gym-Prototype/issues/3))
-- [ ] Create `.env.local` with real keys
+- [x] Create `.env.local` with real keys ✅
 - [ ] Create `vercel.json` for SPA route rewrites
 - [ ] Create `api/create-checkout-session.ts`
 - [ ] Create `src/pages/ApplyPage.tsx`
