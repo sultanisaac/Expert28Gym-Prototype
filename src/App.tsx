@@ -103,9 +103,9 @@ export default function App() {
       <div className="orb" style={{ width: '28vw', height: '28vw', background: 'var(--amber)', top: '38%', right: '8%', animationDelay: '-10s', opacity: 0.12 }} />
 
       <PrototypeBanner onToggle={setBannerVisible} />
-      <Header scrolled={scrolled} goto={goto} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bannerVisible={bannerVisible} openModal={() => openPlanModal('Elite Expert')} />
+      <Header scrolled={scrolled} goto={goto} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bannerVisible={bannerVisible} />
       <main>
-        <Hero goto={goto} openModal={() => openPlanModal('Elite Expert')} />
+        <Hero goto={goto} />
         <div className="section-sep" />
         <Ticker />
         <div className="section-sep" />
@@ -160,7 +160,7 @@ function PrototypeBanner({ onToggle }: { onToggle: (show: boolean) => void }) {
 
 // ─── HEADER ───────────────────────────────────────────────────────────────────
 
-function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, openModal }: any) {
+function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible }: any) {
   const links = [
     { label: 'Facilities', id: 'facilities' },
     { label: "What's Included", id: 'included' },
@@ -201,8 +201,8 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, open
         </nav>
 
         <div className="nav-desktop">
-          <button onClick={() => goto('pricing')} style={{ background: 'none', border: 'none', color: '#4b5563', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', marginRight: '0.75rem' }}>Log in</button>
-          <button onClick={openModal} className="btn-blue" style={{ padding: '0.5rem 1.25rem', fontSize: '0.8rem' }} onMouseDown={addRipple}>Join Expert28</button>
+          <button onClick={() => goto('pricing')} style={{ background: 'none', border: 'none', color: '#4b5563', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', marginRight: '0.75rem', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#9ca3af'}>Log in</button>
+          <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '0.55rem 1.4rem', fontSize: '0.8rem', fontWeight: 700 }} onMouseDown={addRipple}>Join Expert28</button>
         </div>
 
         <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', padding: '0.4rem', color: '#f9fafb', cursor: 'pointer', zIndex: 101, position: 'relative' }}>
@@ -218,7 +218,7 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, open
         {links.map(l => (
           <button key={l.id} onClick={() => goto(l.id)} style={{ background: 'none', border: 'none', textAlign: 'left', fontSize: '1.75rem', fontWeight: 900, color: '#f9fafb', cursor: 'pointer', letterSpacing: '-0.02em', padding: '0.25rem 0', minHeight: '48px' }}>{l.label}</button>
         ))}
-        <button onClick={openModal} className="btn-blue" style={{ padding: '1.1rem', fontSize: '1rem', marginTop: '2rem', borderRadius: '1rem', minHeight: '48px' }} onMouseDown={addRipple}>Join Expert28</button>
+        <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1.25rem', fontSize: '1rem', marginTop: '2.5rem', borderRadius: '1rem', minHeight: '56px', width: '100%', fontWeight: 800 }} onMouseDown={addRipple}>Join Expert28</button>
       </div>
 
       <style>{`
@@ -233,7 +233,7 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, open
 
 // ─── HERO ─────────────────────────────────────────────────────────────────────
 
-function Hero({ goto, openModal }: any) {
+function Hero({ goto }: any) {
   const { ref, visible } = useReveal();
   const members = useCountUp(500, 0, visible);
   const rating  = useCountUp(4.9, 1, visible);
@@ -274,10 +274,10 @@ function Hero({ goto, openModal }: any) {
           <div><p style={{ fontWeight: 900, fontSize: '1.75rem', letterSpacing: '-0.03em', lineHeight: 1 }}>{days}</p><p style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 500, marginTop: '0.2rem' }}>Days a Week</p></div>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <button onClick={openModal} className="btn-blue" style={{ padding: '0.85rem 2rem', fontSize: '0.85rem' }} onMouseDown={addRipple}>Join Expert28</button>
-          <button onClick={() => goto('facilities')} className="btn-outline-white" style={{ padding: '0.85rem 2rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', minHeight: '48px' }}>
-            View Facility <ChevronRight size={14}/>
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+          <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1rem 2.25rem', fontSize: '0.9rem', fontWeight: 800, minWidth: '180px' }} onMouseDown={addRipple}>Get Started Now</button>
+          <button onClick={() => goto('facilities')} className="btn-outline-white" style={{ padding: '1rem 2rem', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', minHeight: '48px' }}>
+            Explore Facility <ChevronRight size={16}/>
           </button>
         </div>
       </div>
@@ -496,7 +496,7 @@ function Pricing({ openModal }: any) {
                 onMouseDown={addRipple}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = plan.popular ? '#1d4ed8' : 'rgba(255,255,255,0.12)'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = plan.popular ? '#2563eb' : 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)'; }}>
-                Join Expert28
+                Join The Tribe
               </button>
             </div>
           ))}
@@ -600,7 +600,7 @@ function FAQ() {
 
 // ─── FINAL CTA ────────────────────────────────────────────────────────────────
 
-function FinalCTA({ goto, openModal }: any) {
+function FinalCTA({ goto, openModal }: { goto: (id: string) => void, openModal: () => void }) {
   return (
     <section style={{ position: 'relative', overflow: 'hidden', borderTop: '1px solid rgba(16,185,129,0.15)', borderBottom: '1px solid rgba(16,185,129,0.15)', padding: 'var(--section-pad) 2rem', textAlign: 'center' }}>
       {/* Radial emerald glow */}
@@ -618,9 +618,9 @@ function FinalCTA({ goto, openModal }: any) {
           The ultimate environment for athletes who refuse to settle for average. Join 500+ members today.
         </p>
         <div className="cta-group-box" style={{ margin: '0 auto' }}>
-          <button onClick={openModal} className="btn-blue" style={{ padding: '1rem 2.5rem', fontSize: '0.9rem', minHeight: '48px' }} onMouseDown={addRipple}>Join Expert28</button>
-          <button onClick={() => goto('facilities')} className="btn-outline-white" style={{ padding: '1rem 2.5rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', minHeight: '48px' }}>
-            View Facility <ArrowRight size={14}/>
+          <button onClick={() => openModal()} className="btn-blue" style={{ padding: '1rem 2.5rem', fontSize: '1rem', fontWeight: 800, minHeight: '56px' }} onMouseDown={addRipple}>Start Your Transformation</button>
+          <button onClick={() => goto('facilities')} className="btn-outline-white" style={{ padding: '1rem 2.5rem', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', minHeight: '56px' }}>
+            Explore Facility <ArrowRight size={16}/>
           </button>
         </div>
       </div>
