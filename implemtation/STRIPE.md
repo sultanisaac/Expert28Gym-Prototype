@@ -5,6 +5,8 @@
 
 ---
 
+**GitHub Tracking**: [Issue #3](https://github.com/sultanisaac26-create/Expert28Gym-Prototype/issues/3)
+
 ## Overview
 
 We use **Stripe Checkout (hosted redirect)** for payments, triggered from a dedicated `/apply` page.
@@ -216,14 +218,15 @@ The modal **no longer contains a form**. It becomes a conversion teaser:
 - [ ] Set up Make.com webhook and connect to Stripe (§C) — can do after coding
 
 ### Dev implementation order:
-1. Install `stripe` npm package ✅ (already done)
-2. Create `.env.local` with real keys
-3. Create `vercel.json` for SPA route rewrites
-4. Create `api/create-checkout-session.ts`
-5. Create `src/pages/ApplyPage.tsx`
-6. Create `src/pages/SuccessPage.tsx`
-7. Update `src/components/JoinModal.tsx` (teaser only)
-8. Update `src/App.tsx` (routing + modal wiring)
+- [ ] Install `stripe` npm package ✅ (already done)
+- [ ] Create GitHub Issue ✅ ([Issue #3](https://github.com/sultanisaac26-create/Expert28Gym-Prototype/issues/3))
+- [ ] Create `.env.local` with real keys
+- [ ] Create `vercel.json` for SPA route rewrites
+- [ ] Create `api/create-checkout-session.ts`
+- [ ] Create `src/pages/ApplyPage.tsx`
+- [ ] Create `src/pages/SuccessPage.tsx`
+- [ ] Update `src/components/JoinModal.tsx` (teaser only)
+- [ ] Update `src/App.tsx` (routing + modal wiring)
 
 ### After coding:
 - [ ] Test locally with Stripe test card `4242 4242 4242 4242`
