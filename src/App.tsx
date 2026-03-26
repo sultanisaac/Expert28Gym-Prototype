@@ -450,9 +450,9 @@ function Facilities() {
 function Pricing({ openModal }: any) {
   const { ref, visible } = useReveal();
   const plans = [
-    { name: 'Base Expert', price: 29, per: '/mo', desc: 'Full access for the consistent athlete.', popular: false, badge: null, features: ['Unlimited Facility Access', 'All 6 Training Zones', 'Locker Access', 'Open 7 days/week'] },
-    { name: 'Elite Expert', price: 49, per: '/mo', desc: 'Maximum results with elite support.', popular: true, badge: 'Most Popular', features: ['Everything in Base', 'Expert Coaching Sessions', '2x Monthly Guest Passes', 'Priority Booking', 'Recovery Vault Access'] },
-    { name: '7-Day Trial', price: 8, per: '/week', desc: 'Zero commitment. Full access.', popular: false, badge: null, features: ['Full Facility Access', 'One-on-One Assessment', 'No lock-in', 'Cancellable anytime'] },
+    { name: 'Base Expert', price: 100, per: '/mo', desc: 'Full access for the consistent athlete.', popular: false, badge: null, features: ['Unlimited Facility Access', 'All 6 Training Zones', 'Locker Access', 'Open 7 days/week'] },
+    { name: 'Elite Expert', price: 149, per: '/mo', desc: 'Maximum guidance for elite performance.', popular: true, badge: 'MOST POPULAR', features: ['All Base Access', '2x Personal Training / mo', 'Custom Nutrition Plan', 'Performance Recovery Zone'] },
+    { name: '7-Day Trial', price: 40, per: '/week', desc: 'Full access experience for a week.', popular: false, badge: 'TRIAL', features: ['Full Access for 7 Days', 'Intro Strategy Session', 'All Class Access', 'Locker access included'] },
   ];
 
   return (

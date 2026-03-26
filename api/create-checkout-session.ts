@@ -15,6 +15,11 @@ export default async function handler(req: any, res: any) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
+  // Map plan names to their respective Price IDs from environment variables
+  let priceId = process.env.STRIPE_PRICE_ELITE; // Default fallback
+  if (plan === 'Base Expert') priceId = process.env.STRIPE_PRICE_BASE;
+  if (plan === '7-Day Trial') priceId = process.env.STRIPE_PRICE_TRIAL;
+
   // Base URL for redirects — use vercel URL in production, or fallback for local
   const baseUrl = process.env.VITE_APP_URL || (req.headers.host ? `http://${req.headers.host}` : '');
 
@@ -24,8 +29,7 @@ export default async function handler(req: any, res: any) {
       customer_email: email,
       line_items: [
         {
-          // price_... ID from your Stripe Dashboard
-          price: process.env.STRIPE_PRICE_ID!,
+          price: priceId!,
           quantity: 1,
         },
       ],
