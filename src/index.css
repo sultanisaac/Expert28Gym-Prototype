@@ -442,7 +442,7 @@
     border: 1px solid rgba(16,185,129,0.4) !important;
     background: rgba(16,185,129,0.06) !important;
     position: relative;
-    overflow: hidden;
+    /* overflow: hidden removed to prevent badge cutoff */
   }
   .pricing-popular::before {
     content: "";

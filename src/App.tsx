@@ -113,13 +113,13 @@ export default function App() {
         <div className="section-sep" />
         <Facilities />
         <div className="section-sep" />
-        <Pricing goto={goto} openModal={openPlanModal} />
+        <Pricing openModal={openPlanModal} />
         <div className="section-sep" />
         <Testimonials />
         <div className="section-sep" />
         <FAQ />
         <div className="section-sep" />
-        <FinalCTA goto={goto} openModal={() => openPlanModal('Elite Expert')} />
+        <FinalCTA goto={goto} />
       </main>
       <Footer goto={goto} />
 
@@ -130,7 +130,7 @@ export default function App() {
       <div className="mobile-sticky-bar">
         <div>
           <p style={{ fontWeight: 800, fontSize: '0.85rem', lineHeight: 1 }}>Join Expert<span style={{ color: '#10b981' }}>28</span></p>
-          <p style={{ color: '#6b7280', fontSize: '0.65rem', marginTop: '0.15rem' }}>From <span style={{ color: '#10b981' }}>$8</span> / week</p>
+          <p style={{ color: '#6b7280', fontSize: '0.65rem', marginTop: '0.15rem' }}>From <span style={{ color: '#10b981' }}>$25</span> / week</p>
         </div>
         <button onClick={() => openPlanModal('7-Day Trial')} className="btn-blue" style={{ padding: '0.75rem 1.5rem', fontSize: '0.78rem', flexShrink: 0 }} onMouseDown={addRipple}>Join Now</button>
       </div>
@@ -449,10 +449,35 @@ function Facilities() {
 
 function Pricing({ openModal }: any) {
   const { ref, visible } = useReveal();
+  
   const plans = [
-    { name: 'Base Expert', price: 100, per: '/mo', desc: 'Full access for the consistent athlete.', popular: false, badge: null, features: ['Unlimited Facility Access', 'All 6 Training Zones', 'Locker Access', 'Open 7 days/week'] },
-    { name: 'Elite Expert', price: 149, per: '/mo', desc: 'Maximum guidance for elite performance.', popular: true, badge: 'MOST POPULAR', features: ['All Base Access', '2x Personal Training / mo', 'Custom Nutrition Plan', 'Performance Recovery Zone'] },
-    { name: '7-Day Trial', price: 40, per: '/week', desc: 'Full access experience for a week.', popular: false, badge: 'TRIAL', features: ['Full Access for 7 Days', 'Intro Strategy Session', 'All Class Access', 'Locker access included'] },
+    { 
+      name: 'Base Expert', 
+      price: 100, 
+      per: '/mo', 
+      desc: 'Full access for the consistent athlete.', 
+      popular: false, 
+      badge: null, 
+      features: ['Unlimited Facility Access', 'All 6 Training Zones', 'Locker Access', 'Open 7 days/week'] 
+    },
+    { 
+      name: 'Elite Expert', 
+      price: 149, 
+      per: '/mo', 
+      desc: 'Maximum guidance for elite performance.', 
+      popular: true, 
+      badge: 'MOST POPULAR', 
+      features: ['All Base Access', '2x Personal Training / mo', 'Custom Nutrition Plan', 'Performance Recovery Zone'] 
+    },
+    { 
+      name: '7-Day Trial', 
+      price: 40, 
+      per: '/week', 
+      desc: 'Full access experience for a week.', 
+      popular: false, 
+      badge: 'TRIAL', 
+      features: ['Full Access for 7 Days', 'Intro Strategy Session', 'All Class Access', 'Locker access included'] 
+    },
   ];
 
   return (
@@ -466,12 +491,21 @@ function Pricing({ openModal }: any) {
           No hidden fees, no long-term lock-ins. Just access to the best training environment in the city.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', alignItems: 'center' }}>
+        <div style={{ 
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+          gap: '1.5rem', alignItems: 'stretch', paddingTop: '1.5rem' 
+        }}>
           {plans.map((plan, i) => (
             <div
               key={i}
               className={`glass-card stagger-child ${plan.popular ? 'pricing-popular' : ''} ${visible ? 'visible' : ''}`}
-              style={{ padding: '2rem', position: 'relative', transitionDelay: `${i * 80}ms` }}
+              style={{ 
+                padding: '2rem', 
+                position: 'relative', 
+                transitionDelay: `${i * 0.15}s`,
+                display: 'flex',
+                flexDirection: 'column'
+              }}
             >
               {plan.badge && (
                 <div style={{ position: 'absolute', top: '-0.75rem', left: '50%', transform: 'translateX(-50%)', background: '#10b981', color: '#030712', fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '0.25rem 0.9rem', borderRadius: '999px' }}>
@@ -481,7 +515,7 @@ function Pricing({ openModal }: any) {
               <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '0.3rem' }}>{plan.name}</h3>
               <p style={{ color: '#6b7280', fontSize: '0.78rem', marginBottom: '1.5rem' }}>{plan.desc}</p>
               <div style={{ marginBottom: '1.5rem' }}>
-                <span style={{ fontSize: '2.75rem', fontWeight: 900, letterSpacing: '-0.04em', color: plan.popular ? '#10b981' : '#f9fafb' }}>${plan.price}</span>
+                <span style={{ fontSize: '2.75rem', fontWeight: 900, letterSpacing: '-0.04em', color: plan.popular ? '#f9fafb' : '#f9fafb' }}>${plan.price}</span>
                 <span style={{ color: '#6b7280', fontSize: '0.8rem', fontWeight: 500 }}>{plan.per}</span>
               </div>
               <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '1rem 0', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
@@ -492,11 +526,19 @@ function Pricing({ openModal }: any) {
                   </div>
                 ))}
               </div>
-              <button onClick={() => openModal(plan.name)} style={{ width: '100%', padding: '0.85rem', borderRadius: '0.5rem', fontWeight: 700, fontSize: '0.82rem', letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer', border: 'none', background: plan.popular ? '#2563eb' : 'rgba(255,255,255,0.07)', color: '#f9fafb', transition: 'background 0.2s, transform 0.15s', minHeight: '48px', position: 'relative', overflow: 'hidden' }}
+              <button 
+                onClick={() => openModal(plan.name)} 
+                className={plan.popular ? 'btn-blue' : 'btn-outline-white'}
+                style={{ 
+                  width: '100%', padding: '0.85rem', borderRadius: '0.5rem', fontWeight: 700, 
+                  fontSize: '0.82rem', letterSpacing: '0.04em', textTransform: 'uppercase', 
+                  cursor: 'pointer', border: 'none', background: plan.popular ? '#2563eb' : 'rgba(255,255,255,0.07)', 
+                  color: '#f9fafb', transition: 'background 0.2s, transform 0.15s', minHeight: '48px', 
+                  position: 'relative', overflow: 'hidden' 
+                }}
                 onMouseDown={addRipple}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = plan.popular ? '#1d4ed8' : 'rgba(255,255,255,0.12)'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = plan.popular ? '#2563eb' : 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)'; }}>
-                Join The Tribe
+              >
+                Join The Experience
               </button>
             </div>
           ))}
@@ -600,7 +642,7 @@ function FAQ() {
 
 // ─── FINAL CTA ────────────────────────────────────────────────────────────────
 
-function FinalCTA({ goto, openModal }: { goto: (id: string) => void, openModal: () => void }) {
+function FinalCTA({ goto }: { goto: (id: string) => void }) {
   return (
     <section style={{ position: 'relative', overflow: 'hidden', borderTop: '1px solid rgba(16,185,129,0.15)', borderBottom: '1px solid rgba(16,185,129,0.15)', padding: 'var(--section-pad) 2rem', textAlign: 'center' }}>
       {/* Radial emerald glow */}
@@ -618,7 +660,7 @@ function FinalCTA({ goto, openModal }: { goto: (id: string) => void, openModal: 
           The ultimate environment for athletes who refuse to settle for average. Join 500+ members today.
         </p>
         <div className="cta-group-box" style={{ margin: '0 auto' }}>
-          <button onClick={() => openModal()} className="btn-blue" style={{ padding: '1rem 2.5rem', fontSize: '1rem', fontWeight: 800, minHeight: '56px' }} onMouseDown={addRipple}>Start Your Transformation</button>
+          <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1rem 2.5rem', fontSize: '1rem', fontWeight: 800, minHeight: '56px' }} onMouseDown={addRipple}>Start Your Transformation</button>
           <button onClick={() => goto('facilities')} className="btn-outline-white" style={{ padding: '1rem 2.5rem', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', minHeight: '56px' }}>
             Explore Facility <ArrowRight size={16}/>
           </button>

@@ -136,5 +136,10 @@ clo# UI/UX UPGRADE: IMPLEMENTATION PLAN
 - [x] **Header Amber Pulse Dot**: 6px amber dot next to logo pulses with `pulse-amber` keyframe
 - [x] **Banner Mobile Font**: `prototype-banner span` reduced via responsive class for clean wrap on mobile
 
+## Phase 13 — Membership Refinement & Final UX ✅
+- [x] **Start Your Transformation Scroll**: Re-routed "Start Your Transformation" button to scroll to membership section instead of instant modal.
+- [x] **Membership UI/UX Upgrade**: Implemented a higher-precision Pricing section with improved "Elite" plan prominence and interactive hover states.
+- [x] **Checklist Fluidity**: Added subtle animations to the feature checkmarks within pricing cards.
+
 ---
-*All phase updates successfully implemented and verified. The Expert28 Gym Prototype is now in a comprehensive "Deep Polish" state with all 10 advanced upgrade areas complete.*
+*Ongoing: Implementing Phase 13 Membership Refinements.*
