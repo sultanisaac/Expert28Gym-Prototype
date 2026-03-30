@@ -104,7 +104,10 @@ export default function App() {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
-  if (loading) {
+  // Use a softer loading check only for protected routes
+  const isProtectedRoute = pathname.includes('/admin') || pathname.includes('/client') || pathname === '/dashboard';
+  
+  if (loading && isProtectedRoute) {
     return (
       <div className="min-h-screen bg-[#030712] flex items-center justify-center">
         <div className="w-12 h-12 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>

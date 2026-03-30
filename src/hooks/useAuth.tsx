@@ -31,31 +31,46 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check initial session
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setUser(session.user);
-        await fetchProfile(session.user.id);
+    // Initial loading setup
+    let isMounted = true;
+
+    const checkInitialAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!isMounted) return;
+
+        if (session?.user) {
+          setUser(session.user);
+          // Don't await this; let the profile load lazily
+          fetchProfile(session.user.id);
+        }
+      } catch (err) {
+        console.error('Auth check error:', err);
+      } finally {
+        if (isMounted) setLoading(false);
       }
-      setLoading(false);
     };
 
-    checkUser();
-
-    // Listen for changes
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!isMounted) return;
+
       if (session?.user) {
         setUser(session.user);
-        await fetchProfile(session.user.id);
+        fetchProfile(session.user.id);
       } else {
         setUser(null);
         setProfile(null);
       }
-      setLoading(false);
+      setLoading(false); // Ensure loading is cleared on any auth change
     });
 
-    return () => subscription.unsubscribe();
+    checkInitialAuth();
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchProfile = async (userId: string) => {
