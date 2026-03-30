@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Dumbbell, Zap, Users, TrendingUp, AlertTriangle, Star, Menu, X, ArrowRight, ChevronRight, ChevronDown, Clock, CheckCircle2, Shield, LogOut, User } from 'lucide-react';
+import { Dumbbell, Zap, Users, TrendingUp, AlertTriangle, Star, Menu, X, ArrowRight, ChevronRight, ChevronDown, Clock, CheckCircle2, Shield } from 'lucide-react';
 import ApplyPage from './pages/ApplyPage';
 import SuccessPage from './pages/SuccessPage';
 import JoinModal from './components/JoinModal';
@@ -7,6 +7,8 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import AdminDashboard from './pages/AdminDashboard';
 import ClientDashboard from './pages/ClientDashboard';
+import ProfilePage from './pages/ProfilePage';
+import ProfileDropdown from './components/ProfileDropdown';
 import { useAuth } from './hooks/useAuth';
 
 // ─── HOOKS ────────────────────────────────────────────────────────────────────
@@ -117,6 +119,7 @@ export default function App() {
 
   if (pathname === '/login') return <LoginPage />;
   if (pathname === '/signup') return <SignupPage />;
+  if (pathname === '/profile') return <ProfilePage />;
   if (pathname === '/apply') return <ApplyPage />;
   if (pathname === '/success') return <SuccessPage />;
   if (pathname === '/admin/dashboard' || (pathname === '/admin' && profile?.role === 'admin')) return <AdminDashboard />;
@@ -243,22 +246,12 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, user
 
         <div className="nav-desktop">
           {user ? (
-            <div className="flex items-center gap-4">
-              <button 
-                onClick={() => setPathname(profile?.role === 'admin' ? '/admin/dashboard' : '/client/dashboard')}
-                className="flex items-center gap-2 text-emerald-500 font-bold text-xs uppercase tracking-widest hover:text-emerald-400 transition-colors"
-              >
-                <User size={14} /> My Dashboard
-              </button>
-              <div className="w-px h-4 bg-white/10" />
-              <button 
-                onClick={() => { signOut(); setPathname('/'); }}
-                className="text-gray-500 hover:text-red-400 transition-colors"
-                title="Logout"
-              >
-                <LogOut size={18} />
-              </button>
-            </div>
+            <ProfileDropdown 
+              user={user} 
+              profile={profile} 
+              signOut={signOut} 
+              setPathname={setPathname} 
+            />
           ) : (
             <>
               <button onClick={() => setPathname('/login')} style={{ background: 'none', border: 'none', color: '#4b5563', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', marginRight: '0.75rem', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#9ca3af'}>Log in</button>
