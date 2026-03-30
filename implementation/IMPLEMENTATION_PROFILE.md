@@ -58,6 +58,7 @@ This plan outlines the steps to integrate a unified **Profile Management** syste
 - [x] Set up a Supabase Storage bucket named `avatars`.
 - [x] Implement profile picture upload logic in the `ProfilePage`.
 - [x] Update the `avatar_url` in the `profiles` table upon successful upload.
+- [x] **Privacy**: Set RLS to ensure users see only their own avatar, while Admins see all.
 
 ---
 
@@ -78,6 +79,10 @@ This plan outlines the steps to integrate a unified **Profile Management** syste
   - [x] Implement profile data saving in `ProfilePage.tsx`.
 - [x] **Media**:
   - [x] Add profile picture upload functionality (strict 1MB limit).
+  - [x] Configure private bucket access (User-only view, Admin-all view).
+- [x] **Identity & Security**:
+  - [x] Implement role-based visual branding (Amber: Admin, Blue: Client, Emerald: User).
+  - [x] Fix RLS infinite recursion via `check_is_admin()` helper function.
 
 ---
 

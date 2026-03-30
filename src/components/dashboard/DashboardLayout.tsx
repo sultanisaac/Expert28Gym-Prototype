@@ -1,0 +1,393 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../../hooks/useAuth';
+import ProfileDropdown from '../ProfileDropdown';
+import {
+  LayoutDashboard, Users, CreditCard, BarChart3, Bell,
+  ChevronLeft, ChevronRight, Search, X, Command, Shield,
+  UserCheck, DollarSign, TrendingUp, FileText
+} from 'lucide-react';
+
+// ─── TYPES ────────────────────────────────────────────────────────────────────
+
+interface NavItem {
+  label: string;
+  icon: React.ElementType;
+  path: string;
+  badge?: number;
+}
+
+interface BreadcrumbSegment {
+  label: string;
+  path?: string;
+}
+
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+  currentPath: string;
+  setPathname: (path: string) => void;
+  breadcrumbs?: BreadcrumbSegment[];
+}
+
+// ─── MOCK SEARCH DATA ─────────────────────────────────────────────────────────
+
+const SEARCH_DATA = [
+  { type: 'client', label: 'James Thornton', sub: 'Elite Expert · Active', path: '/admin/clients', icon: UserCheck },
+  { type: 'client', label: 'Aisha Rahman', sub: 'Base Expert · Active', path: '/admin/clients', icon: UserCheck },
+  { type: 'client', label: 'Marcus Webb', sub: '7-Day Trial · Pending', path: '/admin/clients', icon: UserCheck },
+  { type: 'payment', label: '$149.00 — Elite Expert', sub: 'James Thornton · Today', path: '/admin/payments', icon: DollarSign },
+  { type: 'payment', label: '$100.00 — Base Expert', sub: 'Aisha Rahman · Yesterday', path: '/admin/payments', icon: DollarSign },
+  { type: 'page', label: 'Dashboard Overview', sub: 'Admin / Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+  { type: 'page', label: 'Client Management', sub: 'Admin / Clients', path: '/admin/clients', icon: Users },
+  { type: 'page', label: 'Payment Logs', sub: 'Admin / Payments', path: '/admin/payments', icon: CreditCard },
+  { type: 'page', label: 'Reports & Analytics', sub: 'Admin / Reporting', path: '/admin/reporting', icon: TrendingUp },
+  { type: 'page', label: 'Notifications', sub: 'Admin / Notifications', path: '/admin/notifications', icon: Bell },
+];
+
+// ─── COMMAND SEARCH MODAL ─────────────────────────────────────────────────────
+
+function CommandSearch({ onClose, setPathname }: { onClose: () => void; setPathname: (p: string) => void }) {
+  const [query, setQuery] = useState('');
+  const [selected, setSelected] = useState(0);
+
+  const results = SEARCH_DATA.filter(item =>
+    query === '' || item.label.toLowerCase().includes(query.toLowerCase()) || item.sub.toLowerCase().includes(query.toLowerCase())
+  );
+
+  useEffect(() => {
+    setSelected(0);
+  }, [query]);
+
+  const navigate = useCallback((path: string) => {
+    setPathname(path);
+    history.pushState({}, '', path);
+    onClose();
+  }, [setPathname, onClose]);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowDown') setSelected(s => Math.min(s + 1, results.length - 1));
+      if (e.key === 'ArrowUp') setSelected(s => Math.max(s - 1, 0));
+      if (e.key === 'Enter' && results[selected]) navigate(results[selected].path);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [results, selected, navigate, onClose]);
+
+  const typeColors: Record<string, string> = {
+    client: '#10b981',
+    payment: '#3b82f6',
+    page: '#f59e0b',
+  };
+
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', zIndex: 9000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '12vh' }}
+      onClick={onClose}
+    >
+      <div
+        style={{ width: '100%', maxWidth: 600, background: '#0d1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '1rem', overflow: 'hidden', boxShadow: '0 32px 64px rgba(0,0,0,0.6)' }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Search Input */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+          <Search size={18} color="#6b7280" strokeWidth={1.5} />
+          <input
+            autoFocus
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Search clients, payments, pages..."
+            style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: '#f9fafb', fontSize: '0.95rem', fontFamily: 'inherit' }}
+          />
+          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.35rem', padding: '0.2rem 0.5rem', cursor: 'pointer', color: '#6b7280', fontSize: '0.65rem', fontWeight: 700 }}>ESC</button>
+        </div>
+
+        {/* Results */}
+        <div style={{ maxHeight: 360, overflowY: 'auto', padding: '0.5rem' }}>
+          {results.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#4b5563', fontSize: '0.85rem' }}>No results found</div>
+          ) : (
+            results.map((item, i) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={i}
+                  onClick={() => navigate(item.path)}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.85rem', padding: '0.7rem 0.85rem', borderRadius: '0.6rem', border: 'none', background: selected === i ? 'rgba(255,255,255,0.06)' : 'transparent', cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s' }}
+                  onMouseEnter={() => setSelected(i)}
+                >
+                  <div style={{ width: 32, height: 32, borderRadius: '0.4rem', background: `${typeColors[item.type]}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon size={15} color={typeColors[item.type]} strokeWidth={1.5} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f9fafb', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</p>
+                    <p style={{ fontSize: '0.68rem', color: '#6b7280', margin: 0, marginTop: '0.1rem' }}>{item.sub}</p>
+                  </div>
+                  <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.08em', color: typeColors[item.type], background: `${typeColors[item.type]}15`, padding: '0.15rem 0.5rem', borderRadius: '0.25rem', textTransform: 'uppercase', flexShrink: 0 }}>{item.type}</span>
+                </button>
+              );
+            })
+          )}
+        </div>
+
+        {/* Footer hint */}
+        <div style={{ padding: '0.65rem 1.25rem', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', gap: '1.25rem' }}>
+          {[{ keys: ['↑', '↓'], label: 'Navigate' }, { keys: ['↵'], label: 'Select' }, { keys: ['Esc'], label: 'Close' }].map(hint => (
+            <div key={hint.label} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              {hint.keys.map(k => (
+                <kbd key={k} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '0.25rem', padding: '0.1rem 0.35rem', fontSize: '0.6rem', fontFamily: 'monospace', color: '#9ca3af' }}>{k}</kbd>
+              ))}
+              <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>{hint.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── SIDEBAR ──────────────────────────────────────────────────────────────────
+
+function Sidebar({ collapsed, setCollapsed, currentPath, setPathname, notificationCount }: {
+  collapsed: boolean;
+  setCollapsed: (v: boolean) => void;
+  currentPath: string;
+  setPathname: (p: string) => void;
+  notificationCount: number;
+}) {
+  const navItems: NavItem[] = [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
+    { label: 'Clients', icon: Users, path: '/admin/clients' },
+    { label: 'Payments', icon: CreditCard, path: '/admin/payments' },
+    { label: 'Reporting', icon: BarChart3, path: '/admin/reporting' },
+    { label: 'Notifications', icon: Bell, path: '/admin/notifications', badge: notificationCount },
+  ];
+
+  const navigate = (path: string) => {
+    setPathname(path);
+    history.pushState({}, '', path);
+  };
+
+  return (
+    <aside style={{
+      width: collapsed ? 64 : 220,
+      background: 'rgba(255,255,255,0.02)',
+      borderRight: '1px solid rgba(255,255,255,0.06)',
+      display: 'flex',
+      flexDirection: 'column',
+      padding: '1.25rem 0.75rem',
+      gap: '0.25rem',
+      transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)',
+      flexShrink: 0,
+      position: 'relative',
+      zIndex: 10,
+      overflowY: 'auto',
+      overflowX: 'hidden',
+    }}>
+      {/* Logo */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', padding: '0.25rem 0.5rem', marginBottom: '1.5rem', overflow: 'hidden', flexShrink: 0 }}>
+        <div style={{ width: 32, height: 32, borderRadius: '0.5rem', background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Shield size={16} color="#f59e0b" strokeWidth={1.5} />
+        </div>
+        {!collapsed && (
+          <div>
+            <p style={{ fontSize: '0.8rem', fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1.2, whiteSpace: 'nowrap' }}>Expert<span style={{ color: '#10b981' }}>28</span></p>
+            <p style={{ fontSize: '0.55rem', fontWeight: 700, color: '#f59e0b', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Admin Panel</p>
+          </div>
+        )}
+      </div>
+
+      {/* Nav items */}
+      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+        {navItems.map(item => {
+          const Icon = item.icon;
+          const isActive = currentPath === item.path;
+          return (
+            <button
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              title={collapsed ? item.label : undefined}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.7rem',
+                padding: '0.6rem 0.65rem',
+                borderRadius: '0.6rem',
+                border: 'none',
+                background: isActive ? 'rgba(16,185,129,0.1)' : 'transparent',
+                cursor: 'pointer',
+                color: isActive ? '#10b981' : '#6b7280',
+                fontWeight: isActive ? 700 : 500,
+                fontSize: '0.82rem',
+                textAlign: 'left',
+                transition: 'all 0.15s',
+                position: 'relative',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                borderLeft: isActive ? '2px solid #10b981' : '2px solid transparent',
+                flexShrink: 0,
+              }}
+              onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; if (!isActive) e.currentTarget.style.color = '#d1d5db'; }}
+              onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; if (!isActive) e.currentTarget.style.color = '#6b7280'; }}
+            >
+              <div style={{ position: 'relative', flexShrink: 0 }}>
+                <Icon size={18} strokeWidth={isActive ? 2 : 1.5} />
+                {item.badge !== undefined && item.badge > 0 && (
+                  <span style={{ position: 'absolute', top: -6, right: -6, background: '#ef4444', color: '#fff', fontSize: '0.5rem', fontWeight: 800, borderRadius: '999px', minWidth: 14, height: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
+                    {item.badge > 9 ? '9+' : item.badge}
+                  </span>
+                )}
+              </div>
+              {!collapsed && <span>{item.label}</span>}
+              {!collapsed && item.badge !== undefined && item.badge > 0 && (
+                <span style={{ marginLeft: 'auto', background: 'rgba(239,68,68,0.15)', color: '#ef4444', fontSize: '0.6rem', fontWeight: 800, borderRadius: '999px', padding: '0.1rem 0.45rem' }}>
+                  {item.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* Collapse toggle */}
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.6rem', borderRadius: '0.6rem', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)', cursor: 'pointer', color: '#6b7280', transition: 'all 0.15s', marginTop: '0.5rem' }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; e.currentTarget.style.color = '#f9fafb'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.color = '#6b7280'; }}
+        title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      >
+        {collapsed ? <ChevronRight size={16} strokeWidth={1.5} /> : <ChevronLeft size={16} strokeWidth={1.5} />}
+      </button>
+    </aside>
+  );
+}
+
+// ─── BREADCRUMBS ──────────────────────────────────────────────────────────────
+
+function Breadcrumbs({ segments }: { segments: BreadcrumbSegment[] }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+      {segments.map((seg, i) => (
+        <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+          {i > 0 && <ChevronRight size={12} color="#374151" strokeWidth={1.5} />}
+          <span style={{ fontSize: '0.72rem', fontWeight: i === segments.length - 1 ? 600 : 400, color: i === segments.length - 1 ? '#9ca3af' : '#4b5563', letterSpacing: '0.01em' }}>
+            {seg.label}
+          </span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+// ─── MAIN LAYOUT ──────────────────────────────────────────────────────────────
+
+export default function DashboardLayout({ children, currentPath, setPathname, breadcrumbs }: DashboardLayoutProps) {
+  const { user, profile, signOut } = useAuth();
+  const [collapsed, setCollapsed] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  // Mock notification count — will be replaced with Supabase Realtime
+  const notificationCount = 3;
+
+  // Cmd+K / Ctrl+K shortcut
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(s => !s);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  // Default breadcrumbs from path
+  const defaultBreadcrumbs: BreadcrumbSegment[] = [
+    { label: 'Admin' },
+    ...currentPath.split('/').filter(Boolean).slice(1).map(seg => ({
+      label: seg.charAt(0).toUpperCase() + seg.slice(1)
+    }))
+  ];
+
+  const crumbs = breadcrumbs ?? defaultBreadcrumbs;
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#030712', color: '#f9fafb', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      {searchOpen && <CommandSearch onClose={() => setSearchOpen(false)} setPathname={setPathname} />}
+
+      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+        {/* Sidebar */}
+        <Sidebar
+          collapsed={collapsed}
+          setCollapsed={setCollapsed}
+          currentPath={currentPath}
+          setPathname={setPathname}
+          notificationCount={notificationCount}
+        />
+
+        {/* Main column */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: '100vh' }}>
+          {/* Top Header */}
+          <header style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '0.85rem 1.75rem', borderBottom: '1px solid rgba(255,255,255,0.06)',
+            background: 'rgba(255,255,255,0.015)', backdropFilter: 'blur(16px)',
+            position: 'sticky', top: 0, zIndex: 50, flexShrink: 0, gap: '1rem',
+          }}>
+            {/* Left: Breadcrumbs */}
+            <Breadcrumbs segments={crumbs} />
+
+            {/* Right: Search + Notifications + Profile */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
+              {/* Quick Search Trigger */}
+              <button
+                onClick={() => setSearchOpen(true)}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.45rem 0.85rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.6rem', cursor: 'pointer', color: '#6b7280', fontSize: '0.75rem', transition: 'all 0.15s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+              >
+                <Search size={13} strokeWidth={1.5} />
+                <span style={{ display: 'none' }} className="search-label">Quick search...</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', marginLeft: '0.5rem' }}>
+                  <Command size={10} />
+                  <span style={{ fontSize: '0.65rem', fontFamily: 'monospace' }}>K</span>
+                </div>
+              </button>
+
+              {/* Notification Bell */}
+              <button
+                onClick={() => { setPathname('/admin/notifications'); history.pushState({}, '', '/admin/notifications'); }}
+                style={{ position: 'relative', padding: '0.45rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.6rem', cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#f9fafb'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#6b7280'; }}
+              >
+                <Bell size={15} strokeWidth={1.5} />
+                {notificationCount > 0 && (
+                  <span style={{ position: 'absolute', top: -4, right: -4, background: '#ef4444', color: '#fff', fontSize: '0.5rem', fontWeight: 800, borderRadius: '999px', minWidth: 14, height: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {notificationCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Profile Dropdown */}
+              {user && (
+                <ProfileDropdown
+                  user={user}
+                  profile={profile}
+                  signOut={signOut}
+                  setPathname={(p: string) => { setPathname(p); history.pushState({}, '', p); }}
+                />
+              )}
+            </div>
+          </header>
+
+          {/* Page Content */}
+          <main style={{ flex: 1, padding: '1.75rem', overflowY: 'auto' }}>
+            {children}
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+}

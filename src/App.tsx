@@ -6,6 +6,10 @@ import JoinModal from './components/JoinModal';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminClients from './pages/AdminClients';
+import AdminPayments from './pages/AdminPayments';
+import AdminReporting from './pages/AdminReporting';
+import AdminNotifications from './pages/AdminNotifications';
 import ClientDashboard from './pages/ClientDashboard';
 import ProfilePage from './pages/ProfilePage';
 import ProfileDropdown from './components/ProfileDropdown';
@@ -107,6 +111,7 @@ export default function App() {
   }, []);
 
   // Use a softer loading check only for protected routes
+  const isAdminRoute = pathname.startsWith('/admin');
   const isProtectedRoute = pathname.includes('/admin') || pathname.includes('/client') || pathname === '/dashboard' || pathname === '/profile';
   
   if (loading && isProtectedRoute) {
@@ -123,7 +128,11 @@ export default function App() {
     if (pathname === '/profile') return <ProfilePage />;
     if (pathname === '/apply') return <ApplyPage />;
     if (pathname === '/success') return <SuccessPage />;
-    if (pathname === '/admin/dashboard' || (pathname === '/admin' && profile?.role === 'admin')) return <AdminDashboard />;
+    if (pathname === '/admin/dashboard' || (pathname === '/admin' && profile?.role === 'admin')) return <AdminDashboard setPathname={setPathname} />;
+    if (pathname === '/admin/clients') return <AdminClients setPathname={setPathname} />;
+    if (pathname === '/admin/payments') return <AdminPayments setPathname={setPathname} />;
+    if (pathname === '/admin/reporting') return <AdminReporting setPathname={setPathname} />;
+    if (pathname === '/admin/notifications') return <AdminNotifications setPathname={setPathname} />;
     if (pathname === '/client/dashboard' || (pathname === '/dashboard' && profile?.role === 'client')) return <ClientDashboard />;
     
     return (
@@ -146,6 +155,11 @@ export default function App() {
       </main>
     );
   };
+
+  // Admin routes render standalone with DashboardLayout — no root header/footer
+  if (isAdminRoute) {
+    return renderContent();
+  }
 
   return (
     <div style={{ background: '#030712', minHeight: '100vh', color: '#f9fafb', position: 'relative', overflowX: 'hidden' }} className="mobile-sticky-pad">
