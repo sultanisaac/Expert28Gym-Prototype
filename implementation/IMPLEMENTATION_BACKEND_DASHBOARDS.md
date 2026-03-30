@@ -129,9 +129,26 @@ This connects your Stripe payments to your Supabase logic.
 
 ## 🚀 5. Step-by-Step Implementation Flow
 
-1.  **Phase 1 (Database)**: Run SQL in Supabase to create tables and set up RLS policies (including address fields).
-2.  **Phase 2 (Auth)**: Implement Login/Signup and Logout logic in the React app.
-3.  **Phase 3 (Routing)**: Set up `/admin/*` and `/client/*` dashboard layouts.
-4.  **Phase 4 (Workouts)**: Build the `/client/workouts` CRUD with persistent notes and weights.
-5.  **Phase 5 (Admin Control)**: Build the `/admin/clients` management interface.
-6.  **Phase 6 (Automation)**: Configure the Make.com scenario for payment-based role promotion.
+1.  **Phase 1 (Supabase Setup)**: 
+    - [x] Create all Postgres tables (`profiles`, `workout_checklists`, `attendance`, `payment_history`, `audit_logs`).
+    - [x] Define Role enums and RLS (Row Level Security) policies.
+    - [ ] *Action: User to manually set Admin role in Supabase once tables are ready.*
+
+2.  **Phase 2 (Auth Implementation)**:
+    - [ ] Build/Enhance the `/signup` and `/login` pages using Supabase Auth.
+    - [ ] Ensure new users default to the `'user'` role via Postgres triggers or frontend logic.
+
+3.  **Phase 3 (Testing & Role Routing)**:
+    - [ ] Create mockup shells for `/admin/dashboard` and `/client/dashboard`.
+    - [ ] Implement role-guarded routes to verify that login correctly redirects based on the profile's role.
+
+4.  **Phase 4 (Feature Development - Client)**:
+    - [ ] Build full `/client/workouts` CRUD (Title/Weights/Reps/Notes).
+    - [ ] Implement the "One-Click Self Check-in" in the client dashboard.
+
+5.  **Phase 5 (Feature Development - Admin)**:
+    - [ ] Build the `/admin/clients` interface for member management.
+    - [ ] Implement Payment and reporting views.
+
+6.  **Phase 6 (Make.com Automation)**:
+    - [ ] Configure the Stripe-to-Supabase role promotion workflow.
