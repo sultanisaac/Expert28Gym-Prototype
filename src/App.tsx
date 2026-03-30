@@ -110,16 +110,53 @@ export default function App() {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
-  // Use a softer loading check only for protected routes
+  // ── Guard: only admins may access /admin/* ───────────────────────────────
   const isAdminRoute = pathname.startsWith('/admin');
-  const isProtectedRoute = pathname.includes('/admin') || pathname.includes('/client') || pathname === '/dashboard' || pathname === '/profile';
-  
+  const isClientRoute = pathname.startsWith('/client');
+  const isProtectedRoute = isAdminRoute || isClientRoute || pathname === '/profile';
+
   if (loading && isProtectedRoute) {
     return (
-      <div className="min-h-screen bg-[#030712] flex items-center justify-center">
-        <div className="w-12 h-12 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+      <div style={{ minHeight: '100vh', background: '#030712', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 44, height: 44, borderRadius: '50%', border: '2px solid rgba(16,185,129,0.15)', borderTopColor: '#10b981', animation: 'spin 0.8s linear infinite' }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
+  }
+
+  // Admin guard — redirect or show access denied
+  if (isAdminRoute && !loading) {
+    if (!user) {
+      history.replaceState({}, '', '/login');
+      return <LoginPage />;
+    }
+    if (profile?.role !== 'admin') {
+      return (
+        <div style={{ minHeight: '100vh', background: '#030712', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem', padding: '2rem', color: '#f9fafb', fontFamily: 'inherit' }}>
+          <div style={{ width: 56, height: 56, borderRadius: '1rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Shield size={24} color="#ef4444" strokeWidth={1.5} />
+          </div>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: '-0.03em', margin: 0 }}>Access Denied</h1>
+          <p style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', maxWidth: 320, margin: 0, lineHeight: 1.6 }}>
+            You don't have permission to access the Admin Portal.
+            Contact an administrator if you believe this is an error.
+          </p>
+          <button
+            onClick={() => { history.pushState({}, '', '/client/dashboard'); setPathname('/client/dashboard'); }}
+            style={{ marginTop: '0.5rem', padding: '0.65rem 1.5rem', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.65rem', color: '#d1d5db', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
+          >
+            Go to My Dashboard
+          </button>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      );
+    }
+  }
+
+  // Client guard — non-authenticated users are redirected to login
+  if (isClientRoute && !loading && !user) {
+    history.replaceState({}, '', '/login');
+    return <LoginPage />;
   }
 
   const renderContent = () => {

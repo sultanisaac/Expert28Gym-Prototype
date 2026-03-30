@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import ProfileDropdown from '../ProfileDropdown';
 import {
   LayoutDashboard, Users, CreditCard, BarChart3, Bell,
-  ChevronLeft, ChevronRight, Search, X, Command, Shield,
-  UserCheck, DollarSign, TrendingUp, FileText
+  ChevronLeft, ChevronRight, Search, Command, Shield,
+  UserCheck, DollarSign, TrendingUp
 } from 'lucide-react';
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -284,11 +285,52 @@ function Breadcrumbs({ segments }: { segments: BreadcrumbSegment[] }) {
 
 export default function DashboardLayout({ children, currentPath, setPathname, breadcrumbs }: DashboardLayoutProps) {
   const { user, profile, signOut } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => window.innerWidth < 768);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
 
-  // Mock notification count — will be replaced with Supabase Realtime
-  const notificationCount = 3;
+  // ── Responsive: auto-collapse sidebar below 768px ────────────────────────
+  useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth < 768) setCollapsed(true);
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  // ── Live unread count from notifications table ────────────────────────────
+  useEffect(() => {
+    // Initial fetch
+    const fetchCount = async () => {
+      try {
+        const { count } = await supabase
+          .from('notifications')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_read', false);
+        setNotificationCount(count ?? 0);
+      } catch {
+        setNotificationCount(0);
+      }
+    };
+    fetchCount();
+
+    // Realtime subscription — update badge on any INSERT or UPDATE to notifications
+    const channel = supabase
+      .channel('dashboard-notification-count')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, () => {
+        setNotificationCount(c => c + 1);
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'notifications' }, () => {
+        // Re-fetch on update (a read could decrease count)
+        fetchCount();
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'notifications' }, () => {
+        fetchCount();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   // Cmd+K / Ctrl+K shortcut
   useEffect(() => {

@@ -1,22 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
+import { supabase } from '../lib/supabase';
 import {
   Search, UserPlus, MoreVertical, Shield, Ban, Eye,
-  CheckCircle, Clock, XCircle, ChevronDown, Filter
+  CheckCircle, Clock, XCircle, ChevronDown, Filter,
+  RefreshCw, AlertCircle
 } from 'lucide-react';
 
-// ─── MOCK DATA ────────────────────────────────────────────────────────────────
+// ─── TYPES ────────────────────────────────────────────────────────────────────
 
-const MOCK_CLIENTS = [
-  { id: 1, name: 'James Thornton', email: 'james.t@example.com', role: 'client', tier: 'Elite Expert', status: 'active', joined: '2026-02-01', avatar: 'JT' },
-  { id: 2, name: 'Aisha Rahman', email: 'aisha.r@example.com', role: 'client', tier: 'Base Expert', status: 'active', joined: '2026-01-15', avatar: 'AR' },
-  { id: 3, name: 'Marcus Webb', email: 'marcus.w@example.com', role: 'user', tier: '7-Day Trial', status: 'pending', joined: '2026-03-28', avatar: 'MW' },
-  { id: 4, name: 'Lea Voss', email: 'lea.v@example.com', role: 'client', tier: 'Elite Expert', status: 'active', joined: '2026-01-05', avatar: 'LV' },
-  { id: 5, name: 'Daniel Kahn', email: 'daniel.k@example.com', role: 'client', tier: 'Base Expert', status: 'active', joined: '2026-02-18', avatar: 'DK' },
-  { id: 6, name: 'Ben Clarke', email: 'ben.c@example.com', role: 'client', tier: 'Elite Expert', status: 'active', joined: '2025-12-10', avatar: 'BC' },
-  { id: 7, name: 'Nour Hassan', email: 'nour.h@example.com', role: 'client', tier: 'Base Expert', status: 'active', joined: '2026-03-01', avatar: 'NH' },
-  { id: 8, name: 'Sofia Melo', email: 'sofia.m@example.com', role: 'user', tier: 'Unassigned', status: 'banned', joined: '2026-02-22', avatar: 'SM' },
-];
+interface ClientProfile {
+  id: string;
+  email: string;
+  full_name: string | null;
+  role: 'admin' | 'client' | 'user';
+  status: 'active' | 'pending' | 'banned';
+  membership_tier: string | null;
+  avatar_url: string | null;
+  created_at: string | null;
+}
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   active:  { label: 'Active',  color: '#10b981', icon: CheckCircle },
@@ -31,6 +33,15 @@ const ROLE_CONFIG: Record<string, { label: string; color: string }> = {
 };
 
 const TIER_FILTERS = ['All Tiers', 'Elite Expert', 'Base Expert', '7-Day Trial', 'Unassigned'];
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+
+function getInitials(name: string | null, email: string): string {
+  if (name) {
+    return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  }
+  return email.slice(0, 2).toUpperCase();
+}
 
 // ─── STATUS BADGE ─────────────────────────────────────────────────────────────
 
@@ -47,7 +58,7 @@ function StatusBadge({ status }: { status: string }) {
 
 // ─── ACTION MENU ─────────────────────────────────────────────────────────────
 
-function ActionMenu({ client, onAction }: { client: typeof MOCK_CLIENTS[0]; onAction: (a: string, c: typeof MOCK_CLIENTS[0]) => void }) {
+function ActionMenu({ client, onAction }: { client: ClientProfile; onAction: (a: string, c: ClientProfile) => void }) {
   const [open, setOpen] = useState(false);
   return (
     <div style={{ position: 'relative' }}>
@@ -61,7 +72,7 @@ function ActionMenu({ client, onAction }: { client: typeof MOCK_CLIENTS[0]; onAc
             {[
               { label: 'View Profile', icon: Eye, color: '#9ca3af' },
               { label: 'Change Role', icon: Shield, color: '#3b82f6' },
-              { label: client.status === 'banned' ? 'Unban' : 'Ban User', icon: Ban, color: '#ef4444' },
+              { label: client.status === 'banned' ? 'Unban User' : 'Ban User', icon: Ban, color: '#ef4444' },
             ].map(a => {
               const Icon = a.icon;
               return (
@@ -82,36 +93,103 @@ function ActionMenu({ client, onAction }: { client: typeof MOCK_CLIENTS[0]; onAc
   );
 }
 
+// ─── LOADING SKELETON ────────────────────────────────────────────────────────
+
+function SkeletonRow() {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr 1.5fr 1fr 1fr auto', gap: '0.5rem', padding: '0.85rem 1.25rem', alignItems: 'center' }}>
+      {[180, 160, 60, 100, 70, 80, 24].map((w, i) => (
+        <div key={i} style={{ height: 14, width: w, borderRadius: 4, background: 'rgba(255,255,255,0.06)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+      ))}
+    </div>
+  );
+}
+
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 
+const PAGE_SIZE = 25;
+
 export default function AdminClients({ setPathname }: { setPathname: (p: string) => void }) {
+  const [clients, setClients] = useState<ClientProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [tierFilter, setTierFilter] = useState('All Tiers');
   const [tierOpen, setTierOpen] = useState(false);
-  const [clients, setClients] = useState(MOCK_CLIENTS);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+  const [saving, setSaving] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+
+  const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  const fetchClients = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data, error: err } = await supabase
+        .from('profiles')
+        .select('id, email, full_name, role, status, membership_tier, avatar_url, created_at')
+        .order('created_at', { ascending: false });
+
+      if (err) throw err;
+      setClients(data as ClientProfile[]);
+    } catch (e: any) {
+      setError(e.message || 'Failed to load clients');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchClients();
+  }, [fetchClients]);
 
   const filtered = clients.filter(c => {
-    const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.email.toLowerCase().includes(search.toLowerCase());
-    const matchTier = tierFilter === 'All Tiers' || c.tier === tierFilter;
+    const matchSearch = (c.full_name ?? '').toLowerCase().includes(search.toLowerCase())
+      || c.email.toLowerCase().includes(search.toLowerCase());
+    const tier = c.membership_tier ?? 'Unassigned';
+    const matchTier = tierFilter === 'All Tiers' || tier === tierFilter;
     return matchSearch && matchTier;
   });
 
-  const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3000);
-  };
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
-  const handleAction = (action: string, client: typeof MOCK_CLIENTS[0]) => {
-    if (action === 'Ban User' || action === 'Unban') {
-      setClients(prev => prev.map(c => c.id === client.id ? { ...c, status: c.status === 'banned' ? 'active' : 'banned' } : c));
-      showToast(`${client.name} has been ${client.status === 'banned' ? 'unbanned' : 'banned'}.`);
-    } else if (action === 'Change Role') {
-      const next = client.role === 'client' ? 'user' : 'client';
-      setClients(prev => prev.map(c => c.id === client.id ? { ...c, role: next } : c));
-      showToast(`${client.name}'s role changed to ${next}.`);
-    } else {
-      showToast(`Viewing profile for ${client.name}.`);
+  const handleAction = async (action: string, client: ClientProfile) => {
+    if (action === 'View Profile') {
+      showToast(`Viewing ${client.full_name ?? client.email}`);
+      return;
+    }
+
+    setSaving(client.id);
+    try {
+      if (action === 'Ban User' || action === 'Unban User') {
+        const newStatus = client.status === 'banned' ? 'active' : 'banned';
+        const { error: err } = await supabase
+          .from('profiles')
+          .update({ status: newStatus, updated_at: new Date().toISOString() })
+          .eq('id', client.id);
+        if (err) throw err;
+        setClients(prev => prev.map(c => c.id === client.id ? { ...c, status: newStatus } : c));
+        showToast(`${client.full_name ?? client.email} has been ${newStatus === 'banned' ? 'banned' : 'unbanned'}.`);
+      } else if (action === 'Change Role') {
+        const nextRole = client.role === 'client' ? 'user' : 'client';
+        const { error: err } = await supabase
+          .from('profiles')
+          .update({ role: nextRole, updated_at: new Date().toISOString() })
+          .eq('id', client.id);
+        if (err) throw err;
+        setClients(prev => prev.map(c => c.id === client.id ? { ...c, role: nextRole } : c));
+        showToast(`${client.full_name ?? client.email}'s role changed to ${nextRole}.`);
+      }
+    } catch (e: any) {
+      showToast(e.message || 'Action failed', 'error');
+    } finally {
+      setSaving(null);
     }
   };
 
@@ -121,10 +199,13 @@ export default function AdminClients({ setPathname }: { setPathname: (p: string)
       setPathname={setPathname}
       breadcrumbs={[{ label: 'Admin' }, { label: 'Clients' }]}
     >
+      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
+
       {/* Toast */}
       {toast && (
-        <div style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', background: '#0d1117', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '0.75rem', padding: '0.85rem 1.25rem', zIndex: 9999, fontSize: '0.82rem', color: '#f9fafb', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
-          {toast}
+        <div style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', background: '#0d1117', border: `1px solid ${toast.type === 'error' ? 'rgba(239,68,68,0.4)' : 'rgba(16,185,129,0.4)'}`, borderRadius: '0.75rem', padding: '0.85rem 1.25rem', zIndex: 9999, fontSize: '0.82rem', color: toast.type === 'error' ? '#ef4444' : '#10b981', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {toast.type === 'error' ? <AlertCircle size={14} /> : <CheckCircle size={14} />}
+          {toast.msg}
         </div>
       )}
 
@@ -135,13 +216,32 @@ export default function AdminClients({ setPathname }: { setPathname: (p: string)
             <h1 style={{ fontSize: '1.6rem', fontWeight: 900, letterSpacing: '-0.03em', margin: 0 }}>
               Client <span style={{ color: '#10b981' }}>Management</span>
             </h1>
-            <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.3rem 0 0' }}>{filtered.length} of {clients.length} members</p>
+            <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.3rem 0 0' }}>
+              {loading ? 'Loading...' : `${filtered.length} of ${clients.length} members · ${totalPages > 1 ? `Page ${safePage}/${totalPages} · ` : ''}Live from Supabase`}
+            </p>
           </div>
-          <button style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem 1.2rem', background: '#10b981', border: 'none', borderRadius: '0.65rem', cursor: 'pointer', color: '#030712', fontSize: '0.82rem', fontWeight: 800 }}>
-            <UserPlus size={15} strokeWidth={2} />
-            Add Member
-          </button>
+          <div style={{ display: 'flex', gap: '0.6rem' }}>
+            <button
+              onClick={fetchClients}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: '0.6rem', cursor: 'pointer', color: '#9ca3af', fontSize: '0.78rem', fontWeight: 600 }}
+              title="Refresh"
+            >
+              <RefreshCw size={13} strokeWidth={1.5} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+            </button>
+            <button style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem 1.2rem', background: '#10b981', border: 'none', borderRadius: '0.65rem', cursor: 'pointer', color: '#030712', fontSize: '0.82rem', fontWeight: 800 }}>
+              <UserPlus size={15} strokeWidth={2} />
+              Add Member
+            </button>
+          </div>
         </div>
+
+        {/* Error */}
+        {error && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.85rem 1.1rem', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '0.65rem', color: '#ef4444', fontSize: '0.82rem' }}>
+            <AlertCircle size={15} strokeWidth={1.5} />
+            {error}
+          </div>
+        )}
 
         {/* Filters */}
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
@@ -156,13 +256,16 @@ export default function AdminClients({ setPathname }: { setPathname: (p: string)
               <ChevronDown size={12} color="#6b7280" style={{ transform: tierOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
             </button>
             {tierOpen && (
-              <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, background: '#0d1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.65rem', overflow: 'hidden', zIndex: 50, minWidth: 160 }}>
-                {TIER_FILTERS.map(t => (
-                  <button key={t} onClick={() => { setTierFilter(t); setTierOpen(false); }}
-                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: t === tierFilter ? 'rgba(16,185,129,0.1)' : 'transparent', border: 'none', cursor: 'pointer', color: t === tierFilter ? '#10b981' : '#9ca3af', fontSize: '0.8rem', fontWeight: t === tierFilter ? 700 : 400 }}
-                  >{t}</button>
-                ))}
-              </div>
+              <>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setTierOpen(false)} />
+                <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, background: '#0d1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.65rem', overflow: 'hidden', zIndex: 50, minWidth: 160 }}>
+                  {TIER_FILTERS.map(t => (
+                    <button key={t} onClick={() => { setTierFilter(t); setTierOpen(false); }}
+                      style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: t === tierFilter ? 'rgba(16,185,129,0.1)' : 'transparent', border: 'none', cursor: 'pointer', color: t === tierFilter ? '#10b981' : '#9ca3af', fontSize: '0.8rem', fontWeight: t === tierFilter ? 700 : 400 }}
+                    >{t}</button>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -177,31 +280,76 @@ export default function AdminClients({ setPathname }: { setPathname: (p: string)
           </div>
 
           {/* Table Body */}
-          {filtered.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '3rem', color: '#4b5563', fontSize: '0.85rem' }}>No clients match your search.</div>
+          {loading ? (
+            [1, 2, 3, 4, 5].map(i => <SkeletonRow key={i} />)
+          ) : paginated.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: '#4b5563', fontSize: '0.85rem' }}>
+              {clients.length === 0 ? 'No members found in database.' : 'No clients match your search.'}
+            </div>
           ) : (
-            filtered.map((client, i) => {
+            paginated.map((client, i) => {
               const roleCfg = ROLE_CONFIG[client.role] ?? ROLE_CONFIG.user;
+              const initials = getInitials(client.full_name, client.email);
+              const tier = client.membership_tier ?? 'Unassigned';
+              const joined = client.created_at ? new Date(client.created_at).toLocaleDateString('en-GB') : '—';
+              const isSaving = saving === client.id;
               return (
-                <div key={client.id} style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr 1.5fr 1fr 1fr auto', gap: '0.5rem', padding: '0.85rem 1.25rem', borderBottom: i < filtered.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', alignItems: 'center', transition: 'background 0.15s' }}
+                <div key={client.id} style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr 1.5fr 1fr 1fr auto', gap: '0.5rem', padding: '0.85rem 1.25rem', borderBottom: i < paginated.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', alignItems: 'center', transition: 'background 0.15s', opacity: isSaving ? 0.5 : 1 }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.025)'}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                    <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(16,185,129,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 800, color: '#10b981', flexShrink: 0 }}>{client.avatar}</div>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#f9fafb', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{client.name}</span>
+                    {client.avatar_url ? (
+                      <img src={client.avatar_url} alt={initials} style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                    ) : (
+                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(16,185,129,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 800, color: '#10b981', flexShrink: 0 }}>{initials}</div>
+                    )}
+                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#f9fafb', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{client.full_name ?? '—'}</span>
                   </div>
                   <span style={{ fontSize: '0.75rem', color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{client.email}</span>
                   <span style={{ fontSize: '0.65rem', fontWeight: 700, color: roleCfg.color, background: `${roleCfg.color}15`, padding: '0.2rem 0.5rem', borderRadius: '0.3rem', display: 'inline-block' }}>{roleCfg.label}</span>
-                  <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{client.tier}</span>
+                  <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{tier}</span>
                   <StatusBadge status={client.status} />
-                  <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>{client.joined}</span>
+                  <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>{joined}</span>
                   <ActionMenu client={client} onAction={handleAction} />
                 </div>
               );
             })
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {!loading && totalPages > 1 && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0' }}>
+            <span style={{ fontSize: '0.72rem', color: '#4b5563' }}>
+              Showing {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} of {filtered.length}
+            </span>
+            <div style={{ display: 'flex', gap: '0.4rem' }}>
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={safePage === 1}
+                style={{ padding: '0.4rem 0.85rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: '0.5rem', cursor: safePage === 1 ? 'not-allowed' : 'pointer', color: safePage === 1 ? '#374151' : '#9ca3af', fontSize: '0.78rem', fontWeight: 600 }}
+              >← Prev</button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(p => p === 1 || p === totalPages || Math.abs(p - safePage) <= 1)
+                .map((p, idx, arr) => (
+                  <>
+                    {idx > 0 && arr[idx - 1] !== p - 1 && <span key={`ellipsis-${p}`} style={{ padding: '0.4rem 0.5rem', color: '#374151', fontSize: '0.78rem' }}>…</span>}
+                    <button
+                      key={p}
+                      onClick={() => setPage(p)}
+                      style={{ padding: '0.4rem 0.75rem', background: p === safePage ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.04)', border: `1px solid ${p === safePage ? 'rgba(16,185,129,0.4)' : 'rgba(255,255,255,0.09)'}`, borderRadius: '0.5rem', cursor: 'pointer', color: p === safePage ? '#10b981' : '#9ca3af', fontSize: '0.78rem', fontWeight: p === safePage ? 800 : 400 }}
+                    >{p}</button>
+                  </>
+                ))}
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={safePage === totalPages}
+                style={{ padding: '0.4rem 0.85rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: '0.5rem', cursor: safePage === totalPages ? 'not-allowed' : 'pointer', color: safePage === totalPages ? '#374151' : '#9ca3af', fontSize: '0.78rem', fontWeight: 600 }}
+              >Next →</button>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
