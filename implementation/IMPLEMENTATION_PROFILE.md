@@ -69,12 +69,15 @@ This plan outlines the steps to integrate a unified **Profile Management** syste
   - [x] Create `src/components/ProfileDropdown.tsx`.
   - [x] Create `src/pages/ProfilePage.tsx`.
 - [x] **Refinement**:
-  - [x] Connect `Header` to use the new dropdown logic.
+  - [x] Connect `Header` to use the new dropdown logic everywhere.
+  - [x] Fix "Back" button to route correctly to dashboard/home.
+  - [x] Enforce 1MB file size limit for avatar uploads.
+  - [x] Synchronize initial profile fetch in `useAuth` to prevent role flicker.
   - [x] Test navigation for both `Admin` and `Client` roles.
 - [x] **Persistence**:
   - [x] Implement profile data saving in `ProfilePage.tsx`.
 - [x] **Media**:
-  - [x] Add profile picture upload functionality.
+  - [x] Add profile picture upload functionality (strict 1MB limit).
 
 ---
 

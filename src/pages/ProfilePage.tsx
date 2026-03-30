@@ -48,9 +48,9 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    // Check size (2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('File too large', { description: 'Please choose an image under 2MB.' });
+    // Check size (1MB)
+    if (file.size > 1 * 1024 * 1024) {
+      toast.error('File too large', { description: 'Please choose an image under 1MB.' });
       return;
     }
 
@@ -135,11 +135,11 @@ export default function ProfilePage() {
       <div className="max-w-4xl mx-auto">
         {/* Back Button */}
         <button 
-          onClick={() => window.history.back()}
+          onClick={() => window.location.href = '/'}
           className="flex items-center gap-2 text-gray-500 hover:text-emerald-500 transition-colors mb-8 group"
         >
           <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-          <span>Back</span>
+          <span>Back to Home</span>
         </button>
 
         {/* Profile Header */}
@@ -188,8 +188,14 @@ export default function ProfilePage() {
 
             <div className="flex-1 pb-2">
               <div className="flex items-center gap-3 mb-2">
-                <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] uppercase font-black tracking-widest">
-                  {profile?.role || 'Member'}
+                <span className={`px-3 py-1 rounded-full border text-[10px] uppercase font-black tracking-widest ${
+                  profile?.role?.toLowerCase() === 'admin' 
+                    ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' 
+                    : profile?.role?.toLowerCase() === 'client'
+                      ? 'bg-blue-500/10 border-blue-500/20 text-blue-500'
+                      : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+                }`}>
+                  {profile?.role || 'Guest'}
                 </span>
                 <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-gray-400 text-[10px] uppercase font-black tracking-widest">
                   {profile?.status || 'Active'}
@@ -248,7 +254,15 @@ export default function ProfilePage() {
                   <div className="p-2 rounded-lg bg-white/5"><Shield size={16} /></div>
                   <div className="flex-1">
                     <p className="text-[10px] uppercase font-bold text-gray-600 leading-none mb-1">Role Permission</p>
-                    <p className="text-sm font-semibold capitalize">{profile?.role || 'User'}</p>
+                    <p className={`text-sm font-semibold capitalize ${
+                      profile?.role?.toLowerCase() === 'admin' 
+                        ? 'text-amber-500' 
+                        : profile?.role?.toLowerCase() === 'client'
+                          ? 'text-blue-500'
+                          : 'text-emerald-500'
+                    }`}>
+                      {profile?.role || 'Guest'}
+                    </p>
                   </div>
                 </div>
               </div>

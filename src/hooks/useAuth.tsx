@@ -50,8 +50,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (session?.user) {
           setUser(session.user);
-          // Don't await this; let the profile load lazily
-          fetchProfile(session.user.id);
+          // Await profile to ensure state is ready
+          await fetchProfile(session.user.id);
         }
       } catch (err) {
         console.error('Auth check error:', err);

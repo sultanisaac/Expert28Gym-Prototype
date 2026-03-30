@@ -107,7 +107,7 @@ export default function App() {
   }, []);
 
   // Use a softer loading check only for protected routes
-  const isProtectedRoute = pathname.includes('/admin') || pathname.includes('/client') || pathname === '/dashboard';
+  const isProtectedRoute = pathname.includes('/admin') || pathname.includes('/client') || pathname === '/dashboard' || pathname === '/profile';
   
   if (loading && isProtectedRoute) {
     return (
@@ -117,37 +117,16 @@ export default function App() {
     );
   }
 
-  if (pathname === '/login') return <LoginPage />;
-  if (pathname === '/signup') return <SignupPage />;
-  if (pathname === '/profile') return <ProfilePage />;
-  if (pathname === '/apply') return <ApplyPage />;
-  if (pathname === '/success') return <SuccessPage />;
-  if (pathname === '/admin/dashboard' || (pathname === '/admin' && profile?.role === 'admin')) return <AdminDashboard />;
-  if (pathname === '/client/dashboard' || (pathname === '/dashboard' && profile?.role === 'client')) return <ClientDashboard />;
-
-  return (
-    <div style={{ background: '#030712', minHeight: '100vh', color: '#f9fafb', position: 'relative', overflowX: 'hidden' }} className="mobile-sticky-pad">
-
-      {/* Scroll Progress Bar */}
-      <div id="scroll-progress-bar" style={{ width: `${scrollPct}%` }} />
-
-      {/* Background Orbs — higher opacity, reduced blur */}
-      <div className="orb" style={{ width: '42vw', height: '42vw', background: 'var(--emerald)', top: '-12%', left: '-12%' }} />
-      <div className="orb" style={{ width: '32vw', height: '32vw', background: 'var(--blue-cta)', bottom: '8%', right: '-6%', animationDelay: '-5s' }} />
-      <div className="orb" style={{ width: '28vw', height: '28vw', background: 'var(--amber)', top: '38%', right: '8%', animationDelay: '-10s', opacity: 0.12 }} />
-
-      <PrototypeBanner onToggle={setBannerVisible} />
-      <Header 
-        scrolled={scrolled} 
-        goto={goto} 
-        mobileOpen={mobileOpen} 
-        setMobileOpen={setMobileOpen} 
-        bannerVisible={bannerVisible} 
-        user={user}
-        profile={profile}
-        signOut={signOut}
-        setPathname={setPathname}
-      />
+  const renderContent = () => {
+    if (pathname === '/login') return <LoginPage />;
+    if (pathname === '/signup') return <SignupPage />;
+    if (pathname === '/profile') return <ProfilePage />;
+    if (pathname === '/apply') return <ApplyPage />;
+    if (pathname === '/success') return <SuccessPage />;
+    if (pathname === '/admin/dashboard' || (pathname === '/admin' && profile?.role === 'admin')) return <AdminDashboard />;
+    if (pathname === '/client/dashboard' || (pathname === '/dashboard' && profile?.role === 'client')) return <ClientDashboard />;
+    
+    return (
       <main>
         <Hero goto={goto} />
         <div className="section-sep" />
@@ -165,19 +144,50 @@ export default function App() {
         <div className="section-sep" />
         <FinalCTA goto={goto} />
       </main>
-      <Footer goto={goto} />
+    );
+  };
 
-      {/* Floating CTA — desktop only */}
-      <FloatingCTA openModal={() => openPlanModal('Elite Expert')} />
+  return (
+    <div style={{ background: '#030712', minHeight: '100vh', color: '#f9fafb', position: 'relative', overflowX: 'hidden' }} className="mobile-sticky-pad">
 
-      {/* Mobile sticky bottom bar */}
-      <div className="mobile-sticky-bar">
-        <div>
-          <p style={{ fontWeight: 800, fontSize: '0.85rem', lineHeight: 1 }}>Join Expert<span style={{ color: '#10b981' }}>28</span></p>
-          <p style={{ color: '#6b7280', fontSize: '0.65rem', marginTop: '0.15rem' }}>From <span style={{ color: '#10b981' }}>$25</span> / week</p>
-        </div>
-        <button onClick={() => openPlanModal('7-Day Trial')} className="btn-blue" style={{ padding: '0.75rem 1.5rem', fontSize: '0.78rem', flexShrink: 0 }} onMouseDown={addRipple}>Join Now</button>
-      </div>
+      {/* Scroll Progress Bar */}
+      <div id="scroll-progress-bar" style={{ width: `${scrollPct}%` }} />
+
+      {/* Background Orbs — higher opacity, reduced blur */}
+      <div className="orb" style={{ width: '42vw', height: '42vw', background: 'var(--emerald)', top: '-12%', left: '-12%' }} />
+      <div className="orb" style={{ width: '32vw', height: '32vw', background: 'var(--blue-cta)', bottom: '8%', right: '-6%', animationDelay: '-5s' }} />
+      <div className="orb" style={{ width: '28vw', height: '28vw', background: 'var(--amber)', top: '38%', right: '8%', animationDelay: '-10s', opacity: 0.12 }} />
+
+      <PrototypeBanner onToggle={setBannerVisible} />
+      
+      <Header 
+        scrolled={scrolled || pathname !== '/'} 
+        goto={goto} 
+        mobileOpen={mobileOpen} 
+        setMobileOpen={setMobileOpen} 
+        bannerVisible={bannerVisible} 
+        user={user}
+        profile={profile}
+        signOut={signOut}
+        setPathname={setPathname}
+      />
+
+      {renderContent()}
+
+      {pathname === '/' && (
+        <>
+          <Footer goto={goto} />
+          <FloatingCTA openModal={() => openPlanModal('Elite Expert')} />
+          {/* Mobile sticky bottom bar */}
+          <div className="mobile-sticky-bar">
+            <div>
+              <p style={{ fontWeight: 800, fontSize: '0.85rem', lineHeight: 1 }}>Join Expert<span style={{ color: '#10b981' }}>28</span></p>
+              <p style={{ color: '#6b7280', fontSize: '0.65rem', marginTop: '0.15rem' }}>From <span style={{ color: '#10b981' }}>$25</span> / week</p>
+            </div>
+            <button onClick={() => openPlanModal('7-Day Trial')} className="btn-blue" style={{ padding: '0.75rem 1.5rem', fontSize: '0.78rem', flexShrink: 0 }} onMouseDown={addRipple}>Join Now</button>
+          </div>
+        </>
+      )}
 
       <JoinModal 
         isOpen={modalOpen} 

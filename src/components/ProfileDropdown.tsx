@@ -34,6 +34,14 @@ export default function ProfileDropdown({ user, profile, signOut, setPathname }:
     window.location.hash = ''; // Clear hash if navigating via pathname
   };
 
+  const getRoleColor = (role: string) => {
+    switch (role?.toLowerCase()) {
+      case 'admin': return 'text-amber-500';
+      case 'client': return 'text-blue-500';
+      default: return 'text-emerald-500';
+    }
+  };
+
   const getDashboardLink = () => {
     if (profile?.role === 'admin') return '/admin/dashboard';
     return '/client/dashboard';
@@ -47,8 +55,8 @@ export default function ProfileDropdown({ user, profile, signOut, setPathname }:
         className="flex items-center gap-2.5 pl-2.5 pr-1 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all group"
       >
         <div className="flex flex-col items-end mr-1 hidden sm:flex">
-          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter leading-none mb-1">
-            {profile?.role || 'User'}
+          <span className={`text-[10px] font-bold uppercase tracking-tighter leading-none mb-1 ${getRoleColor(profile?.role)}`}>
+            {profile?.role || 'Guest'}
           </span>
           <span className="text-xs font-semibold text-gray-200 leading-none">
             {profile?.full_name?.split(' ')[0] || 'Member'}
@@ -80,8 +88,8 @@ export default function ProfileDropdown({ user, profile, signOut, setPathname }:
       {isOpen && (
         <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-[#0a0f1d] border border-white/10 shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in duration-200">
           <div className="p-4 border-b border-white/5 bg-gradient-to-br from-emerald-500/10 to-transparent">
-            <p className="text-xs font-bold text-emerald-500 uppercase tracking-widest mb-1">Status: {profile?.status || 'Active'}</p>
-            <p className="text-sm font-semibold text-white truncate">{profile?.full_name || 'Expert28 Member'}</p>
+            <p className="text-xs font-bold text-emerald-500 uppercase tracking-widest mb-1">Status: {profile?.status || 'Member'}</p>
+            <p className="text-sm font-semibold text-white truncate">{profile?.full_name || 'Member Account'}</p>
             <p className="text-[10px] text-gray-500 truncate">{user?.email}</p>
           </div>
 
