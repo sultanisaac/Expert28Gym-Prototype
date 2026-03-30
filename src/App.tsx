@@ -11,6 +11,7 @@ import AdminPayments from './pages/AdminPayments';
 import AdminReporting from './pages/AdminReporting';
 import AdminNotifications from './pages/AdminNotifications';
 import ClientDashboard from './pages/ClientDashboard';
+import ClientWorkouts from './pages/ClientWorkouts';
 import ProfilePage from './pages/ProfilePage';
 import ProfileDropdown from './components/ProfileDropdown';
 import { useAuth } from './hooks/useAuth';
@@ -170,7 +171,8 @@ export default function App() {
     if (pathname === '/admin/payments') return <AdminPayments setPathname={setPathname} />;
     if (pathname === '/admin/reporting') return <AdminReporting setPathname={setPathname} />;
     if (pathname === '/admin/notifications') return <AdminNotifications setPathname={setPathname} />;
-    if (pathname === '/client/dashboard' || (pathname === '/dashboard' && profile?.role === 'client')) return <ClientDashboard />;
+    if (pathname === '/client/dashboard' || (pathname === '/dashboard' && profile?.role === 'client')) return <ClientDashboard setPathname={setPathname} />;
+    if (pathname === '/client/workouts') return <ClientWorkouts setPathname={setPathname} />;
     
     return (
       <main>
