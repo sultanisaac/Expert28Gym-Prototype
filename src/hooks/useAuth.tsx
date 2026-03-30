@@ -84,16 +84,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchProfile = async (userId: string) => {
     try {
+      // 1. Try to fetch the profile
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
+      if (error && error.code === 'PGRST116') {
+        // Code PGRST116 means no rows found - let's create the profile
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) return;
+
+        const newProfile = {
+          id: userId,
+          email: userData.user.email,
+          full_name: userData.user.user_metadata?.full_name || 'Expert28 Member',
+          role: 'user', // Default role
+          status: 'active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        const { data: createdProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert([newProfile])
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        setProfile(createdProfile as Profile);
+        return;
+      }
+
       if (error) throw error;
       setProfile(data as Profile);
-    } catch (e) {
-      console.error('Error fetching profile:', e);
+    } catch (e: any) {
+      console.error('Error in fetchProfile:', e.message || e);
     }
   };
 
