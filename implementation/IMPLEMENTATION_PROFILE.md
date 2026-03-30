@@ -18,16 +18,16 @@ This plan outlines the steps to integrate a unified **Profile Management** syste
 ## 🎨 Phase 2: UI Components
 
 ### 1. `ProfileDropdown` Component
-- [ ] Implement a custom dropdown using the "Performance Lab" aesthetic (glassmorphism/emerald accents).
-- [ ] **Visuals**: Display the user's avatar (or a stylized initial placeholder) next to their name.
-- [ ] **Menu Options**:
+- [x] Implement a custom dropdown using the "Performance Lab" aesthetic (glassmorphism/emerald accents).
+- [x] **Visuals**: Display the user's avatar (or a stylized initial placeholder) next to their name.
+- [x] **Menu Options**:
   - **Profile**: Link to `/profile`.
   - **Dashboard**: Dynamic link (redirects to `/admin/dashboard` or `/client/dashboard` based on role).
   - **Log Out**: Clear session and redirect to `/`.
 
 ### 2. `ProfilePage` Component
-- [ ] Create `src/pages/ProfilePage.tsx`.
-- [ ] **Features**:
+- [x] Create `src/pages/ProfilePage.tsx`.
+- [x] **Features**:
   - Display user information (Name, Email, Role, Joined Date).
   - Editable "Full Name" field.
   - Avatar upload placeholder (Future integration: Supabase Storage).
@@ -38,12 +38,26 @@ This plan outlines the steps to integrate a unified **Profile Management** syste
 ## 🔗 Phase 3: Global Integration
 
 ### 1. Header Update
-- [ ] Modify `App.tsx` (Header component) to replace the "My Dashboard" button with the new `ProfileDropdown`.
-- [ ] Ensure the dropdown is responsive and accessible.
+- [x] Modify `App.tsx` (Header component) to replace the "My Dashboard" button with the new `ProfileDropdown`.
+- [x] Ensure the dropdown is responsive and accessible.
 
 ### 2. Routing
-- [ ] Register the `/profile` route in `App.tsx`.
-- [ ] Implement a basic role-aware navigation helper to automatically route users from the "Dashboard" menu item to their respective dashboard.
+- [x] Register the `/profile` route in `App.tsx`.
+- [x] Implement a basic role-aware navigation helper to automatically route users from the "Dashboard" menu item to their respective dashboard.
+
+---
+
+## 💾 Phase 4: Data Persistence
+- [x] Connect the `Edit Profile` form in `src/pages/ProfilePage.tsx` to Supabase.
+- [x] Implement an `updateProfile` function to save changes to `full_name`, `phone_number`, and `address` fields.
+- [x] Add loading states and toast notifications (using `sonner`) for a better user experience.
+
+---
+
+## 📸 Phase 5: Avatar & Media Management
+- [x] Set up a Supabase Storage bucket named `avatars`.
+- [x] Implement profile picture upload logic in the `ProfilePage`.
+- [x] Update the `avatar_url` in the `profiles` table upon successful upload.
 
 ---
 
@@ -57,6 +71,10 @@ This plan outlines the steps to integrate a unified **Profile Management** syste
 - [x] **Refinement**:
   - [x] Connect `Header` to use the new dropdown logic.
   - [x] Test navigation for both `Admin` and `Client` roles.
+- [x] **Persistence**:
+  - [x] Implement profile data saving in `ProfilePage.tsx`.
+- [x] **Media**:
+  - [x] Add profile picture upload functionality.
 
 ---
 
