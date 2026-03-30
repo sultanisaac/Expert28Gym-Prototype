@@ -162,11 +162,18 @@ The dashboard home provides high-level "Performance Lab" stats.
 - [x] `AdminNotifications`: Live queries, mark-read writes to DB, dismiss = hard delete, Realtime status badge
 - [x] `DashboardLayout`: Bell badge wired to `notifications` table unread count via Realtime (no polling)
 
-### Phase 7 — External Integrations 🔲 NOT STARTED
+### Phase 7 — External Integrations 🔄 IN PROGRESS
 - [ ] Make.com → Stripe webhook scenario: Payment → Update `payment_history` + `profiles.membership_tier`
 - [ ] Make.com → Create notification record on new payment
 - [ ] Stripe Dashboard: Configure webhook endpoint URL
 - [ ] Test full flow: Stripe checkout → Make.com → Supabase → Frontend update
+
+**Make.com Scenario Setup Guide (To Implement):**
+- [ ] **Stripe (Watch Events)**: `checkout.session.completed`
+- [ ] **Supabase (Upsert a Record)**: Update `profiles` (map `id` to `metadata.user_id`, set `role='client'`, set `membership_tier=metadata.plan`)
+- [ ] **Supabase (Create a Row)**: Insert into `payment_history` (`user_id=metadata.user_id`, `amount=amount_total/100`, `status='completed'`, `member_email=customer_email`, `plan_name=metadata.plan`)
+- [ ] **Gmail (Send an Email)**: Send confirmation to `customer_email` with link to `/client/dashboard`
+
 
 ### Phase 8 — Polish & Production Hardening ✅ COMPLETE
 - [x] Admin-only route guards → redirect unauthenticated to `/login`, non-admins → Access Denied screen

@@ -75,11 +75,11 @@ export default function JoinModal({ isOpen, onClose, selectedPlan }: JoinModalPr
         </div>
 
         <button 
-          onClick={() => window.location.href = `/apply?plan=${planValue}`}
+          onClick={() => window.location.href = `/signup?plan=${planValue}`}
           className="btn-blue"
           style={{ width: '100%', padding: '1rem', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}
         >
-          Continue to Application <ArrowRight size={18} />
+          Create Account to Join <ArrowRight size={18} />
         </button>
       </div>
 

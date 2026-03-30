@@ -8,11 +8,11 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { name, email, phone, goal, plan } = req.body;
+  const { name, email, phone, goal, plan, user_id } = req.body;
 
   // Basic validation
-  if (!name || !email || !phone || !goal) {
-    return res.status(400).json({ error: 'Missing required fields' });
+  if (!email || !plan) {
+    return res.status(400).json({ error: 'Missing required fields: email or plan' });
   }
 
   // Map plan names to their respective Price IDs from environment variables
@@ -36,13 +36,14 @@ export default async function handler(req: any, res: any) {
       mode: 'payment',
       // Metadata allows Make.com to receive all form data via Stripe webhooks
       metadata: {
-        name,
-        phone,
-        goal,
-        plan: plan || 'Transformation Plan',
+        name: name || '',
+        phone: phone || '',
+        goal: goal || '',
+        plan: plan,
+        user_id: user_id || '',
       },
       success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/apply?cancelled=true`,
+      cancel_url: `${baseUrl}/client/dashboard?cancelled=true`,
     });
 
     return res.status(200).json({ url: session.url });

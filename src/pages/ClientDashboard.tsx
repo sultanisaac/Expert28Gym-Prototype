@@ -1,10 +1,41 @@
 import { useAuth } from '../hooks/useAuth';
-import { Dumbbell, CreditCard, LogOut, CheckCircle2, TrendingUp, Zap } from 'lucide-react';
+import { Dumbbell, CreditCard, LogOut, CheckCircle2, TrendingUp, Zap, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
 export default function ClientDashboard() {
-  const { profile, signOut } = useAuth();
+  const { profile, user, signOut } = useAuth();
   const [isCheckedIn, setIsCheckedIn] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+
+  const isGuest = !profile?.membership_tier || profile?.membership_tier === 'guest';
+
+  const handleCheckout = async (plan: string) => {
+    setCheckoutLoading(plan);
+    try {
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: user?.email, 
+          plan,
+          user_id: user?.id,
+          name: profile?.full_name
+        }),
+      });
+
+      const result = await response.json();
+      if (response.ok && result.url) {
+        window.location.href = result.url; // Redirect to Stripe
+      } else {
+        throw new Error(result.error || 'Checkout failed');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to initiate checkout. Please try again.');
+    } finally {
+      setCheckoutLoading(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#030712] text-white p-4 md:p-8">
@@ -98,14 +129,54 @@ export default function ClientDashboard() {
           <div className="space-y-6">
             <div className="glass-card p-6">
               <h2 className="text-lg font-black uppercase tracking-tight mb-4">Membership</h2>
-              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 mb-4">
-                <p className="text-xs text-emerald-500 font-black tracking-widest uppercase mb-1">Status</p>
-                <p className="text-xl font-black text-white">Elite Expert Member</p>
-                <p className="text-gray-400 text-xs mt-2 font-medium">Renews in 12 days</p>
-              </div>
-              <button className="flex items-center justify-center gap-2 w-full p-4 bg-white/5 border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-colors">
-                <CreditCard size={14} /> Manage Billing
-              </button>
+              
+              {isGuest ? (
+                <div className="space-y-3">
+                  <p className="text-xs text-gray-400 font-bold uppercase mb-2">Upgrade to Unlock Lab Access</p>
+                  
+                  <button 
+                    onClick={() => handleCheckout('Elite Expert')}
+                    disabled={checkoutLoading !== null}
+                    className="flex flex-col items-start w-full p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl hover:bg-emerald-500/20 transition-colors text-left relative overflow-hidden group"
+                  >
+                    {checkoutLoading === 'Elite Expert' && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-emerald-500" size={20} />}
+                    <span className="text-xs text-emerald-500 font-black tracking-widest uppercase mb-1 drop-shadow-md">MOST POPULAR</span>
+                    <span className="text-lg font-black text-white">Elite Expert</span>
+                    <span className="text-gray-400 text-xs font-bold">$149 / month</span>
+                  </button>
+
+                  <button 
+                    onClick={() => handleCheckout('Base Expert')}
+                    disabled={checkoutLoading !== null}
+                    className="flex flex-col items-start w-full p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-left relative"
+                  >
+                    {checkoutLoading === 'Base Expert' && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-white" size={20} />}
+                    <span className="text-lg font-black text-white">Base Expert</span>
+                    <span className="text-gray-400 text-xs font-bold">$100 / month</span>
+                  </button>
+
+                  <button 
+                    onClick={() => handleCheckout('7-Day Trial')}
+                    disabled={checkoutLoading !== null}
+                    className="flex flex-col items-start w-full p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-left relative"
+                  >
+                     {checkoutLoading === '7-Day Trial' && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-white" size={20} />}
+                    <span className="text-lg font-black text-white">7-Day Trial</span>
+                    <span className="text-gray-400 text-xs font-bold">$40 one-time</span>
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 mb-4">
+                    <p className="text-xs text-emerald-500 font-black tracking-widest uppercase mb-1">Status</p>
+                    <p className="text-xl font-black text-white">{profile?.membership_tier}</p>
+                    <p className="text-emerald-400 text-xs mt-2 font-bold flex items-center gap-1"><CheckCircle2 size={12} /> Active Access</p>
+                  </div>
+                  <button className="flex items-center justify-center gap-2 w-full p-4 bg-white/5 border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-colors">
+                    <CreditCard size={14} /> Manage Billing
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -5,7 +5,7 @@ import type { User } from '@supabase/supabase-js';
 interface Profile {
   id: string;
   email: string;
-  role: 'admin' | 'client' | 'user';
+  role: 'admin' | 'client' | 'guest';
   status: 'active' | 'pending' | 'banned';
   full_name?: string;
   avatar_url?: string;
@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           id: userId,
           email: userData.user.email,
           full_name: userData.user.user_metadata?.full_name || 'Expert28 Member',
-          role: 'user', // Default role
+          role: 'guest', // Default role
           status: 'active',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
