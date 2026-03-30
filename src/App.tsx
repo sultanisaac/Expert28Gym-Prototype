@@ -1,8 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Dumbbell, Zap, Users, TrendingUp, AlertTriangle, Star, Menu, X, ArrowRight, ChevronRight, ChevronDown, Clock, CheckCircle2, Shield } from 'lucide-react';
+import { Dumbbell, Zap, Users, TrendingUp, AlertTriangle, Star, Menu, X, ArrowRight, ChevronRight, ChevronDown, Clock, CheckCircle2, Shield, LogOut, User } from 'lucide-react';
 import ApplyPage from './pages/ApplyPage';
 import SuccessPage from './pages/SuccessPage';
 import JoinModal from './components/JoinModal';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
+import AdminDashboard from './pages/AdminDashboard';
+import ClientDashboard from './pages/ClientDashboard';
+import { useAuth } from './hooks/useAuth';
 
 // ─── HOOKS ────────────────────────────────────────────────────────────────────
 
@@ -52,6 +57,7 @@ function addRipple(e: React.MouseEvent<HTMLButtonElement>) {
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 
 export default function App() {
+  const { user, profile, loading, signOut } = useAuth();
   const [pathname, setPathname] = useState(window.location.pathname);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -59,6 +65,16 @@ export default function App() {
   const [bannerVisible, setBannerVisible] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('Elite Expert');
+
+  // Handle automatic redirects based on role/auth
+  useEffect(() => {
+    if (loading) return;
+
+    if (user && (pathname === '/login' || pathname === '/signup')) {
+      if (profile?.role === 'admin') setPathname('/admin/dashboard');
+      else setPathname('/client/dashboard');
+    }
+  }, [user, profile, pathname, loading]);
 
   // Listen for browser navigation
   useEffect(() => {
@@ -88,8 +104,20 @@ export default function App() {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#030712] flex items-center justify-center">
+        <div className="w-12 h-12 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (pathname === '/login') return <LoginPage />;
+  if (pathname === '/signup') return <SignupPage />;
   if (pathname === '/apply') return <ApplyPage />;
   if (pathname === '/success') return <SuccessPage />;
+  if (pathname === '/admin/dashboard' || (pathname === '/admin' && profile?.role === 'admin')) return <AdminDashboard />;
+  if (pathname === '/client/dashboard' || (pathname === '/dashboard' && profile?.role === 'client')) return <ClientDashboard />;
 
   return (
     <div style={{ background: '#030712', minHeight: '100vh', color: '#f9fafb', position: 'relative', overflowX: 'hidden' }} className="mobile-sticky-pad">
@@ -103,7 +131,17 @@ export default function App() {
       <div className="orb" style={{ width: '28vw', height: '28vw', background: 'var(--amber)', top: '38%', right: '8%', animationDelay: '-10s', opacity: 0.12 }} />
 
       <PrototypeBanner onToggle={setBannerVisible} />
-      <Header scrolled={scrolled} goto={goto} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bannerVisible={bannerVisible} />
+      <Header 
+        scrolled={scrolled} 
+        goto={goto} 
+        mobileOpen={mobileOpen} 
+        setMobileOpen={setMobileOpen} 
+        bannerVisible={bannerVisible} 
+        user={user}
+        profile={profile}
+        signOut={signOut}
+        setPathname={setPathname}
+      />
       <main>
         <Hero goto={goto} />
         <div className="section-sep" />
@@ -160,7 +198,7 @@ function PrototypeBanner({ onToggle }: { onToggle: (show: boolean) => void }) {
 
 // ─── HEADER ───────────────────────────────────────────────────────────────────
 
-function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible }: any) {
+function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, user, profile, signOut, setPathname }: any) {
   const links = [
     { label: 'Facilities', id: 'facilities' },
     { label: "What's Included", id: 'included' },
@@ -201,8 +239,29 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible }: an
         </nav>
 
         <div className="nav-desktop">
-          <button onClick={() => goto('pricing')} style={{ background: 'none', border: 'none', color: '#4b5563', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', marginRight: '0.75rem', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#9ca3af'}>Log in</button>
-          <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '0.55rem 1.4rem', fontSize: '0.8rem', fontWeight: 700 }} onMouseDown={addRipple}>Join Expert28</button>
+          {user ? (
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setPathname(profile?.role === 'admin' ? '/admin/dashboard' : '/client/dashboard')}
+                className="flex items-center gap-2 text-emerald-500 font-bold text-xs uppercase tracking-widest hover:text-emerald-400 transition-colors"
+              >
+                <User size={14} /> My Dashboard
+              </button>
+              <div className="w-px h-4 bg-white/10" />
+              <button 
+                onClick={() => { signOut(); setPathname('/'); }}
+                className="text-gray-500 hover:text-red-400 transition-colors"
+                title="Logout"
+              >
+                <LogOut size={18} />
+              </button>
+            </div>
+          ) : (
+            <>
+              <button onClick={() => setPathname('/login')} style={{ background: 'none', border: 'none', color: '#4b5563', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', marginRight: '0.75rem', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#9ca3af'}>Log in</button>
+              <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '0.55rem 1.4rem', fontSize: '0.8rem', fontWeight: 700 }} onMouseDown={addRipple}>Join Expert28</button>
+            </>
+          )}
         </div>
 
         <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', padding: '0.4rem', color: '#f9fafb', cursor: 'pointer', zIndex: 101, position: 'relative' }}>

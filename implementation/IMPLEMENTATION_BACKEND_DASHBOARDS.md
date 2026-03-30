@@ -135,12 +135,12 @@ This connects your Stripe payments to your Supabase logic.
     - [ ] *Action: User to manually set Admin role in Supabase once tables are ready.*
 
 2.  **Phase 2 (Auth Implementation)**:
-    - [ ] Build/Enhance the `/signup` and `/login` pages using Supabase Auth.
-    - [ ] Ensure new users default to the `'user'` role via Postgres triggers or frontend logic.
+    - [x] Build/Enhance the `/signup` and `/login` pages using Supabase Auth.
+    - [x] Ensure new users default to the `'user'` role via Postgres triggers or frontend logic.
 
 3.  **Phase 3 (Testing & Role Routing)**:
-    - [ ] Create mockup shells for `/admin/dashboard` and `/client/dashboard`.
-    - [ ] Implement role-guarded routes to verify that login correctly redirects based on the profile's role.
+    - [x] Create mockup shells for `/admin/dashboard` and `/client/dashboard`.
+    - [x] Implement role-guarded routes to verify that login correctly redirects based on the profile's role.
 
 4.  **Phase 4 (Feature Development - Client)**:
     - [ ] Build full `/client/workouts` CRUD (Title/Weights/Reps/Notes).
