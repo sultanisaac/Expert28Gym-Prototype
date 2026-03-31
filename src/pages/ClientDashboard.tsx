@@ -1,7 +1,8 @@
-import { useAuth } from '../hooks/useAuth';
-import { Dumbbell, CreditCard, LogOut, CheckCircle2, TrendingUp, Zap, Loader2, ExternalLink } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { Dumbbell, LogOut, CheckCircle2, TrendingUp, Zap, Loader2, ExternalLink, CreditCard } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../hooks/useAuth';
+import AthleteAnalytics from '../components/dashboard/AthleteAnalytics';
 
 interface RecentWorkout {
   id: string;
@@ -21,6 +22,7 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
   const [workoutCount, setWorkoutCount] = useState<number | null>(null);
   const [consistencyPct, setConsistencyPct] = useState<number | null>(null);
   const [recentWorkouts, setRecentWorkouts] = useState<RecentWorkout[]>([]);
+  const [allWorkouts, setAllWorkouts] = useState<RecentWorkout[]>([]);
 
   const isGuest = !profile?.role || profile?.role === 'guest';
 
@@ -81,7 +83,7 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
       setConsistencyPct(Math.min(100, pct));
 
       // Recent 3 workout entries
-      const { data: wData } = await supabase
+      const { data: wRecent } = await supabase
         .from('workout_checklists')
         .select('id, title, date, weights_lbs, reps, is_completed')
         .eq('user_id', user.id)
@@ -89,7 +91,17 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
         .order('created_at', { ascending: false })
         .limit(3);
 
-      setRecentWorkouts(wData || []);
+      setRecentWorkouts(wRecent || []);
+
+      // All workouts for analytics (limit to 100 for perf)
+      const { data: wAll } = await supabase
+        .from('workout_checklists')
+        .select('id, title, date, weights_lbs, reps, is_completed')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false })
+        .limit(200);
+
+      setAllWorkouts(wAll || []);
     };
 
     fetchStats();
@@ -165,6 +177,16 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
     }
   };
 
+  const shareStats = () => {
+    const text = `Athlete: ${profile?.full_name}\nMonth Volume: ${workoutCount || 0} Sets\nConsistency: ${consistencyPct || 0}%\nElite Labs Status: Active`;
+    if (navigator.share) {
+      navigator.share({ title: 'Expert28 Lab Stats', text }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(text);
+      alert('Performance stats copied to clipboard!');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#030712] text-white p-4 md:p-8">
       {/* Background decoration */}
@@ -177,6 +199,12 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
             <p className="text-gray-500 mt-1">Welcome back, {profile?.full_name || 'Expert'}</p>
           </div>
           <div className="flex items-center gap-4">
+            <button
+              onClick={shareStats}
+              className="flex items-center gap-2 p-3 text-emerald-400 hover:bg-emerald-500/10 rounded-xl font-bold transition-all"
+            >
+              <ExternalLink size={20} /> <span className="hidden md:inline">Share Progress</span>
+            </button>
             <button
               onClick={() => { signOut(); window.location.href = '/'; }}
               className="flex items-center gap-2 p-3 text-red-400 hover:bg-red-500/10 rounded-xl font-bold transition-all"
@@ -191,52 +219,64 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
 
         {/* TOP METRICS ROW */}
         {!isGuest && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-            {/* Main action card */}
-            <div className="md:col-span-2 glass-card p-8 flex flex-col justify-between overflow-hidden relative group">
-              <div className="relative z-10">
-                <h2 className="text-xl font-black uppercase tracking-tight mb-2">Facility Access</h2>
-                <p className="text-gray-400 text-sm mb-6">Tap below to check-in at the front desk</p>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+              {/* Main action card */}
+              <div className="md:col-span-2 glass-card p-8 flex flex-col justify-between overflow-hidden relative group">
+                <div className="relative z-10">
+                  <h2 className="text-xl font-black uppercase tracking-tight mb-2">Facility Access</h2>
+                  <p className="text-gray-400 text-sm mb-6">Tap below to check-in at the front desk</p>
 
-                <button
-                  onClick={handleSelfCheckIn}
-                  disabled={isCheckedIn || isCheckingIn}
-                  className={`btn-${isCheckedIn ? 'outline-white' : 'blue'} w-full p-4 font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-colors relative`}
-                >
-                  {isCheckingIn ? (
-                    <Loader2 className="animate-spin text-white" size={20} />
-                  ) : isCheckedIn ? (
-                    <CheckCircle2 className="text-emerald-500" size={20} />
-                  ) : (
-                    <Zap size={20} />
-                  )}
-                  {isCheckingIn ? 'Processing...' : isCheckedIn ? 'Checked In' : 'Self Check-In'}
-                </button>
+                  <button
+                    onClick={handleSelfCheckIn}
+                    disabled={isCheckedIn || isCheckingIn}
+                    className={`btn-${isCheckedIn ? 'outline-white' : 'blue'} w-full p-4 font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-colors relative`}
+                  >
+                    {isCheckingIn ? (
+                      <Loader2 className="animate-spin text-white" size={20} />
+                    ) : isCheckedIn ? (
+                      <CheckCircle2 className="text-emerald-500" size={20} />
+                    ) : (
+                      <Zap size={20} />
+                    )}
+                    {isCheckingIn ? 'Processing...' : isCheckedIn ? 'Checked In' : 'Self Check-In'}
+                  </button>
+                </div>
+
+                {/* Background design */}
+                <Zap className={`absolute -right-8 -bottom-8 text-emerald-500 transition-all duration-700 ease-out ${isCheckedIn ? 'opacity-20 scale-110' : 'opacity-5 group-hover:scale-105'}`} size={240} />
               </div>
 
-              {/* Background design */}
-              <Zap className={`absolute -right-8 -bottom-8 text-emerald-500 transition-all duration-700 ease-out ${isCheckedIn ? 'opacity-20 scale-110' : 'opacity-5 group-hover:scale-105'}`} size={240} />
+              <div
+                onClick={() => setPathname ? setPathname('/client/workouts') : window.location.href = '/client/workouts'}
+                className="glass-card p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-white/5 transition-colors"
+              >
+                <Dumbbell className="text-emerald-500 mb-4" size={32} />
+                <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">Workouts</h3>
+                <p className="text-2xl font-black">{workoutCount ?? '—'}</p>
+                <p className="text-xs text-emerald-500 mt-2 font-bold">Sets this month</p>
+              </div>
+
+              <div className="glass-card p-6 flex flex-col items-center justify-center text-center">
+                <TrendingUp className="text-blue-500 mb-4" size={32} />
+                <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">Consistency</h3>
+                <p className="text-2xl font-black">{consistencyPct !== null ? `${consistencyPct}%` : '—'}</p>
+                <p className="text-blue-500 text-xs mt-2 font-bold">
+                  {consistencyPct !== null && consistencyPct >= 80 ? 'Elite Tier' : consistencyPct !== null && consistencyPct >= 50 ? 'On Track' : 'Building Habit'}
+                </p>
+              </div>
             </div>
 
-            <div
-              onClick={() => setPathname ? setPathname('/client/workouts') : window.location.href = '/client/workouts'}
-              className="glass-card p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-white/5 transition-colors"
-            >
-              <Dumbbell className="text-emerald-500 mb-4" size={32} />
-              <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">Workouts</h3>
-              <p className="text-2xl font-black">{workoutCount ?? '—'}</p>
-              <p className="text-xs text-emerald-500 mt-2 font-bold">Sets this month</p>
+            {/* PERFORMANCE ANALYTICS */}
+            <div className="mb-10">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex-1 h-px bg-white/5" />
+                <span className="text-[10px] font-black tracking-widest uppercase text-gray-600">Advanced Analytics</span>
+                <div className="flex-1 h-px bg-white/5" />
+              </div>
+              <AthleteAnalytics workouts={allWorkouts} consistencyPct={consistencyPct} />
             </div>
-
-            <div className="glass-card p-6 flex flex-col items-center justify-center text-center">
-              <TrendingUp className="text-blue-500 mb-4" size={32} />
-              <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">Consistency</h3>
-              <p className="text-2xl font-black">{consistencyPct !== null ? `${consistencyPct}%` : '—'}</p>
-              <p className="text-blue-500 text-xs mt-2 font-bold">
-                {consistencyPct !== null && consistencyPct >= 80 ? 'Elite Tier' : consistencyPct !== null && consistencyPct >= 50 ? 'On Track' : 'Building Habit'}
-              </p>
-            </div>
-          </div>
+          </>
         )}
 
         {isGuest && (
