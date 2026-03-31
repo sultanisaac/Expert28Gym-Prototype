@@ -17,6 +17,8 @@ export default async function handler(req: any, res: any) {
 
   // Map plan names to their respective Price IDs from environment variables
   let priceId = process.env.STRIPE_PRICE_ELITE; // Default fallback
+  const isSubscription = plan !== '7-Day Trial';
+
   if (plan === 'Base Expert') priceId = process.env.STRIPE_PRICE_BASE;
   if (plan === '7-Day Trial') priceId = process.env.STRIPE_PRICE_TRIAL;
 
@@ -33,7 +35,7 @@ export default async function handler(req: any, res: any) {
           quantity: 1,
         },
       ],
-      mode: 'payment',
+      mode: isSubscription ? 'subscription' : 'payment',
       // Metadata allows Make.com to receive all form data via Stripe webhooks
       metadata: {
         name: name || '',
@@ -41,6 +43,7 @@ export default async function handler(req: any, res: any) {
         goal: goal || '',
         plan: plan,
         user_id: user_id || '',
+        role_upgrade: 'client' // Specific flag for webhooks
       },
       success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/client/dashboard?cancelled=true`,

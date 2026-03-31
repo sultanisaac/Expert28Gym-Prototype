@@ -340,36 +340,78 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
               {isGuest ? (
                 <div className="space-y-3">
                   <p className="text-xs text-gray-400 font-bold uppercase mb-2">Upgrade to Unlock Lab Access</p>
+                  
+                  {/* ELITE PLAN */}
+                  <div className="relative group">
+                    <div className="absolute top-0 right-4 -translate-y-1/2 bg-emerald-500 text-[#030712] text-[10px] font-black tracking-widest px-3 py-1 rounded-full z-10">MOST POPULAR</div>
+                    <button
+                      onClick={() => handleCheckout('Elite Expert')}
+                      disabled={checkoutLoading !== null}
+                      className="flex flex-col items-start w-full p-6 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl hover:bg-emerald-500/20 transition-all text-left relative overflow-hidden group shadow-[0_0_20px_rgba(16,185,129,0.05)]"
+                    >
+                      {checkoutLoading === 'Elite Expert' && <Loader2 className="absolute right-6 top-6 animate-spin text-emerald-500" size={20} />}
+                      <div className="flex justify-between items-end w-full mb-4">
+                        <div>
+                          <span className="text-lg font-black text-white block">Elite Expert</span>
+                          <span className="text-emerald-500 text-xl font-black">$149<span className="text-xs text-gray-500 font-bold ml-1">/mo</span></span>
+                        </div>
+                        <Zap size={40} className="text-emerald-500 opacity-20 group-hover:opacity-40 transition-opacity" />
+                      </div>
+                      <div className="space-y-2 mb-6">
+                        {['All Base Access', '2x Personal Training / mo', 'Custom Nutrition Plan', 'Recovery Zone'].map((f, i) => (
+                          <div key={i} className="flex items-center gap-2 text-[11px] font-bold text-gray-300">
+                            <CheckCircle2 size={12} className="text-emerald-500" /> {f}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="w-full py-3 bg-emerald-500 text-[#030712] text-center rounded-xl font-black text-xs uppercase tracking-widest group-hover:scale-[1.02] transition-transform">Unlock Access</div>
+                    </button>
+                  </div>
 
-                  <button
-                    onClick={() => handleCheckout('Elite Expert')}
-                    disabled={checkoutLoading !== null}
-                    className="flex flex-col items-start w-full p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl hover:bg-emerald-500/20 transition-colors text-left relative overflow-hidden group"
-                  >
-                    {checkoutLoading === 'Elite Expert' && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-emerald-500" size={20} />}
-                    <span className="text-xs text-emerald-500 font-black tracking-widest uppercase mb-1 drop-shadow-md">MOST POPULAR</span>
-                    <span className="text-lg font-black text-white">Elite Expert</span>
-                    <span className="text-gray-400 text-xs font-bold">$149 / month</span>
-                  </button>
-
+                  {/* BASE PLAN */}
                   <button
                     onClick={() => handleCheckout('Base Expert')}
                     disabled={checkoutLoading !== null}
-                    className="flex flex-col items-start w-full p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-left relative"
+                    className="flex flex-col items-start w-full p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-left relative group"
                   >
-                    {checkoutLoading === 'Base Expert' && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-white" size={20} />}
-                    <span className="text-lg font-black text-white">Base Expert</span>
-                    <span className="text-gray-400 text-xs font-bold">$100 / month</span>
+                    {checkoutLoading === 'Base Expert' && <Loader2 className="absolute right-6 top-6 animate-spin text-white" size={20} />}
+                    <div className="flex justify-between items-end w-full mb-4">
+                      <div>
+                        <span className="text-lg font-black text-white block">Base Expert</span>
+                        <span className="text-white text-xl font-black">$100<span className="text-xs text-gray-500 font-bold ml-1">/mo</span></span>
+                      </div>
+                    </div>
+                    <div className="space-y-2 mb-6">
+                      {['Unlimited Access', 'All 6 Training Zones', 'Locker Access', '7 Days a Week'].map((f, i) => (
+                        <div key={i} className="flex items-center gap-2 text-[11px] font-bold text-gray-400">
+                          <CheckCircle2 size={12} className="text-gray-600" /> {f}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="w-full py-3 border border-white/20 text-center rounded-xl font-black text-xs uppercase tracking-widest group-hover:bg-white/5 transition-colors">Select Plan</div>
                   </button>
 
+                  {/* TRIAL PLAN */}
                   <button
                     onClick={() => handleCheckout('7-Day Trial')}
                     disabled={checkoutLoading !== null}
-                    className="flex flex-col items-start w-full p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-left relative"
+                    className="flex flex-col items-start w-full p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-left relative group"
                   >
-                    {checkoutLoading === '7-Day Trial' && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-white" size={20} />}
-                    <span className="text-lg font-black text-white">7-Day Trial</span>
-                    <span className="text-gray-400 text-xs font-bold">$40 one-time</span>
+                    {checkoutLoading === '7-Day Trial' && <Loader2 className="absolute right-6 top-6 animate-spin text-white" size={20} />}
+                    <div className="flex justify-between items-end w-full mb-4">
+                      <div>
+                        <span className="text-lg font-black text-white block">7-Day Trial</span>
+                        <span className="text-white text-xl font-black">$40<span className="text-xs text-gray-500 font-bold ml-1">/one-time</span></span>
+                      </div>
+                    </div>
+                    <div className="space-y-2 mb-6">
+                      {['Full Access for 7 Days', 'Intro Strategy Session', 'Class Access', 'Locker Included'].map((f, i) => (
+                        <div key={i} className="flex items-center gap-2 text-[11px] font-bold text-gray-400">
+                          <CheckCircle2 size={12} className="text-gray-600" /> {f}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="w-full py-3 border border-white/20 text-center rounded-xl font-black text-xs uppercase tracking-widest group-hover:bg-white/5 transition-colors">Start Trial</div>
                   </button>
                 </div>
               ) : (

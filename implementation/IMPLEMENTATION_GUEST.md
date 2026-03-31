@@ -13,10 +13,10 @@ Both `guest` and `client` roles share the same base layout and routing (`/client
 ### State Definitions
 - **Guest State** (`role === 'guest'`): 
   - User has created an account but has not completed a Stripe checkout.
-  - **Objective**: Conversion. The UI should prioritize membership selection and hide active gym features.
+  - **Objective**: Conversion. The UI should match the premium feel of the landing page pricing section to drive immediate checkout without the user needing to leave the portal.
 - **Client State** (`role === 'client'`): 
   - User has completed payment. Make.com webhook has upgraded their role.
-  - **Objective**: utility & engagement. The UI should prioritize workout tracking, attendance, and progression.
+  - **Objective**: Utility & engagement. The UI should prioritize workout tracking, attendance, and progression.
 
 ---
 
@@ -87,3 +87,12 @@ To support this frontend, we need to ensure the following tables are fully acces
 - [x] Wired "Manage Billing" button in `ClientDashboard.tsx` to call the endpoint with loading/error states.
 - [x] Replaced hardcoded "Recent Workouts" mock data with live query from `workout_checklists` (last 3 entries).
 - [x] Fixed `isGuest` logic — now checks `role` instead of `membership_tier` across all client pages.
+
+### Phase 5 — Seamless Conversion & Subscription Logic ✅ COMPLETE
+- [x] **Refactor Membership Cards**: Updated the guest view in `ClientDashboard.tsx` to include high-fidelity feature lists and "Most Popular" premium branding.
+- [x] **Stripe Mode Optimization**: Updated `create-checkout-session.ts` to support both `subscription` and `payment` modes.
+- [x] **Immediate Sync Success**: Updated `SuccessPage.tsx` to include a primary "Go to Dashboard" button to improve conversion flow.
+- [x] **Metadata Enrichment**: Verified that `user_id`, `plan`, and `role_upgrade` are passed to Stripe metadata for webhook processing.
+
+## 🏁 Final Objective
+The unified portal now seamlessly converts guests into paying clients with a professional pricing interface, handles both one-time and recurring payments correctly, and provides immediate access post-checkout.

@@ -1,4 +1,4 @@
-import { CheckCircle2, ArrowRight, Instagram, Mail, LayoutGrid } from 'lucide-react';
+import { CheckCircle2, Instagram, Mail, LayoutGrid } from 'lucide-react';
 
 export default function SuccessPage() {
   return (
@@ -47,13 +47,20 @@ export default function SuccessPage() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexDirection: 'column', alignItems: 'center' }}>
+          <button 
+            onClick={() => window.location.href = '/client/dashboard'}
+            className="btn-blue"
+            style={{ padding: '1rem 2.5rem', fontSize: '1rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%', maxWidth: '280px', justifyContent: 'center' }}
+          >
+            Go to My Dashboard <LayoutGrid size={20} />
+          </button>
+          
           <button 
             onClick={() => window.location.href = '/'}
-            className="btn-blue"
-            style={{ padding: '0.85rem 1.75rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', marginTop: '0.5rem' }}
           >
-            Back to Home <ArrowRight size={16} />
+            Back to Home
           </button>
         </div>
 

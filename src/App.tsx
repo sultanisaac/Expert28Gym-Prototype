@@ -102,6 +102,12 @@ export default function App() {
   }, []);
 
   const openPlanModal = (planName: string) => {
+    // If already a guest, skip the 'Join' modal and go to dashboard checkout
+    if (user && profile?.role === 'guest') {
+      setPathname('/client/dashboard');
+      history.pushState({}, '', '/client/dashboard');
+      return;
+    }
     setSelectedPlan(planName);
     setModalOpen(true);
   };
