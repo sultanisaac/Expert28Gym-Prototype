@@ -75,11 +75,15 @@ To support this frontend, we need to ensure the following tables are fully acces
 - [x] Add a visual success state (e.g., Turn button green and disable it for the day).
 - [x] Add a DB check so they can't check in twice on the same day.
 
-### Phase 3 — The Workout Tracker (`/client/workouts`) 🔲 NOT STARTED
-- [ ] Create the new page route and add it to `App.tsx`.
-- [ ] Build a mobile-first UI for logging reps and sets on the gym floor.
-- [ ] Connect the UI to the `workout_checklists` table.
-- [ ] Add a "Paywall Overlay" component that wraps this feature if `role === 'guest'`.
+### Phase 3 — The Workout Tracker (`/client/workouts`) ✅ COMPLETE
+- [x] Create the new page route and add it to `App.tsx`.
+- [x] Build a mobile-first UI for logging reps and sets on the gym floor — Quick Log with +/- counters, quick-pick chips, session grouping by date.
+- [x] Connect the UI to the `workout_checklists` table — full SELECT / INSERT / DELETE via Supabase RLS.
+- [x] Add a "Paywall Overlay" component that wraps this feature if `role === 'guest'`.
+- [x] Wire up real workout count + consistency % on `ClientDashboard.tsx` (replaced hardcoded mock values).
 
-### Phase 4 — Billing Portal (Optional/Stretch) 🔲 NOT STARTED
-- [ ] Connect the "Manage Billing" button to a Stripe Customer Portal session so clients can update their credit cards natively.
+### Phase 4 — Billing Portal ✅ COMPLETE
+- [x] Created `api/create-portal-session.ts` — looks up Stripe customer by email, creates a hosted portal session.
+- [x] Wired "Manage Billing" button in `ClientDashboard.tsx` to call the endpoint with loading/error states.
+- [x] Replaced hardcoded "Recent Workouts" mock data with live query from `workout_checklists` (last 3 entries).
+- [x] Fixed `isGuest` logic — now checks `role` instead of `membership_tier` across all client pages.

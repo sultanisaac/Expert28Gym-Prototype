@@ -1,15 +1,28 @@
 import { useAuth } from '../hooks/useAuth';
-import { Dumbbell, CreditCard, LogOut, CheckCircle2, TrendingUp, Zap, Loader2 } from 'lucide-react';
+import { Dumbbell, CreditCard, LogOut, CheckCircle2, TrendingUp, Zap, Loader2, ExternalLink } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+
+interface RecentWorkout {
+  id: string;
+  title: string;
+  date: string;
+  weights_lbs: number | null;
+  reps: number | null;
+  is_completed: boolean;
+}
 
 export default function ClientDashboard({ setPathname }: { setPathname?: (path: string) => void }) {
   const { profile, user, signOut } = useAuth();
   const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [billingLoading, setBillingLoading] = useState(false);
+  const [workoutCount, setWorkoutCount] = useState<number | null>(null);
+  const [consistencyPct, setConsistencyPct] = useState<number | null>(null);
+  const [recentWorkouts, setRecentWorkouts] = useState<RecentWorkout[]>([]);
 
-  const isGuest = !profile?.membership_tier || profile?.membership_tier === 'guest';
+  const isGuest = !profile?.role || profile?.role === 'guest';
 
   // On mount, check if the user has already checked in today
   useEffect(() => {
@@ -32,6 +45,54 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
     };
 
     checkTodayAttendance();
+  }, [user, isGuest]);
+
+  // Fetch real workout count and consistency for this month
+  useEffect(() => {
+    if (!user || isGuest) return;
+
+    const fetchStats = async () => {
+      const monthStart = new Date();
+      monthStart.setDate(1);
+      monthStart.setHours(0, 0, 0, 0);
+      const monthStartISO = monthStart.toISOString();
+
+      // Workout count (sets logged this month)
+      const { count: wCount } = await supabase
+        .from('workout_checklists')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gte('created_at', monthStartISO);
+
+      setWorkoutCount(wCount ?? 0);
+
+      // Consistency: (days attended / days elapsed this month) * 100
+      const { data: attData } = await supabase
+        .from('attendance')
+        .select('check_in_time')
+        .eq('user_id', user.id)
+        .gte('check_in_time', monthStartISO);
+
+      const uniqueDays = new Set(
+        (attData || []).map(a => new Date(a.check_in_time).toDateString())
+      ).size;
+      const daysElapsed = new Date().getDate(); // day-of-month = days elapsed
+      const pct = daysElapsed > 0 ? Math.round((uniqueDays / daysElapsed) * 100) : 0;
+      setConsistencyPct(Math.min(100, pct));
+
+      // Recent 3 workout entries
+      const { data: wData } = await supabase
+        .from('workout_checklists')
+        .select('id, title, date, weights_lbs, reps, is_completed')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      setRecentWorkouts(wData || []);
+    };
+
+    fetchStats();
   }, [user, isGuest]);
 
   const handleSelfCheckIn = async () => {
@@ -59,8 +120,8 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: user?.email, 
+        body: JSON.stringify({
+          email: user?.email,
           plan,
           user_id: user?.id,
           name: profile?.full_name
@@ -69,7 +130,7 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
 
       const result = await response.json();
       if (response.ok && result.url) {
-        window.location.href = result.url; // Redirect to Stripe
+        window.location.href = result.url;
       } else {
         throw new Error(result.error || 'Checkout failed');
       }
@@ -78,6 +139,29 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
       alert('Failed to initiate checkout. Please try again.');
     } finally {
       setCheckoutLoading(null);
+    }
+  };
+
+  const handleManageBilling = async () => {
+    if (!user?.email || billingLoading) return;
+    setBillingLoading(true);
+    try {
+      const response = await fetch('/api/create-portal-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email }),
+      });
+      const result = await response.json();
+      if (response.ok && result.url) {
+        window.location.href = result.url;
+      } else {
+        throw new Error(result.error || 'Could not open billing portal');
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Failed to open billing portal. Please try again.');
+    } finally {
+      setBillingLoading(false);
     }
   };
 
@@ -93,7 +177,7 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
             <p className="text-gray-500 mt-1">Welcome back, {profile?.full_name || 'Expert'}</p>
           </div>
           <div className="flex items-center gap-4">
-            <button 
+            <button
               onClick={() => { signOut(); window.location.href = '/'; }}
               className="flex items-center gap-2 p-3 text-red-400 hover:bg-red-500/10 rounded-xl font-bold transition-all"
             >
@@ -113,8 +197,8 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
               <div className="relative z-10">
                 <h2 className="text-xl font-black uppercase tracking-tight mb-2">Facility Access</h2>
                 <p className="text-gray-400 text-sm mb-6">Tap below to check-in at the front desk</p>
-                
-                <button 
+
+                <button
                   onClick={handleSelfCheckIn}
                   disabled={isCheckedIn || isCheckingIn}
                   className={`btn-${isCheckedIn ? 'outline-white' : 'blue'} w-full p-4 font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-colors relative`}
@@ -129,26 +213,28 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
                   {isCheckingIn ? 'Processing...' : isCheckedIn ? 'Checked In' : 'Self Check-In'}
                 </button>
               </div>
-              
+
               {/* Background design */}
               <Zap className={`absolute -right-8 -bottom-8 text-emerald-500 transition-all duration-700 ease-out ${isCheckedIn ? 'opacity-20 scale-110' : 'opacity-5 group-hover:scale-105'}`} size={240} />
             </div>
 
-            <div 
+            <div
               onClick={() => setPathname ? setPathname('/client/workouts') : window.location.href = '/client/workouts'}
               className="glass-card p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-white/5 transition-colors"
             >
               <Dumbbell className="text-emerald-500 mb-4" size={32} />
               <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">Workouts</h3>
-              <p className="text-2xl font-black">12</p>
-              <p className="text-xs text-emerald-500 mt-2 font-bold">This month</p>
+              <p className="text-2xl font-black">{workoutCount ?? '—'}</p>
+              <p className="text-xs text-emerald-500 mt-2 font-bold">Sets this month</p>
             </div>
 
             <div className="glass-card p-6 flex flex-col items-center justify-center text-center">
               <TrendingUp className="text-blue-500 mb-4" size={32} />
               <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">Consistency</h3>
-              <p className="text-2xl font-black">94%</p>
-              <p className="text-blue-500 text-xs mt-2 font-bold">Elite Tier</p>
+              <p className="text-2xl font-black">{consistencyPct !== null ? `${consistencyPct}%` : '—'}</p>
+              <p className="text-blue-500 text-xs mt-2 font-bold">
+                {consistencyPct !== null && consistencyPct >= 80 ? 'Elite Tier' : consistencyPct !== null && consistencyPct >= 50 ? 'On Track' : 'Building Habit'}
+              </p>
             </div>
           </div>
         )}
@@ -159,9 +245,9 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
               <h2 className="text-2xl font-black uppercase tracking-tight text-emerald-400 mb-2">Unlock Lab Access</h2>
               <p className="text-gray-300 mb-6">You've created your identity. Now it's time to choose your path and unlock full access to the Expert28 training platform and facility check-ins.</p>
               <div className="flex items-center gap-4 text-sm font-bold text-gray-400">
-                <span className="flex items-center gap-1"><CheckCircle2 size={16} className="text-emerald-500"/> Workout Tracking</span>
-                <span className="flex items-center gap-1"><CheckCircle2 size={16} className="text-emerald-500"/> Facility Entry</span>
-                <span className="flex items-center gap-1"><CheckCircle2 size={16} className="text-emerald-500"/> Progress Stats</span>
+                <span className="flex items-center gap-1"><CheckCircle2 size={16} className="text-emerald-500" /> Workout Tracking</span>
+                <span className="flex items-center gap-1"><CheckCircle2 size={16} className="text-emerald-500" /> Facility Entry</span>
+                <span className="flex items-center gap-1"><CheckCircle2 size={16} className="text-emerald-500" /> Progress Stats</span>
               </div>
             </div>
             <Zap className="absolute -right-20 top-1/2 -translate-y-1/2 text-emerald-500 opacity-10" size={300} />
@@ -174,31 +260,48 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
               <div className="glass-card p-8">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-lg font-black uppercase tracking-tight">Recent Workouts</h2>
-                  <button 
+                  <button
                     onClick={() => setPathname ? setPathname('/client/workouts') : window.location.href = '/client/workouts'}
                     className="text-emerald-500 text-xs font-black tracking-widest uppercase hover:underline"
                   >
                     View All
                   </button>
                 </div>
-                <div className="space-y-4">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="flex items-center justify-between p-4 border border-white/5 rounded-xl">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center font-bold text-gray-500 text-xs">
-                          {i === 1 ? 'MON' : i === 2 ? 'WED' : 'FRI'}
-                        </div>
-                        <div>
-                          <p className="font-bold text-sm">Full Body Power</p>
-                          <p className="text-gray-500 text-xs">Squat / Bench / Row</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-black">8,450 lbs</p>
-                        <p className="text-gray-500 text-xs text-emerald-500 font-bold tracking-widest">COMPLETE</p>
-                      </div>
+                <div className="space-y-3">
+                  {recentWorkouts.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <Dumbbell className="text-gray-700 mb-2" size={28} />
+                      <p className="text-sm text-gray-500 font-bold">No workouts logged yet.</p>
+                      <button
+                        onClick={() => setPathname ? setPathname('/client/workouts') : window.location.href = '/client/workouts'}
+                        className="mt-3 text-xs font-black text-emerald-500 uppercase tracking-widest hover:underline"
+                      >
+                        Start Logging →
+                      </button>
                     </div>
-                  ))}
+                  ) : (
+                    recentWorkouts.map(w => {
+                      const dayLabel = new Date(w.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short' }).toUpperCase();
+                      return (
+                        <div key={w.id} className="flex items-center justify-between p-4 border border-white/5 rounded-xl hover:bg-white/3 transition-colors">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/8 flex items-center justify-center font-black text-gray-500 text-[10px]">
+                              {dayLabel}
+                            </div>
+                            <div>
+                              <p className="font-bold text-sm">{w.title}</p>
+                              <p className="text-gray-500 text-xs mt-0.5">
+                                {[w.weights_lbs ? `${w.weights_lbs} lbs` : null, w.reps ? `${w.reps} reps` : null].filter(Boolean).join(' · ') || 'No metrics logged'}
+                              </p>
+                            </div>
+                          </div>
+                          {w.is_completed && (
+                            <CheckCircle2 size={16} className="text-emerald-500 flex-shrink-0" />
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             ) : (
@@ -233,12 +336,12 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
           <div className="space-y-6">
             <div className={`glass-card p-6 ${isGuest ? 'ring-2 ring-emerald-500/50 shadow-[0_0_30px_rgba(16,185,129,0.15)] relative z-30' : ''}`}>
               <h2 className="text-lg font-black uppercase tracking-tight mb-4">Membership</h2>
-              
+
               {isGuest ? (
                 <div className="space-y-3">
                   <p className="text-xs text-gray-400 font-bold uppercase mb-2">Upgrade to Unlock Lab Access</p>
-                  
-                  <button 
+
+                  <button
                     onClick={() => handleCheckout('Elite Expert')}
                     disabled={checkoutLoading !== null}
                     className="flex flex-col items-start w-full p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl hover:bg-emerald-500/20 transition-colors text-left relative overflow-hidden group"
@@ -249,7 +352,7 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
                     <span className="text-gray-400 text-xs font-bold">$149 / month</span>
                   </button>
 
-                  <button 
+                  <button
                     onClick={() => handleCheckout('Base Expert')}
                     disabled={checkoutLoading !== null}
                     className="flex flex-col items-start w-full p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-left relative"
@@ -259,12 +362,12 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
                     <span className="text-gray-400 text-xs font-bold">$100 / month</span>
                   </button>
 
-                  <button 
+                  <button
                     onClick={() => handleCheckout('7-Day Trial')}
                     disabled={checkoutLoading !== null}
                     className="flex flex-col items-start w-full p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-left relative"
                   >
-                     {checkoutLoading === '7-Day Trial' && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-white" size={20} />}
+                    {checkoutLoading === '7-Day Trial' && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-white" size={20} />}
                     <span className="text-lg font-black text-white">7-Day Trial</span>
                     <span className="text-gray-400 text-xs font-bold">$40 one-time</span>
                   </button>
@@ -276,8 +379,16 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
                     <p className="text-xl font-black text-white">{profile?.membership_tier || 'Client'}</p>
                     <p className="text-emerald-400 text-xs mt-2 font-bold flex items-center gap-1"><CheckCircle2 size={12} /> Active Access</p>
                   </div>
-                  <button className="flex items-center justify-center gap-2 w-full p-4 bg-white/5 border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-colors">
-                    <CreditCard size={14} /> Manage Billing
+                  <button
+                    onClick={handleManageBilling}
+                    disabled={billingLoading}
+                    className="flex items-center justify-center gap-2 w-full p-4 bg-white/5 border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                  >
+                    {billingLoading
+                      ? <Loader2 size={14} className="animate-spin" />
+                      : <CreditCard size={14} />}
+                    {billingLoading ? 'Opening...' : 'Manage Billing'}
+                    {!billingLoading && <ExternalLink size={11} className="text-gray-600" />}
                   </button>
                 </>
               )}
