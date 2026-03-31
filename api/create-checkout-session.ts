@@ -17,7 +17,6 @@ export default async function handler(req: any, res: any) {
 
   // Map plan names to their respective Price IDs from environment variables
   let priceId = process.env.STRIPE_PRICE_ELITE; // Default fallback
-  const isSubscription = plan !== '7-Day Trial';
 
   if (plan === 'Base Expert') priceId = process.env.STRIPE_PRICE_BASE;
   if (plan === '7-Day Trial') priceId = process.env.STRIPE_PRICE_TRIAL;
@@ -35,9 +34,10 @@ export default async function handler(req: any, res: any) {
           quantity: 1,
         },
       ],
-      mode: isSubscription ? 'subscription' : 'payment',
+      mode: 'payment', // Most prototyping prices are one-time. Using subscription mode requires 'recurring' prices in Stripe.
       // Metadata allows Make.com to receive all form data via Stripe webhooks
       metadata: {
+        email: email || '', // Explicitly pass the registered email for Make.com
         name: name || '',
         phone: phone || '',
         goal: goal || '',
