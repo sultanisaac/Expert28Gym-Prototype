@@ -42,6 +42,7 @@ const SEARCH_DATA = [
   { type: 'page', label: 'Payment Logs', sub: 'Admin / Payments', path: '/admin/payments', icon: CreditCard },
   { type: 'page', label: 'Reports & Analytics', sub: 'Admin / Reporting', path: '/admin/reporting', icon: TrendingUp },
   { type: 'page', label: 'Notifications', sub: 'Admin / Notifications', path: '/admin/notifications', icon: Bell },
+  { type: 'page', label: 'Audit Logs', sub: 'Admin / Audit Logs', path: '/admin/audit-logs', icon: Shield },
 ];
 
 // ─── COMMAND SEARCH MODAL ─────────────────────────────────────────────────────
@@ -162,6 +163,7 @@ function Sidebar({ collapsed, setCollapsed, currentPath, setPathname, notificati
     { label: 'Payments', icon: CreditCard, path: '/admin/payments' },
     { label: 'Reporting', icon: BarChart3, path: '/admin/reporting' },
     { label: 'Notifications', icon: Bell, path: '/admin/notifications', badge: notificationCount },
+    { label: 'Audit Logs', icon: Shield, path: '/admin/audit-logs' },
   ];
 
   const navigate = (path: string) => {

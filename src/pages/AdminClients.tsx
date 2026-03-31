@@ -17,6 +17,7 @@ interface ClientProfile {
   status: 'active' | 'pending' | 'banned';
   membership_tier: string | null;
   avatar_url: string | null;
+  membership_expires_at: string | null;
   created_at: string | null;
 }
 
@@ -131,7 +132,7 @@ export default function AdminClients({ setPathname }: { setPathname: (p: string)
     try {
       const { data, error: err } = await supabase
         .from('profiles')
-        .select('id, email, full_name, role, status, membership_tier, avatar_url, created_at')
+        .select('id, email, full_name, role, status, membership_tier, avatar_url, created_at, membership_expires_at')
         .order('created_at', { ascending: false });
 
       if (err) throw err;
@@ -273,8 +274,8 @@ export default function AdminClients({ setPathname }: { setPathname: (p: string)
         {/* Table */}
         <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '1rem', overflow: 'hidden' }}>
           {/* Table Head */}
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr 1.5fr 1fr 1fr auto', gap: '0.5rem', padding: '0.75rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
-            {['Member', 'Email', 'Role', 'Tier', 'Status', 'Joined', ''].map(h => (
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1.2fr 1.5fr 1fr 1fr 1fr auto', gap: '0.5rem', padding: '0.75rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
+            {['Member', 'Email', 'Role', 'Tier', 'Status', 'Expiry', 'Joined', ''].map(h => (
               <span key={h} style={{ fontSize: '0.65rem', fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{h}</span>
             ))}
           </div>
@@ -292,9 +293,13 @@ export default function AdminClients({ setPathname }: { setPathname: (p: string)
               const initials = getInitials(client.full_name, client.email);
               const tier = client.membership_tier ?? 'Unassigned';
               const joined = client.created_at ? new Date(client.created_at).toLocaleDateString('en-GB') : '—';
+              const expiry = client.membership_expires_at ? new Date(client.membership_expires_at).toLocaleDateString('en-GB') : 'No Expiry';
               const isSaving = saving === client.id;
+              
+              const isExpired = client.membership_expires_at && new Date(client.membership_expires_at) < new Date();
+
               return (
-                <div key={client.id} style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr 1.5fr 1fr 1fr auto', gap: '0.5rem', padding: '0.85rem 1.25rem', borderBottom: i < paginated.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', alignItems: 'center', transition: 'background 0.15s', opacity: isSaving ? 0.5 : 1 }}
+                <div key={client.id} style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1.2fr 1.5fr 1fr 1fr 1fr auto', gap: '0.5rem', padding: '0.85rem 1.25rem', borderBottom: i < paginated.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', alignItems: 'center', transition: 'background 0.15s', opacity: isSaving ? 0.5 : 1 }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.025)'}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
                 >
@@ -310,6 +315,7 @@ export default function AdminClients({ setPathname }: { setPathname: (p: string)
                   <span style={{ fontSize: '0.65rem', fontWeight: 700, color: roleCfg.color, background: `${roleCfg.color}15`, padding: '0.2rem 0.5rem', borderRadius: '0.3rem', display: 'inline-block' }}>{roleCfg.label}</span>
                   <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{tier}</span>
                   <StatusBadge status={client.status} />
+                  <span style={{ fontSize: '0.72rem', color: isExpired ? '#ef4444' : '#6b7280', fontWeight: isExpired ? 700 : 400 }}>{expiry}</span>
                   <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>{joined}</span>
                   <ActionMenu client={client} onAction={handleAction} />
                 </div>

@@ -4,7 +4,7 @@ import TelemetryCard from '../components/dashboard/TelemetryCard';
 import { supabase } from '../lib/supabase';
 import {
   Users, DollarSign, Activity, TrendingUp,
-  UserPlus, FileText, Bell, ArrowRight,
+  UserPlus, Bell, ArrowRight,
   ChevronDown, Shield, Clock,
   RefreshCw
 } from 'lucide-react';
@@ -40,7 +40,7 @@ function QuickActions({ setPathname }: { setPathname: (p: string) => void }) {
   const actions = [
     { label: 'Add New Member', desc: 'Register a client manually', icon: UserPlus, color: '#10b981', path: '/admin/clients' },
     { label: 'View Payments', desc: 'Audit recent transactions', icon: DollarSign, color: '#3b82f6', path: '/admin/payments' },
-    { label: 'Export Report', desc: 'Download analytics as CSV', icon: FileText, color: '#f59e0b', path: '/admin/reporting' },
+    { label: 'Platform Audit', desc: 'Secure system events log', icon: Shield, color: '#10b981', path: '/admin/audit-logs' },
     { label: 'Notification Center', desc: 'Manage system alerts', icon: Bell, color: '#8b5cf6', path: '/admin/notifications' },
   ];
 
@@ -262,8 +262,8 @@ export default function AdminDashboard({ setPathname }: { setPathname: (p: strin
         { label: 'Authentication',        status: 'Operational',  color: '#10b981' },
         { label: 'Storage (Avatars)',      status: 'Operational',  color: '#10b981' },
         { label: 'Payment Sync (Stripe)',  status: revenueData && revenueData.length > 0 ? 'Active' : 'Pending Setup', color: revenueData && revenueData.length > 0 ? '#10b981' : '#f59e0b' },
-        { label: 'Realtime Notifications', status: 'Pending Setup', color: '#f59e0b' },
-        { label: 'Make.com Automation',   status: 'Pending Setup', color: '#f59e0b' },
+        { label: 'Realtime Notifications', status: 'Active', color: '#10b981' },
+        { label: 'Make.com Automation',   status: 'Active', color: '#10b981' },
       ]);
 
     } catch (e) {

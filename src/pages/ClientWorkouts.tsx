@@ -117,11 +117,10 @@ function QuickLogPanel({ onSaved }: { onSaved: () => void }) {
                 key={ex}
                 type="button"
                 onClick={() => setTitle(ex)}
-                className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg border transition-all ${
-                  title === ex
+                className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg border transition-all ${title === ex
                     ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
                     : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20 hover:text-gray-300'
-                }`}
+                  }`}
               >
                 {ex}
               </button>
@@ -171,11 +170,10 @@ function QuickLogPanel({ onSaved }: { onSaved: () => void }) {
           type="button"
           onClick={handleSave}
           disabled={saving || !title.trim()}
-          className={`w-full py-4 rounded-xl font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
-            saved
+          className={`w-full py-4 rounded-xl font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${saved
               ? 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-400'
               : 'btn-blue'
-          } ${(!title.trim() || saving) ? 'opacity-50 pointer-events-none' : ''}`}
+            } ${(!title.trim() || saving) ? 'opacity-50 pointer-events-none' : ''}`}
         >
           {saved ? (
             <><CheckCircle2 size={18} /> Logged!</>
@@ -242,11 +240,10 @@ function HistoryEntry({ entry, onDelete }: { entry: WorkoutEntry; onDelete: (id:
       {/* Delete */}
       <button
         onClick={handleDelete}
-        className={`flex-shrink-0 p-2 rounded-lg transition-all md:opacity-0 group-hover:opacity-100 focus:opacity-100 ${
-          confirming
+        className={`flex-shrink-0 p-2 rounded-lg transition-all md:opacity-0 group-hover:opacity-100 focus:opacity-100 ${confirming
             ? 'bg-red-500/20 text-red-400 border border-red-500/30'
             : 'text-gray-600 hover:text-red-400 hover:bg-red-500/10'
-        }`}
+          }`}
         title={confirming ? 'Tap again to confirm delete' : 'Delete'}
       >
         {confirming ? <RotateCcw size={15} /> : <Trash2 size={15} />}
