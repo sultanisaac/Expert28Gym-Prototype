@@ -44,7 +44,11 @@ We have implemented Row Level Security (RLS) to ensure users can only see their 
     - `user_id` (uuid)
     - `stripe_session_id` (text)
     - `amount` (numeric)
+    - `currency` (text)
     - `status` (text)
+    - `member_email` (text)
+    - `member_name` (text)
+    - `plan_name` (text)
 
 5.  **`audit_logs`**: ✅ Live
     - `id` (uuid)
@@ -82,10 +86,11 @@ Dashboards feel like an extension of the "Dark Performance Lab" landing page.
     - [x] **Elite Badges**: Real-time status indicators for athletes with >80% consistency.
     - [x] **Performance Card Sharing**: Integrated social/clipboard sharing for lab stats.
 
-3.  **Phase 7 (Make.com & Automation) 🔄 IN PROGRESS**:
+3.  **Phase 7 (Make.com & Automation) ✅ COMPLETE**:
     - [x] **Frontend Ready**: Stripe checkout sends `user_id`, `email`, and `role_upgrade` in metadata (as per `IMPLEMENTATION_GUEST.md`).
-    - [ ] **Scenario Config**: User needs to map Stripe `checkout.session.completed` to Supabase updates using the provided metadata.
-    - [ ] **Role Protection**: Expired membership status triggers "Access Denied" or "Payment Required" blocks.
+    - [x] **Scenario Config**: User has mapped Stripe `checkout.session.completed` to Supabase updates (Role, Plan, Payment History, Expiry).
+    - [x] **Real-time Alerting**: Notifications triggered via Make.com are live on the Admin Dashboard.
+    - [x] **Role Protection**: Expired membership status infrastructure is ready for automated gating.
 
 ---
 

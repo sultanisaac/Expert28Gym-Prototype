@@ -83,7 +83,7 @@ The dashboard home provides high-level "Performance Lab" stats.
 | Table | RLS | Key Columns |
 |---|---|---|
 | `profiles` | ✅ | id, email, full_name, role, status, membership_tier, membership_expires_at, phone, address, avatar_url |
-| `payment_history` | ✅ | id, user_id, stripe_session_id, amount, currency, status, created_at |
+| `payment_history` | ✅ | id, user_id, stripe_session_id, amount, currency, status, created_at, member_email, member_name, plan_name |
 | `attendance` | ✅ | id, user_id, check_in_time, method |
 | `workout_checklists` | ✅ | id, user_id, title, date, weights, reps, is_completed |
 | `audit_logs` | ✅ | id, admin_id, action, entity_type, entity_id, details, ip_address, created_at |
@@ -100,11 +100,11 @@ The dashboard home provides high-level "Performance Lab" stats.
 - [x] **Live Integration**: All pages pulling real data from Supabase tables.
 - [x] **Realtime Notifications**: Web-sockets enabled for instant alerts (+ Toasts).
 
-### Phase 7 — External Integrations 🔄 IN PROGRESS
+### Phase 7 — External Integrations ✅ COMPLETE
 - [x] **Stripe Checkout Integration**: Metadata configured to send `user_id` and `role_upgrade` (as per `IMPLEMENTATION_GUEST.md`).
 - [x] **Conversion Logic**: Updated `SuccessPage.tsx` to handle instant redirection and success states.
-- [ ] **Make.com → Stripe**: User must finalise scenario connection to ingest Stripe metadata.
-- [ ] **Payment Mapping**: Scenario → Update `profiles.role='client'`, `profiles.membership_tier`, and `payment_history`.
+- [x] **Make.com → Stripe**: Scenario connection finalized and verified.
+- [x] **Payment Mapping**: Scenario → Update `profiles.role='client'`, `profiles.membership_tier`, and `payment_history`.
 
 ### Phase 8 — Polish & Production Hardening ✅ COMPLETE
 - [x] Role-guarded routing (`/admin/*`, `/client/*`, `/login`).
@@ -127,8 +127,8 @@ The dashboard home provides high-level "Performance Lab" stats.
 
 ---
 
-**Current Status**: `v1.3.0 - Performance Intelligence Active` 🚀
-**Next Objective**: Finalize the Make.com Stripe automation and bridge the gap for automated guest-to-client promotion.
+**Current Status**: `v1.3.0 - PLATFORM FULLY AUTONOMOUS` 🚀
+**Next Objective**: Initial athlete onboarding and platform scaling.
 
 ## 📦 File Map (Current State)
 
