@@ -253,7 +253,6 @@ export default function App() {
       {pathname === '/' && (
         <>
           <Footer goto={goto} />
-          <FloatingCTA openModal={() => openPlanModal('Elite Expert')} />
           {/* Mobile sticky bottom bar */}
           <div className="mobile-sticky-bar">
             <div>
@@ -902,14 +901,3 @@ function Footer({ goto }: { goto: (id: string) => void }) {
   );
 }
 
-// ─── FLOATING CTA ─────────────────────────────────────────────────────────────
-
-function FloatingCTA({ openModal }: { openModal: () => void }) {
-  return (
-    <button onClick={openModal} className="floating-cta" onMouseDown={addRipple}>
-      <Zap size={13} />
-      Join Expert28
-      <ChevronRight size={12} />
-    </button>
-  );
-}
