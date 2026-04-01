@@ -17,8 +17,7 @@ import ClientWorkouts from './pages/ClientWorkouts';
 import ProfilePage from './pages/ProfilePage';
 import ProfileDropdown from './components/ProfileDropdown';
 import NotificationDropdown from './components/dashboard/NotificationDropdown';
-import { useAuth, Profile } from './hooks/useAuth';
-import type { User } from '@supabase/supabase-js';
+import { useAuth, Profile, User } from './hooks/useAuth';
 import { supabase } from './lib/supabase';
 
 // ─── HOOKS ────────────────────────────────────────────────────────────────────

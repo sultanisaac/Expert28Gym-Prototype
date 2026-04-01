@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import type { User, AuthChangeEvent, Session } from '@supabase/supabase-js';
+export type { User, AuthChangeEvent, Session };
 
 export interface Profile {
   id: string;
