@@ -19,6 +19,7 @@ import ProfileDropdown from './components/ProfileDropdown';
 import NotificationDropdown from './components/dashboard/NotificationDropdown';
 import { useAuth, Profile, User } from './hooks/useAuth';
 import { supabase } from './lib/supabase';
+import { QuickLogin } from './components/QuickLogin';
 
 // ─── HOOKS ────────────────────────────────────────────────────────────────────
 
@@ -269,6 +270,9 @@ export default function App() {
         onClose={() => setModalOpen(false)}
         selectedPlan={selectedPlan}
       />
+
+      {/* Experience Portal — Quick Login for Demos */}
+      {!user && <QuickLogin />}
     </div>
   );
 }
