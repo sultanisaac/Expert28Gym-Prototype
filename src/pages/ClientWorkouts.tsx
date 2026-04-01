@@ -1,7 +1,7 @@
 import { useAuth } from '../hooks/useAuth';
 import {
   Dumbbell, Lock, Plus, Minus, CheckCircle2,
-  Trash2, CalendarDays, Flame, RotateCcw, ChevronDown, ChevronUp
+  Trash2, CalendarDays, Flame, RotateCcw, ChevronDown, ChevronUp, Clock
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
@@ -15,6 +15,7 @@ interface WorkoutEntry {
   reps: number | null;
   notes: string | null;
   is_completed: boolean;
+  frequency: 'daily' | 'weekly' | 'monthly' | 'untracked';
   created_at: string;
 }
 
@@ -27,6 +28,7 @@ function QuickLogPanel({ onSaved }: { onSaved: () => void }) {
   const [reps, setReps] = useState(10);
   const [weights, setWeights] = useState(0);
   const [notes, setNotes] = useState('');
+  const [frequency, setFrequency] = useState<'daily' | 'weekly' | 'monthly' | 'untracked'>('untracked');
   const [saving, setSaving] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -45,6 +47,7 @@ function QuickLogPanel({ onSaved }: { onSaved: () => void }) {
         weights_lbs: weights || null,
         notes: notes.trim() || null,
         is_completed: true,
+        frequency: frequency,
       }]);
       if (error) throw error;
       // Flash success then reset
@@ -54,6 +57,7 @@ function QuickLogPanel({ onSaved }: { onSaved: () => void }) {
       setReps(10);
       setWeights(0);
       setNotes('');
+      setFrequency('untracked');
       setShowNotes(false);
       onSaved();
     } catch (err: unknown) {
@@ -138,6 +142,25 @@ function QuickLogPanel({ onSaved }: { onSaved: () => void }) {
             onChange={e => setDate(e.target.value)}
             className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-emerald-500 transition-colors text-sm"
           />
+        </div>
+        
+        {/* Frequency */}
+        <div>
+          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Checklist Category</label>
+          <div className="flex bg-black/30 p-1 rounded-xl border border-white/5 gap-1">
+            {(['untracked', 'daily', 'weekly', 'monthly'] as const).map(f => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setFrequency(f)}
+                className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${frequency === f 
+                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                  : 'text-gray-500 hover:text-gray-300'}`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Big counters */}
@@ -236,6 +259,11 @@ function HistoryEntry({ entry, onDelete }: { entry: WorkoutEntry; onDelete: (id:
         {entry.notes && (
           <p className="text-[11px] text-gray-500 mt-1 italic line-clamp-1">"{entry.notes}"</p>
         )}
+        {entry.frequency && entry.frequency !== 'untracked' && (
+          <div className="mt-2 flex">
+            <span className="text-[9px] font-black uppercase bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded border border-emerald-500/20">{entry.frequency} Checklist</span>
+          </div>
+        )}
       </div>
 
       {/* Delete */}
@@ -308,7 +336,7 @@ export default function ClientWorkouts({ setPathname }: { setPathname?: (path: s
   const { profile, user } = useAuth();
   const [entries, setEntries] = useState<WorkoutEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  const [viewMode, setViewMode] = useState<'daily' | 'weekly' | 'monthly' | 'routines'>('daily');
   const [showAll, setShowAll] = useState(false);
 
   const isGuest = !profile?.role || profile?.role === 'guest';
@@ -339,10 +367,12 @@ export default function ClientWorkouts({ setPathname }: { setPathname?: (path: s
 
   const handleDelete = async (id: string) => {
     try {
-      await supabase.from('workout_checklists').delete().eq('id', id);
+      const { error } = await supabase.from('workout_checklists').delete().eq('id', id);
+      if (error) throw error;
       setEntries(prev => prev.filter(e => e.id !== id));
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
+      console.error('Delete error:', err);
+      alert(err instanceof Error ? err.message : 'Failed to delete workout');
     }
   };
 
@@ -394,14 +424,14 @@ export default function ClientWorkouts({ setPathname }: { setPathname?: (path: s
           <div className="space-y-8">
 
             {/* ── VIEW MODE SWITCHER ── */}
-            <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10 max-w-sm mx-auto md:mx-0">
-              {(['daily', 'weekly', 'monthly'] as const).map((mode) => (
+            <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10 max-w-md mx-auto md:mx-0">
+              {(['daily', 'weekly', 'monthly', 'routines'] as const).map((mode) => (
                 <button 
                   key={mode}
                   onClick={() => setViewMode(mode)}
-                  className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${viewMode === mode ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20' : 'text-gray-500 hover:text-white'}`}
+                  className={`flex-1 py-2 px-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${viewMode === mode ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20' : 'text-gray-500 hover:text-white'}`}
                 >
-                  {mode}
+                  {mode === 'routines' ? 'Checklists' : mode}
                 </button>
               ))}
             </div>
@@ -532,6 +562,61 @@ export default function ClientWorkouts({ setPathname }: { setPathname?: (path: s
                         {[...Array(30)].map((_, i) => (
                           <div key={i} className="w-4 h-4 rounded bg-emerald-500/50" />
                         ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── ROUTINES VIEW ── */}
+                {viewMode === 'routines' && (
+                  <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Daily habits tracker style */}
+                      {['daily', 'weekly', 'monthly'].map(freq => {
+                        const freqItems = entries.filter(e => e.frequency === freq);
+                        const count = freqItems.length;
+                        const iconColor = freq === 'daily' ? 'text-emerald-500' : freq === 'weekly' ? 'text-blue-500' : 'text-purple-500';
+                        
+                        return (
+                          <div key={freq} className="glass-card p-6">
+                            <div className="flex items-center justify-between mb-6">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center ${iconColor}`}>
+                                  {freq === 'daily' ? <Clock size={18} /> : freq === 'weekly' ? <CalendarDays size={18} /> : <CheckCircle2 size={18} />}
+                                </div>
+                                <div>
+                                  <h3 className="text-sm font-black uppercase tracking-tight text-white">{freq} Routine</h3>
+                                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Consistency Target</p>
+                                </div>
+                              </div>
+                              <span className={`text-xl font-black ${iconColor}`}>{count}</span>
+                            </div>
+                            
+                            <div className="space-y-3">
+                              {freqItems.length === 0 ? (
+                                <p className="text-[11px] text-gray-600 italic text-center py-4">No {freq} items logged.</p>
+                              ) : freqItems.slice(0, 3).map(item => (
+                                <div key={item.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5">
+                                  <span className="text-xs font-bold text-gray-300">{item.title}</span>
+                                  <span className="text-[10px] text-gray-600 font-bold uppercase">{new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
+                                </div>
+                              ))}
+                              {count > 3 && <p className="text-[10px] text-center text-gray-700 font-bold uppercase cursor-pointer hover:text-gray-500">+{count - 3} more items</p>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="glass-card p-8 border-emerald-500/10">
+                      <div className="flex flex-col items-center text-center">
+                        <Flame className="text-orange-500 mb-4" size={32} />
+                        <h3 className="text-lg font-black uppercase tracking-tight text-white mb-2">Protocol Adherence v1.0</h3>
+                        <p className="text-sm text-gray-500 max-w-sm mb-6 font-medium">Use the "Quick Log" to categorize your training sessions into Daily, Weekly, or Monthly rituals to track long-term adherence.</p>
+                        <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+                          <div className="h-full bg-emerald-500 w-[42%]" />
+                        </div>
+                        <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-3">42% Protocol Compliance</p>
                       </div>
                     </div>
                   </div>
