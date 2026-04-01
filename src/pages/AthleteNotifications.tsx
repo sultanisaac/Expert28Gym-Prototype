@@ -62,7 +62,7 @@ export default function AthleteNotifications({ setPathname }: { setPathname: (p:
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'notifications' },
-        () => { fetchNotifications(); }
+        (_payload: any) => { fetchNotifications(); }
       )
       .subscribe();
 

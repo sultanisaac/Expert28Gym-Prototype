@@ -70,7 +70,7 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
         .eq('user_id', user.id)
         .gte('check_in_time', monthStartISO);
 
-      const uniqueDays = new Set((attData || []).map(a => new Date(a.check_in_time).toDateString())).size;
+      const uniqueDays = new Set((attData || []).map((a: { check_in_time: string }) => new Date(a.check_in_time).toDateString())).size;
       const daysElapsed = new Date().getDate();
       const pct = daysElapsed > 0 ? Math.round((uniqueDays / daysElapsed) * 100) : 0;
       setConsistencyPct(Math.min(100, pct));

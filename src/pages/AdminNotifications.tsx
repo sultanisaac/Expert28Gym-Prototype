@@ -160,7 +160,7 @@ export default function AdminNotifications({ setPathname }: { setPathname: (p: s
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications' },
-        (payload) => {
+        (payload: any) => {
           const newItem = payload.new as NotificationRow;
           setItems(prev => [newItem, ...prev]);
           showToast(`New: ${newItem.title}`);
@@ -169,7 +169,7 @@ export default function AdminNotifications({ setPathname }: { setPathname: (p: s
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'notifications' },
-        (payload) => {
+        (payload: any) => {
           const updated = payload.new as NotificationRow;
           setItems(prev => prev.map(n => n.id === updated.id ? updated : n));
         }
@@ -177,11 +177,11 @@ export default function AdminNotifications({ setPathname }: { setPathname: (p: s
       .on(
         'postgres_changes',
         { event: 'DELETE', schema: 'public', table: 'notifications' },
-        (payload) => {
+        (payload: any) => {
           setItems(prev => prev.filter(n => n.id !== (payload.old as NotificationRow).id));
         }
       )
-      .subscribe((status) => {
+      .subscribe((status: string) => {
         setRealtimeActive(status === 'SUBSCRIBED');
       });
 
