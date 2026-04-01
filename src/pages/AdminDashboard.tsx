@@ -38,10 +38,12 @@ const DATE_RANGES = ['7 Days', '30 Days', '3 Months', '12 Months'];
 
 function QuickActions({ setPathname }: { setPathname: (p: string) => void }) {
   const actions = [
-    { label: 'Add New Member', desc: 'Register a client manually', icon: UserPlus, color: '#10b981', path: '/admin/clients' },
-    { label: 'View Payments', desc: 'Audit recent transactions', icon: DollarSign, color: '#3b82f6', path: '/admin/payments' },
-    { label: 'Platform Audit', desc: 'Secure system events log', icon: Shield, color: '#10b981', path: '/admin/audit-logs' },
-    { label: 'Notification Center', desc: 'Manage system alerts', icon: Bell, color: '#8b5cf6', path: '/admin/notifications' },
+    { label: 'Add New Member', desc: 'Register client manually', icon: UserPlus, color: '#10b981', path: '/admin/clients' },
+    { label: 'Payment Logs', desc: 'Audit transactions', icon: DollarSign, color: '#3b82f6', path: '/admin/payments' },
+    { label: 'Analytics Hub', desc: 'Performance reports', icon: TrendingUp, color: '#8b5cf6', path: '/admin/reporting' },
+    { label: 'Platform Audit', desc: 'System security logs', icon: Shield, color: '#f59e0b', path: '/admin/audit-logs' },
+    { label: 'Notification Center', desc: 'Manage alerts', icon: Bell, color: '#ef4444', path: '/admin/notifications' },
+    { label: 'Attendance Feed', desc: 'Live check-in data', icon: Activity, color: '#10b981', path: '/admin/dashboard' },
   ];
 
   const navigate = (path: string) => {
@@ -334,7 +336,7 @@ export default function AdminDashboard({ setPathname }: { setPathname: (p: strin
         <div>
           <SectionHeader title="Key Metrics" subtitle={`Showing data for the last ${dateRange.toLowerCase()} · Live from Supabase`} />
           {loading ? <StatSkeleton /> : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.85rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
               <TelemetryCard label="Total Members" value={stats?.totalMembers.toString() ?? '0'} trend={stats?.memberGrowthPct ?? 0} trendLabel="vs last month" sparkData={sparkData.members} color="#10b981" icon={Users} />
               <TelemetryCard label="Monthly Revenue" value={(stats?.monthlyRevenue ?? 0).toLocaleString()} trend={5} trendLabel="vs last month" sparkData={sparkData.revenue} color="#3b82f6" icon={DollarSign} prefix="$" />
               <TelemetryCard label="Today's Attendance" value={stats?.todayAttendance.toString() ?? '0'} trend={3} trendLabel="vs last week" sparkData={sparkData.attendance} color="#f59e0b" icon={Activity} />
@@ -349,8 +351,8 @@ export default function AdminDashboard({ setPathname }: { setPathname: (p: strin
           <QuickActions setPathname={setPathname} />
         </div>
 
-        {/* Two-column bottom */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+        {/* Two-column bottom - Stacks on mobile */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
           {/* Activity Feed */}
           <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '1rem', padding: '1.25rem', overflow: 'hidden' }}>
             <SectionHeader title="Recent Activity" subtitle="Live operational feed" />

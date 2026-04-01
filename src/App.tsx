@@ -10,6 +10,7 @@ import AdminClients from './pages/AdminClients';
 import AdminPayments from './pages/AdminPayments';
 import AdminReporting from './pages/AdminReporting';
 import AdminNotifications from './pages/AdminNotifications';
+import AdminAuditLogs from './pages/AdminAuditLogs';
 import ClientDashboard from './pages/ClientDashboard';
 import ClientWorkouts from './pages/ClientWorkouts';
 import ProfilePage from './pages/ProfilePage';
@@ -177,6 +178,7 @@ export default function App() {
     if (pathname === '/admin/payments') return <AdminPayments setPathname={setPathname} />;
     if (pathname === '/admin/reporting') return <AdminReporting setPathname={setPathname} />;
     if (pathname === '/admin/notifications') return <AdminNotifications setPathname={setPathname} />;
+    if (pathname === '/admin/audit-logs') return <AdminAuditLogs setPathname={setPathname} />;
     if (pathname === '/client/dashboard' || (pathname === '/dashboard' && profile?.role === 'client')) return <ClientDashboard setPathname={setPathname} />;
     if (pathname === '/client/workouts') return <ClientWorkouts setPathname={setPathname} />;
     

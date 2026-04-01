@@ -5,7 +5,7 @@ import ProfileDropdown from '../ProfileDropdown';
 import {
   LayoutDashboard, Users, CreditCard, BarChart3, Bell,
   ChevronLeft, ChevronRight, Search, Command, Shield,
-  UserCheck, DollarSign, TrendingUp
+  UserCheck, DollarSign, TrendingUp, Menu, X
 } from 'lucide-react';
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -252,10 +252,11 @@ function Sidebar({ collapsed, setCollapsed, currentPath, setPathname, notificati
         })}
       </nav>
 
-      {/* Collapse toggle */}
+      {/* Collapse toggle - Hidden on mobile */}
       <button
+        className="collapse-toggle"
         onClick={() => setCollapsed(!collapsed)}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.6rem', borderRadius: '0.6rem', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)', cursor: 'pointer', color: '#6b7280', transition: 'all 0.15s', marginTop: '0.5rem' }}
+        style={{ display: window.innerWidth < 768 ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.6rem', borderRadius: '0.6rem', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)', cursor: 'pointer', color: '#6b7280', transition: 'all 0.15s', marginTop: '0.5rem' }}
         onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; e.currentTarget.style.color = '#f9fafb'; }}
         onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.color = '#6b7280'; }}
         title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
@@ -288,13 +289,19 @@ function Breadcrumbs({ segments }: { segments: BreadcrumbSegment[] }) {
 export default function DashboardLayout({ children, currentPath, setPathname, breadcrumbs }: DashboardLayoutProps) {
   const { user, profile, signOut } = useAuth();
   const [collapsed, setCollapsed] = useState(() => window.innerWidth < 768);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
 
   // ── Responsive: auto-collapse sidebar below 768px ────────────────────────
   useEffect(() => {
     const onResize = () => {
-      if (window.innerWidth < 768) setCollapsed(true);
+      const isMobile = window.innerWidth < 768;
+      if (isMobile) {
+        setCollapsed(true);
+      } else {
+        setIsMobileMenuOpen(false);
+      }
     };
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
@@ -358,17 +365,66 @@ export default function DashboardLayout({ children, currentPath, setPathname, br
 
   return (
     <div style={{ minHeight: '100vh', background: '#030712', color: '#f9fafb', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <style>{`
+        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+        @keyframes slideIn { from{transform:translateX(-100%)} to{transform:translateX(0)} }
+        @media (max-width: 767px) {
+          .desktop-sidebar { display: none !important; }
+          .mobile-sidebar { 
+            position: fixed; top: 0; left: 0; bottom: 0; width: 280px; 
+            z-index: 10000; animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #030712; border-right: 1px solid rgba(255,255,255,0.06);
+          }
+          .mobile-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            z-index: 9999; animation: fadeIn 0.2s ease;
+          }
+          .search-label { display: none !important; }
+          .shortcut-hint { display: none !important; }
+          .collapse-toggle { display: none !important; }
+        }
+        @media (min-width: 768px) {
+          .mobile-toggle { display: none !important; }
+          .search-label { display: block !important; }
+        }
+      `}</style>
+      
       {searchOpen && <CommandSearch onClose={() => setSearchOpen(false)} setPathname={setPathname} />}
 
+      {/* Mobile Drawer */}
+      {isMobileMenuOpen && (
+        <>
+          <div className="mobile-overlay" onClick={() => setIsMobileMenuOpen(false)} />
+          <div className="mobile-sidebar">
+            <Sidebar
+              collapsed={false}
+              setCollapsed={() => {}}
+              currentPath={currentPath}
+              setPathname={(p) => { setPathname(p); setIsMobileMenuOpen(false); }}
+              notificationCount={notificationCount}
+            />
+            {/* Close button for mobile drawer */}
+            <button 
+              onClick={() => setIsMobileMenuOpen(false)}
+              style={{ position: 'absolute', top: '1.25rem', right: '1rem', padding: '0.4rem', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#6b7280', cursor: 'pointer' }}
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </>
+      )}
+
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-        {/* Sidebar */}
-        <Sidebar
-          collapsed={collapsed}
-          setCollapsed={setCollapsed}
-          currentPath={currentPath}
-          setPathname={setPathname}
-          notificationCount={notificationCount}
-        />
+        {/* Desktop Sidebar */}
+        <div className="desktop-sidebar">
+          <Sidebar
+            collapsed={collapsed}
+            setCollapsed={setCollapsed}
+            currentPath={currentPath}
+            setPathname={setPathname}
+            notificationCount={notificationCount}
+          />
+        </div>
 
         {/* Main column */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: '100vh' }}>
@@ -379,8 +435,17 @@ export default function DashboardLayout({ children, currentPath, setPathname, br
             background: 'rgba(255,255,255,0.015)', backdropFilter: 'blur(16px)',
             position: 'sticky', top: 0, zIndex: 50, flexShrink: 0, gap: '1rem',
           }}>
-            {/* Left: Breadcrumbs */}
-            <Breadcrumbs segments={crumbs} />
+            {/* Left: Mobile Menu Toggle + Breadcrumbs */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <button 
+                className="mobile-toggle"
+                onClick={() => setIsMobileMenuOpen(true)}
+                style={{ padding: '0.45rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.6rem', cursor: 'pointer', color: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Menu size={20} />
+              </button>
+              <Breadcrumbs segments={crumbs} />
+            </div>
 
             {/* Right: Search + Notifications + Profile */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
@@ -392,8 +457,8 @@ export default function DashboardLayout({ children, currentPath, setPathname, br
                 onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
               >
                 <Search size={13} strokeWidth={1.5} />
-                <span style={{ display: 'none' }} className="search-label">Quick search...</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', marginLeft: '0.5rem' }}>
+                <span className="search-label">Quick search...</span>
+                <div className="shortcut-hint" style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', marginLeft: '0.5rem' }}>
                   <Command size={10} />
                   <span style={{ fontSize: '0.65rem', fontFamily: 'monospace' }}>K</span>
                 </div>
@@ -420,14 +485,14 @@ export default function DashboardLayout({ children, currentPath, setPathname, br
                   user={user}
                   profile={profile}
                   signOut={signOut}
-                  setPathname={(p: string) => { setPathname(p); history.pushState({}, '', p); }}
+                  setPathname={(p: string) => { setPathname(p); history.pushState({}, '', p); setIsMobileMenuOpen(false); }}
                 />
               )}
             </div>
           </header>
 
           {/* Page Content */}
-          <main style={{ flex: 1, padding: '1.75rem', overflowY: 'auto' }}>
+          <main style={{ flex: 1, padding: window.innerWidth < 768 ? '1rem' : '1.75rem', overflowY: 'auto' }}>
             {children}
           </main>
         </div>

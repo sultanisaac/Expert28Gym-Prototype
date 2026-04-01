@@ -242,47 +242,51 @@ export default function AdminPayments({ setPathname }: { setPathname: (p: string
           </div>
         </div>
 
-        {/* Table */}
-        <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '1rem', overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1.5fr 0.8fr 1fr 1fr', gap: '0.5rem', padding: '0.75rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
-            {['Session ID', 'Member', 'Tier', 'Amount', 'Status', 'Date'].map(h => (
-              <span key={h} style={{ fontSize: '0.65rem', fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{h}</span>
-            ))}
-          </div>
-
-          {loading ? (
-            [1, 2, 3, 4, 5].map(i => <SkeletonRow key={i} />)
-          ) : paginated.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '3rem', color: '#4b5563', fontSize: '0.85rem' }}>
-              {payments.length === 0 ? 'No payments recorded yet. Payments will appear here once Stripe integration is active.' : 'No transactions match your filter.'}
+        {/* Table - Responsive Container */}
+        <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '1rem', overflowX: 'auto' }}>
+          <div style={{ minWidth: 800 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr 1.5fr 0.8fr 1fr 1fr', gap: '0.5rem', padding: '0.9rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
+              {['Session ID', 'Member', 'Tier', 'Amount', 'Status', 'Date'].map(h => (
+                <span key={h} style={{ fontSize: '0.65rem', fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{h}</span>
+              ))}
             </div>
-          ) : (
-            paginated.map((p, i) => {
-              const cfg = getStatusCfg(p.status);
-              const Icon = cfg.icon;
-              const sessionShort = p.stripe_session_id ? `...${p.stripe_session_id.slice(-10)}` : p.id.slice(0, 8);
-              const date = p.created_at ? new Date(p.created_at).toLocaleDateString('en-GB') : '—';
-              return (
-                <div key={p.id} style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1.5fr 0.8fr 1fr 1fr', gap: '0.5rem', padding: '0.85rem 1.25rem', borderBottom: i < paginated.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', alignItems: 'center', transition: 'background 0.15s' }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.025)'}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
-                >
-                  <span style={{ fontSize: '0.68rem', fontFamily: 'monospace', color: '#6b7280' }} title={p.stripe_session_id ?? p.id}>{sessionShort}</span>
-                  <div>
-                    <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700, color: '#f9fafb' }}>{p.member_name ?? '—'}</p>
-                    <p style={{ margin: 0, fontSize: '0.65rem', color: '#6b7280' }}>{p.member_email ?? '—'}</p>
+
+            {loading ? (
+              [1, 2, 3, 4, 5].map(i => <SkeletonRow key={i} />)
+            ) : paginated.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem', color: '#4b5563', fontSize: '0.85rem' }}>
+                {payments.length === 0 ? 'No payments recorded yet. Payments will appear here once Stripe integration is active.' : 'No transactions match your filter.'}
+              </div>
+            ) : (
+              paginated.map((p, i) => {
+                const cfg = getStatusCfg(p.status);
+                const Icon = cfg.icon;
+                const sessionShort = p.stripe_session_id ? `...${p.stripe_session_id.slice(-10)}` : p.id.slice(0, 8);
+                const date = p.created_at ? new Date(p.created_at).toLocaleDateString('en-GB') : '—';
+                return (
+                  <div key={p.id} style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr 1.5fr 0.8fr 1fr 1fr', gap: '0.5rem', padding: '0.85rem 1.25rem', borderBottom: i < paginated.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', alignItems: 'center', transition: 'background 0.15s' }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.025)'}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+                  >
+                    <span style={{ fontSize: '0.68rem', fontFamily: 'monospace', color: '#6b7280' }} title={p.stripe_session_id ?? p.id}>{sessionShort}</span>
+                    <div>
+                      <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700, color: '#f9fafb' }}>{p.member_name ?? '—'}</p>
+                      <p style={{ margin: 0, fontSize: '0.65rem', color: '#6b7280' }}>{p.member_email ?? '—'}</p>
+                    </div>
+                    <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{p.membership_tier ?? '—'}</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#f9fafb' }}>${p.amount?.toLocaleString() ?? '—'}</span>
+                    <div>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.65rem', fontWeight: 700, color: cfg.color, background: `${cfg.color}15`, padding: '0.2rem 0.55rem', borderRadius: '999px' }}>
+                        <Icon size={10} strokeWidth={2} />
+                        {cfg.label}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>{date}</span>
                   </div>
-                  <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{p.membership_tier ?? '—'}</span>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#f9fafb' }}>${p.amount?.toLocaleString() ?? '—'}</span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.65rem', fontWeight: 700, color: cfg.color, background: `${cfg.color}15`, padding: '0.2rem 0.55rem', borderRadius: '999px' }}>
-                    <Icon size={10} strokeWidth={2} />
-                    {cfg.label}
-                  </span>
-                  <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>{date}</span>
-                </div>
-              );
-            })
-          )}
+                );
+              })
+            )}
+          </div>
         </div>
 
         {/* Pagination Controls */}

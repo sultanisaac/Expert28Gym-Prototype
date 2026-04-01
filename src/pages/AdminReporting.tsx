@@ -43,20 +43,28 @@ const PLAN_COLORS: Record<string, string> = {
 // ─── BAR CHART ────────────────────────────────────────────────────────────────
 
 function BarChart({ data }: { data: MonthlyRevenue[] }) {
+  const [hovered, setHovered] = useState<number | null>(null);
   const max = Math.max(...data.map(d => d.value), 1);
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem', height: 100 }}>
-      {data.map(d => (
-        <div key={d.month} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
-          <div
-            style={{ width: '100%', background: 'rgba(59,130,246,0.3)', borderRadius: '0.3rem 0.3rem 0 0', height: `${(d.value / max) * 100}%`, transition: 'height 0.4s, background 0.2s', cursor: 'default', minHeight: d.value > 0 ? 4 : 0 }}
-            title={`$${d.value.toLocaleString()}`}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(59,130,246,0.65)'}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'rgba(59,130,246,0.3)'}
-          />
-          <span style={{ fontSize: '0.6rem', color: '#6b7280', fontWeight: 600 }}>{d.month}</span>
-        </div>
-      ))}
+    <div style={{ position: 'relative' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.65rem', height: 140, padding: '1rem 0' }}>
+        {data.map((d, i) => (
+          <div key={d.month} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', position: 'relative' }}>
+            {/* Tooltip */}
+            {hovered === i && (
+              <div style={{ position: 'absolute', top: -35, left: '50%', transform: 'translateX(-50%)', background: '#0d1117', border: '1px solid rgba(59,130,246,0.3)', borderRadius: '0.4rem', padding: '0.25rem 0.5rem', whiteSpace: 'nowrap', zIndex: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.5)', animation: 'slideUp 0.15s ease' }}>
+                <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#3b82f6' }}>${d.value.toLocaleString()}</span>
+              </div>
+            )}
+            <div
+              style={{ width: '100%', background: hovered === i ? '#3b82f6' : 'rgba(59,130,246,0.25)', borderRadius: '0.4rem 0.4rem 0 0', height: `${(d.value / max) * 100}%`, transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)', cursor: 'pointer', minHeight: d.value > 0 ? 6 : 2 }}
+              onMouseEnter={() => setHovered(i)}
+              onMouseLeave={() => setHovered(null)}
+            />
+            <span style={{ fontSize: '0.65rem', color: '#4b5563', fontWeight: 700, textTransform: 'uppercase' }}>{d.month}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -303,7 +311,7 @@ export default function AdminReporting({ setPathname }: { setPathname: (p: strin
 
   return (
     <DashboardLayout currentPath="/admin/reporting" setPathname={setPathname} breadcrumbs={[{ label: 'Admin' }, { label: 'Reporting' }]}>
-      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} } @keyframes spin { to{transform:rotate(360deg)} }`}</style>
+      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} } @keyframes spin { to{transform:rotate(360deg)} } @keyframes slideUp { from{opacity:0;transform:translate(-50%,5px)} to{opacity:1;transform:translate(-50%,0)} }`}</style>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', maxWidth: 1100 }}>
 
         {/* Header */}
@@ -356,8 +364,8 @@ export default function AdminReporting({ setPathname }: { setPathname: (p: strin
           </div>
         )}
 
-        {/* Charts Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.25rem' }}>
+        {/* Charts Row - Stacks on mobile */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.25rem' }}>
           {/* Revenue Bar Chart */}
           <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '1rem', padding: '1.5rem' }}>
             <div style={{ marginBottom: '1.25rem' }}>

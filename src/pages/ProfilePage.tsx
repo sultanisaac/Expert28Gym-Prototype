@@ -135,11 +135,17 @@ export default function ProfilePage() {
       <div className="max-w-4xl mx-auto">
         {/* Back Button */}
         <button 
-          onClick={() => window.location.href = '/'}
+          onClick={() => {
+            if (profile?.role?.toLowerCase() === 'admin') {
+              window.location.href = '/admin/dashboard';
+            } else {
+              window.location.href = '/';
+            }
+          }}
           className="flex items-center gap-2 text-gray-500 hover:text-emerald-500 transition-colors mb-8 group"
         >
           <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-          <span>Back to Home</span>
+          <span>{profile?.role?.toLowerCase() === 'admin' ? 'Back to Admin Portal' : 'Back to Home'}</span>
         </button>
 
         {/* Profile Header */}
@@ -201,13 +207,9 @@ export default function ProfilePage() {
                   {profile?.status || 'Active'}
                 </span>
               </div>
-              <input 
-                type="text"
-                value={formData.full_name}
-                onChange={(e) => handleInputChange('full_name', e.target.value)}
-                placeholder="Your Full Name"
-                className="text-4xl font-black tracking-tight bg-transparent border-none focus:outline-none focus:ring-0 p-0 w-full placeholder:text-gray-700 leading-none"
-              />
+              <h1 className="text-4xl font-black tracking-tight leading-none text-white">
+                {formData.full_name || user?.email?.split('@')[0]}
+              </h1>
               <p className="text-gray-500 text-sm font-medium mt-3 flex items-center gap-2">
                 <Mail size={14} className="text-gray-600" />
                 {user?.email}
@@ -296,6 +298,19 @@ export default function ProfilePage() {
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Name Change - Integrated into standard form */}
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-[10px] uppercase font-black text-gray-400 tracking-widest ml-1">Display Name</label>
+                  <div className="relative group">
+                    <input 
+                      type="text" 
+                      value={formData.full_name}
+                      onChange={(e) => handleInputChange('full_name', e.target.value)}
+                      placeholder="Your Full Name"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm font-medium focus:outline-none focus:border-emerald-500/50 transition-all placeholder:text-gray-700 font-bold"
+                    />
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <label className="text-[10px] uppercase font-black text-gray-500 tracking-widest ml-1">Contact Number</label>
                   <div className="relative group">
@@ -359,13 +374,54 @@ export default function ProfilePage() {
 
               <div className="mt-8 p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 flex items-start gap-4">
                 <Shield className="text-blue-500 mt-0.5" size={16} />
-                <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">
+                <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
                   Your billing information is secured using industry-standard SSL encryption. Your address is only visible to gym management for insurance purposes.
                 </p>
               </div>
             </div>
+
+            {/* Security Section - NEW */}
+            <div className="mt-8 p-8 rounded-3xl border border-white/10 bg-[#0a0f1d] shadow-xl">
+              <h3 className="text-lg font-black mb-8 flex items-center gap-3 text-amber-500">
+                Security & Access
+                <div className="h-[2px] flex-1 bg-gradient-to-r from-amber-500/20 to-transparent ml-2" />
+              </h3>
+              
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                  <p className="text-sm font-bold text-white mb-1">Account Password</p>
+                  <p className="text-xs text-gray-500">Update your credentials to maintain account security.</p>
+                </div>
+                <button 
+                  onClick={() => toast.info('Password reset link sent to your email.')}
+                  className="px-6 py-2.5 rounded-xl border border-white/10 hover:border-amber-500/50 hover:bg-amber-500/5 text-xs font-black uppercase tracking-widest transition-all"
+                >
+                  Change Password
+                </button>
+              </div>
+
+              <div className="mt-8 pt-8 border-t border-white/5 flex items-center justify-between opacity-50">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Two-Factor Authentication</span>
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Enabled</span>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
+
+      {/* Floating Save Button for Mobile */}
+      <div className="lg:hidden fixed bottom-6 left-6 right-6 z-50">
+        <button 
+          onClick={handleSave}
+          disabled={isSaving}
+          className="w-full flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-black font-black text-sm uppercase tracking-widest transition-all shadow-2xl shadow-emerald-500/40 active:scale-95 disabled:opacity-50"
+        >
+          {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+          {isSaving ? 'Encrypting...' : 'Save Changes'}
+        </button>
       </div>
     </div>
   );

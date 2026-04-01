@@ -271,57 +271,61 @@ export default function AdminClients({ setPathname }: { setPathname: (p: string)
           </div>
         </div>
 
-        {/* Table */}
-        <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '1rem', overflow: 'hidden' }}>
-          {/* Table Head */}
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1.2fr 1.5fr 1fr 1fr 1fr auto', gap: '0.5rem', padding: '0.75rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
-            {['Member', 'Email', 'Role', 'Tier', 'Status', 'Expiry', 'Joined', ''].map(h => (
-              <span key={h} style={{ fontSize: '0.65rem', fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{h}</span>
-            ))}
-          </div>
-
-          {/* Table Body */}
-          {loading ? (
-            [1, 2, 3, 4, 5].map(i => <SkeletonRow key={i} />)
-          ) : paginated.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '3rem', color: '#4b5563', fontSize: '0.85rem' }}>
-              {clients.length === 0 ? 'No members found in database.' : 'No clients match your search.'}
+        {/* Table - Responsive Container */}
+        <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '1rem', overflowX: 'auto' }}>
+          <div style={{ minWidth: 900 }}>
+            {/* Table Head */}
+            <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 2.5fr 1.2fr 1.5fr 1fr 1fr 1fr auto', gap: '0.5rem', padding: '0.9rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
+              {['Member', 'Email', 'Role', 'Tier', 'Status', 'Expiry', 'Joined', ''].map(h => (
+                <span key={h} style={{ fontSize: '0.65rem', fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{h}</span>
+              ))}
             </div>
-          ) : (
-            paginated.map((client, i) => {
-              const roleCfg = ROLE_CONFIG[client.role] ?? ROLE_CONFIG.user;
-              const initials = getInitials(client.full_name, client.email);
-              const tier = client.membership_tier ?? 'Unassigned';
-              const joined = client.created_at ? new Date(client.created_at).toLocaleDateString('en-GB') : '—';
-              const expiry = client.membership_expires_at ? new Date(client.membership_expires_at).toLocaleDateString('en-GB') : 'No Expiry';
-              const isSaving = saving === client.id;
-              
-              const isExpired = client.membership_expires_at && new Date(client.membership_expires_at) < new Date();
 
-              return (
-                <div key={client.id} style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1.2fr 1.5fr 1fr 1fr 1fr auto', gap: '0.5rem', padding: '0.85rem 1.25rem', borderBottom: i < paginated.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', alignItems: 'center', transition: 'background 0.15s', opacity: isSaving ? 0.5 : 1 }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.025)'}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                    {client.avatar_url ? (
-                      <img src={client.avatar_url} alt={initials} style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-                    ) : (
-                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(16,185,129,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 800, color: '#10b981', flexShrink: 0 }}>{initials}</div>
-                    )}
-                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#f9fafb', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{client.full_name ?? '—'}</span>
+            {/* Table Body */}
+            {loading ? (
+              [1, 2, 3, 4, 5].map(i => <SkeletonRow key={i} />)
+            ) : paginated.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem', color: '#4b5563', fontSize: '0.85rem', background: 'transparent' }}>
+                {clients.length === 0 ? 'No members found in database.' : 'No clients match your search.'}
+              </div>
+            ) : (
+              paginated.map((client, i) => {
+                const roleCfg = ROLE_CONFIG[client.role] ?? ROLE_CONFIG.user;
+                const initials = getInitials(client.full_name, client.email);
+                const tier = client.membership_tier ?? 'Unassigned';
+                const joined = client.created_at ? new Date(client.created_at).toLocaleDateString('en-GB') : '—';
+                const expiry = client.membership_expires_at ? new Date(client.membership_expires_at).toLocaleDateString('en-GB') : 'No Expiry';
+                const isSaving = saving === client.id;
+                
+                const isExpired = client.membership_expires_at && new Date(client.membership_expires_at) < new Date();
+
+                return (
+                  <div key={client.id} style={{ display: 'grid', gridTemplateColumns: '2.5fr 2.5fr 1.2fr 1.5fr 1fr 1fr 1fr auto', gap: '0.5rem', padding: '0.85rem 1.25rem', borderBottom: i < paginated.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', alignItems: 'center', transition: 'background 0.15s', opacity: isSaving ? 0.5 : 1 }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.025)'}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                      {client.avatar_url ? (
+                        <img src={client.avatar_url} alt={initials} style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                      ) : (
+                        <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(16,185,129,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 800, color: '#10b981', flexShrink: 0 }}>{initials}</div>
+                      )}
+                      <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#f9fafb', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{client.full_name ?? '—'}</span>
+                    </div>
+                    <span style={{ fontSize: '0.75rem', color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{client.email}</span>
+                    <div>
+                      <span style={{ fontSize: '0.65rem', fontWeight: 700, color: roleCfg.color, background: `${roleCfg.color}15`, padding: '0.2rem 0.5rem', borderRadius: '0.3rem', display: 'inline-block' }}>{roleCfg.label}</span>
+                    </div>
+                    <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{tier}</span>
+                    <StatusBadge status={client.status} />
+                    <span style={{ fontSize: '0.72rem', color: isExpired ? '#ef4444' : '#6b7280', fontWeight: isExpired ? 700 : 400 }}>{expiry}</span>
+                    <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>{joined}</span>
+                    <ActionMenu client={client} onAction={handleAction} />
                   </div>
-                  <span style={{ fontSize: '0.75rem', color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{client.email}</span>
-                  <span style={{ fontSize: '0.65rem', fontWeight: 700, color: roleCfg.color, background: `${roleCfg.color}15`, padding: '0.2rem 0.5rem', borderRadius: '0.3rem', display: 'inline-block' }}>{roleCfg.label}</span>
-                  <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{tier}</span>
-                  <StatusBadge status={client.status} />
-                  <span style={{ fontSize: '0.72rem', color: isExpired ? '#ef4444' : '#6b7280', fontWeight: isExpired ? 700 : 400 }}>{expiry}</span>
-                  <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>{joined}</span>
-                  <ActionMenu client={client} onAction={handleAction} />
-                </div>
-              );
-            })
-          )}
+                );
+              })
+            )}
+          </div>
         </div>
 
         {/* Pagination Controls */}
