@@ -117,8 +117,18 @@ export default function App() {
 
   const goto = useCallback((id: string) => {
     setMobileOpen(false);
+    if (pathname !== '/') {
+      history.pushState({}, '', '/');
+      setPathname('/');
+      // Wait for re-render before scrolling
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 150);
+      return;
+    }
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-  }, []);
+  }, [pathname]);
 
   // ── Guard: only admins may access /admin/* ───────────────────────────────
   const isAdminRoute = pathname.startsWith('/admin');
@@ -183,7 +193,7 @@ export default function App() {
     if (pathname === '/admin/audit-logs') return <AdminAuditLogs setPathname={setPathname} />;
     if (pathname === '/client/dashboard' || (pathname === '/dashboard' && profile?.role === 'client')) return <ClientDashboard setPathname={setPathname} />;
     if (pathname === '/client/workouts') return <ClientWorkouts setPathname={setPathname} />;
-    
+
     return (
       <main>
         <Hero goto={goto} />
@@ -222,13 +232,13 @@ export default function App() {
       <div className="orb" style={{ width: '28vw', height: '28vw', background: 'var(--amber)', top: '38%', right: '8%', animationDelay: '-10s', opacity: 0.12 }} />
 
       <PrototypeBanner onToggle={setBannerVisible} />
-      
-      <Header 
-        scrolled={scrolled || pathname !== '/'} 
-        goto={goto} 
-        mobileOpen={mobileOpen} 
-        setMobileOpen={setMobileOpen} 
-        bannerVisible={bannerVisible} 
+
+      <Header
+        scrolled={scrolled || pathname !== '/'}
+        goto={goto}
+        mobileOpen={mobileOpen}
+        setMobileOpen={setMobileOpen}
+        bannerVisible={bannerVisible}
         user={user}
         profile={profile}
         signOut={signOut}
@@ -252,10 +262,10 @@ export default function App() {
         </>
       )}
 
-      <JoinModal 
-        isOpen={modalOpen} 
-        onClose={() => setModalOpen(false)} 
-        selectedPlan={selectedPlan} 
+      <JoinModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        selectedPlan={selectedPlan}
       />
     </div>
   );
@@ -270,7 +280,7 @@ function PrototypeBanner({ onToggle }: { onToggle: (show: boolean) => void }) {
     <div id="proto-banner" className="prototype-banner" style={{ background: '#f59e0b', color: '#030712', padding: '0.4rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', fontWeight: 900, letterSpacing: '0.05em', position: 'relative', zIndex: 1100 }}>
       <AlertTriangle size={13} />
       <span style={{ fontSize: '0.63rem' }}>DESIGN PROTOTYPE — DEMO DATA ONLY. ALL BRANDING IS LIVE.</span>
-      <button onClick={() => { setShow(false); onToggle(false); }} style={{ position: 'absolute', right: '1rem', color: '#030712', background: 'none', border: 'none', cursor: 'pointer' }}><X size={14}/></button>
+      <button onClick={() => { setShow(false); onToggle(false); }} style={{ position: 'absolute', right: '1rem', color: '#030712', background: 'none', border: 'none', cursor: 'pointer' }}><X size={14} /></button>
     </div>
   );
 }
@@ -279,6 +289,7 @@ function PrototypeBanner({ onToggle }: { onToggle: (show: boolean) => void }) {
 
 function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, user, profile, signOut, setPathname }: any) {
   const links = [
+    { label: 'Home', id: 'hero' },
     { label: 'Facilities', id: 'facilities' },
     { label: "What's Included", id: 'included' },
     { label: 'Pricing', id: 'pricing' },
@@ -351,11 +362,11 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, user
                 {notifOpen && <NotificationDropdown onClose={() => setNotifOpen(false)} setPathname={setPathname} />}
               </div>
 
-              <ProfileDropdown 
-                user={user} 
-                profile={profile} 
-                signOut={signOut} 
-                setPathname={setPathname} 
+              <ProfileDropdown
+                user={user}
+                profile={profile}
+                signOut={signOut}
+                setPathname={setPathname}
               />
             </div>
           ) : (
@@ -367,7 +378,7 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, user
         </div>
 
         <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', padding: '0.4rem', color: '#f9fafb', cursor: 'pointer', zIndex: 101, position: 'relative' }}>
-          {mobileOpen ? <X size={18}/> : <Menu size={18}/>}
+          {mobileOpen ? <X size={18} /> : <Menu size={18} />}
         </button>
       </header>
 
@@ -397,8 +408,8 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, user
 function Hero({ goto }: any) {
   const { ref, visible } = useReveal();
   const members = useCountUp(500, 0, visible);
-  const rating  = useCountUp(4.9, 1, visible);
-  const days    = useCountUp(7, 0, visible);
+  const rating = useCountUp(4.9, 1, visible);
+  const days = useCountUp(7, 0, visible);
 
   return (
     <section id="hero" style={{ position: 'relative', maxWidth: '1280px', margin: '0 auto', padding: '7rem 2rem 5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }} className="grid-hero">
@@ -438,7 +449,7 @@ function Hero({ goto }: any) {
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
           <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1rem 2.25rem', fontSize: '0.9rem', fontWeight: 800, minWidth: '180px' }} onMouseDown={addRipple}>Get Started Now</button>
           <button onClick={() => goto('facilities')} className="btn-outline-white" style={{ padding: '1rem 2rem', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', minHeight: '48px' }}>
-            Explore Facility <ChevronRight size={16}/>
+            Explore Facility <ChevronRight size={16} />
           </button>
         </div>
       </div>
@@ -610,34 +621,34 @@ function Facilities() {
 
 function Pricing({ openModal }: any) {
   const { ref, visible } = useReveal();
-  
+
   const plans = [
-    { 
-      name: 'Base Expert', 
-      price: 100, 
-      per: '/mo', 
-      desc: 'Full access for the consistent athlete.', 
-      popular: false, 
-      badge: null, 
-      features: ['Unlimited Facility Access', 'All 6 Training Zones', 'Locker Access', 'Open 7 days/week'] 
+    {
+      name: 'Base Expert',
+      price: 100,
+      per: '/mo',
+      desc: 'Full access for the consistent athlete.',
+      popular: false,
+      badge: null,
+      features: ['Unlimited Facility Access', 'All 6 Training Zones', 'Locker Access', 'Open 7 days/week']
     },
-    { 
-      name: 'Elite Expert', 
-      price: 149, 
-      per: '/mo', 
-      desc: 'Maximum guidance for elite performance.', 
-      popular: true, 
-      badge: 'MOST POPULAR', 
-      features: ['All Base Access', '2x Personal Training / mo', 'Custom Nutrition Plan', 'Performance Recovery Zone'] 
+    {
+      name: 'Elite Expert',
+      price: 149,
+      per: '/mo',
+      desc: 'Maximum guidance for elite performance.',
+      popular: true,
+      badge: 'MOST POPULAR',
+      features: ['All Base Access', '2x Personal Training / mo', 'Custom Nutrition Plan', 'Performance Recovery Zone']
     },
-    { 
-      name: '7-Day Trial', 
-      price: 40, 
-      per: '/week', 
-      desc: 'Full access experience for a week.', 
-      popular: false, 
-      badge: 'TRIAL', 
-      features: ['Full Access for 7 Days', 'Intro Strategy Session', 'All Class Access', 'Locker access included'] 
+    {
+      name: '7-Day Trial',
+      price: 40,
+      per: '/week',
+      desc: 'Full access experience for a week.',
+      popular: false,
+      badge: 'TRIAL',
+      features: ['Full Access for 7 Days', 'Intro Strategy Session', 'All Class Access', 'Locker access included']
     },
   ];
 
@@ -652,17 +663,17 @@ function Pricing({ openModal }: any) {
           No hidden fees, no long-term lock-ins. Just access to the best training environment in the city.
         </p>
 
-        <div style={{ 
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
-          gap: '1.5rem', alignItems: 'stretch', paddingTop: '1.5rem' 
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: '1.5rem', alignItems: 'stretch', paddingTop: '1.5rem'
         }}>
           {plans.map((plan, i) => (
             <div
               key={i}
               className={`glass-card stagger-child ${plan.popular ? 'pricing-popular' : ''} ${visible ? 'visible' : ''}`}
-              style={{ 
-                padding: '2rem', 
-                position: 'relative', 
+              style={{
+                padding: '2rem',
+                position: 'relative',
                 transitionDelay: `${i * 0.15}s`,
                 display: 'flex',
                 flexDirection: 'column'
@@ -687,15 +698,15 @@ function Pricing({ openModal }: any) {
                   </div>
                 ))}
               </div>
-              <button 
-                onClick={() => openModal(plan.name)} 
+              <button
+                onClick={() => openModal(plan.name)}
                 className={plan.popular ? 'btn-blue' : 'btn-outline-white'}
-                style={{ 
-                  width: '100%', padding: '0.85rem', borderRadius: '0.5rem', fontWeight: 700, 
-                  fontSize: '0.82rem', letterSpacing: '0.04em', textTransform: 'uppercase', 
-                  cursor: 'pointer', border: 'none', background: plan.popular ? '#2563eb' : 'rgba(255,255,255,0.07)', 
-                  color: '#f9fafb', transition: 'background 0.2s, transform 0.15s', minHeight: '48px', 
-                  position: 'relative', overflow: 'hidden' 
+                style={{
+                  width: '100%', padding: '0.85rem', borderRadius: '0.5rem', fontWeight: 700,
+                  fontSize: '0.82rem', letterSpacing: '0.04em', textTransform: 'uppercase',
+                  cursor: 'pointer', border: 'none', background: plan.popular ? '#2563eb' : 'rgba(255,255,255,0.07)',
+                  color: '#f9fafb', transition: 'background 0.2s, transform 0.15s', minHeight: '48px',
+                  position: 'relative', overflow: 'hidden'
                 }}
                 onMouseDown={addRipple}
               >
@@ -823,7 +834,7 @@ function FinalCTA({ goto }: { goto: (id: string) => void }) {
         <div className="cta-group-box" style={{ margin: '0 auto' }}>
           <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1rem 2.5rem', fontSize: '1rem', fontWeight: 800, minHeight: '56px' }} onMouseDown={addRipple}>Start Your Transformation</button>
           <button onClick={() => goto('facilities')} className="btn-outline-white" style={{ padding: '1rem 2.5rem', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', minHeight: '56px' }}>
-            Explore Facility <ArrowRight size={16}/>
+            Explore Facility <ArrowRight size={16} />
           </button>
         </div>
       </div>

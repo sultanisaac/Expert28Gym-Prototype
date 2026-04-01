@@ -6,7 +6,7 @@ import NotificationDropdown from './NotificationDropdown';
 import {
   LayoutDashboard, Users, CreditCard, BarChart3, Bell,
   ChevronLeft, ChevronRight, Search, Command, Shield,
-  UserCheck, DollarSign, TrendingUp, Menu, X
+  UserCheck, DollarSign, TrendingUp, Menu, X, Home
 } from 'lucide-react';
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -390,7 +390,7 @@ export default function DashboardLayout({ children, currentPath, setPathname, br
           .search-label { display: block !important; }
         }
       `}</style>
-      
+
       {searchOpen && <CommandSearch onClose={() => setSearchOpen(false)} setPathname={setPathname} />}
 
       {/* Mobile Drawer */}
@@ -400,13 +400,13 @@ export default function DashboardLayout({ children, currentPath, setPathname, br
           <div className="mobile-sidebar">
             <Sidebar
               collapsed={false}
-              setCollapsed={() => {}}
+              setCollapsed={() => { }}
               currentPath={currentPath}
               setPathname={(p) => { setPathname(p); setIsMobileMenuOpen(false); }}
               notificationCount={notificationCount}
             />
             {/* Close button for mobile drawer */}
-            <button 
+            <button
               onClick={() => setIsMobileMenuOpen(false)}
               style={{ position: 'absolute', top: '1.25rem', right: '1rem', padding: '0.4rem', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#6b7280', cursor: 'pointer' }}
             >
@@ -439,7 +439,7 @@ export default function DashboardLayout({ children, currentPath, setPathname, br
           }}>
             {/* Left: Mobile Menu Toggle + Breadcrumbs */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <button 
+              <button
                 className="mobile-toggle"
                 onClick={() => setIsMobileMenuOpen(true)}
                 style={{ padding: '0.45rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.6rem', cursor: 'pointer', color: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -449,8 +449,21 @@ export default function DashboardLayout({ children, currentPath, setPathname, br
               <Breadcrumbs segments={crumbs} />
             </div>
 
-            {/* Right: Search + Notifications + Profile */}
+            {/* Right: Home + Search + Notifications + Profile */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
+              {/* Home button */}
+              {profile?.role !== 'admin' && (
+                <button
+                  onClick={() => { history.pushState({}, '', '/'); setPathname('/'); }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.45rem 0.85rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.6rem', cursor: 'pointer', color: '#6b7280', fontSize: '0.75rem', transition: 'all 0.15s' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#f9fafb'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#6b7280'; }}
+                >
+                  <Home size={13} strokeWidth={1.5} />
+                  <span className="search-label">Visit Website</span>
+                </button>
+              )}
+
               {/* Quick Search Trigger */}
               <button
                 onClick={() => setSearchOpen(true)}
@@ -472,7 +485,7 @@ export default function DashboardLayout({ children, currentPath, setPathname, br
                   onClick={() => setNotifOpen(!notifOpen)}
                   style={{ position: 'relative', padding: '0.45rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.6rem', cursor: 'pointer', color: notifOpen ? '#f9fafb' : '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
                   onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#f9fafb'; }}
-                  onMouseLeave={e => { if(!notifOpen) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#6b7280'; } }}
+                  onMouseLeave={e => { if (!notifOpen) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#6b7280'; } }}
                 >
                   <Bell size={15} strokeWidth={1.5} />
                   {notificationCount > 0 && (

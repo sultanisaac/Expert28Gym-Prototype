@@ -224,6 +224,12 @@ export default function AdminDashboard({ setPathname }: { setPathname: (p: strin
         .order('created_at', { ascending: false })
         .limit(4);
 
+      const { data: recentAttendance } = await supabase
+        .from('attendance')
+        .select('check_in_time, profiles(full_name, email)')
+        .order('check_in_time', { ascending: false })
+        .limit(4);
+
       const activityItems: ActivityItem[] = [];
 
       (recentProfiles ?? []).forEach((p: any) => {
@@ -247,6 +253,17 @@ export default function AdminDashboard({ setPathname }: { setPathname: (p: strin
             icon: DollarSign,
           });
         }
+      });
+
+      (recentAttendance ?? []).forEach((a: any) => {
+        const name = a.profiles?.full_name ?? a.profiles?.email ?? 'Athlete';
+        activityItems.push({
+          type: 'attendance',
+          text: `${name} checked in at the Performance Lab`,
+          time: timeAgo(a.check_in_time),
+          color: '#10b981',
+          icon: Activity,
+        });
       });
 
       // Sort by recency — approximate since we're mixing sources

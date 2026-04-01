@@ -180,7 +180,7 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
   const shareStats = () => {
     const text = `Athlete: ${profile?.full_name}\nMonth Volume: ${workoutCount || 0} Sets\nConsistency: ${consistencyPct || 0}%\nElite Labs Status: Active`;
     if (navigator.share) {
-      navigator.share({ title: 'Expert28 Lab Stats', text }).catch(() => {});
+      navigator.share({ title: 'Expert28 Lab Stats', text }).catch(() => { });
     } else {
       navigator.clipboard.writeText(text);
       alert('Performance stats copied to clipboard!');
@@ -380,7 +380,7 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
               {isGuest ? (
                 <div className="space-y-3">
                   <p className="text-xs text-gray-400 font-bold uppercase mb-2">Upgrade to Unlock Lab Access</p>
-                  
+
                   {/* ELITE PLAN */}
                   <div className="relative group">
                     <div className="absolute top-0 right-4 -translate-y-1/2 bg-emerald-500 text-[#030712] text-[10px] font-black tracking-widest px-3 py-1 rounded-full z-10">MOST POPULAR</div>
