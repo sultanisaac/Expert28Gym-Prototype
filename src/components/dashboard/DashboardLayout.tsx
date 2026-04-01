@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import ProfileDropdown from '../ProfileDropdown';
+import NotificationDropdown from './NotificationDropdown';
 import {
   LayoutDashboard, Users, CreditCard, BarChart3, Bell,
   ChevronLeft, ChevronRight, Search, Command, Shield,
@@ -291,6 +292,7 @@ export default function DashboardLayout({ children, currentPath, setPathname, br
   const [collapsed, setCollapsed] = useState(() => window.innerWidth < 768);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
 
   // ── Responsive: auto-collapse sidebar below 768px ────────────────────────
@@ -465,19 +467,22 @@ export default function DashboardLayout({ children, currentPath, setPathname, br
               </button>
 
               {/* Notification Bell */}
-              <button
-                onClick={() => { setPathname('/admin/notifications'); history.pushState({}, '', '/admin/notifications'); }}
-                style={{ position: 'relative', padding: '0.45rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.6rem', cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#f9fafb'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#6b7280'; }}
-              >
-                <Bell size={15} strokeWidth={1.5} />
-                {notificationCount > 0 && (
-                  <span style={{ position: 'absolute', top: -4, right: -4, background: '#ef4444', color: '#fff', fontSize: '0.5rem', fontWeight: 800, borderRadius: '999px', minWidth: 14, height: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {notificationCount}
-                  </span>
-                )}
-              </button>
+              <div style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setNotifOpen(!notifOpen)}
+                  style={{ position: 'relative', padding: '0.45rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.6rem', cursor: 'pointer', color: notifOpen ? '#f9fafb' : '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#f9fafb'; }}
+                  onMouseLeave={e => { if(!notifOpen) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#6b7280'; } }}
+                >
+                  <Bell size={15} strokeWidth={1.5} />
+                  {notificationCount > 0 && (
+                    <span style={{ position: 'absolute', top: -4, right: -4, background: '#ef4444', color: '#fff', fontSize: '0.5rem', fontWeight: 800, borderRadius: '999px', minWidth: 14, height: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {notificationCount}
+                    </span>
+                  )}
+                </button>
+                {notifOpen && <NotificationDropdown onClose={() => setNotifOpen(false)} setPathname={setPathname} />}
+              </div>
 
               {/* Profile Dropdown */}
               {user && (

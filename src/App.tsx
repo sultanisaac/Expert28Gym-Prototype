@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Dumbbell, Zap, Users, TrendingUp, AlertTriangle, Star, Menu, X, ArrowRight, ChevronRight, ChevronDown, Clock, CheckCircle2, Shield } from 'lucide-react';
+import { Dumbbell, Zap, Users, TrendingUp, AlertTriangle, Star, Menu, X, ArrowRight, ChevronRight, ChevronDown, Clock, CheckCircle2, Shield, Bell } from 'lucide-react';
 import ApplyPage from './pages/ApplyPage';
 import SuccessPage from './pages/SuccessPage';
 import JoinModal from './components/JoinModal';
@@ -15,7 +15,9 @@ import ClientDashboard from './pages/ClientDashboard';
 import ClientWorkouts from './pages/ClientWorkouts';
 import ProfilePage from './pages/ProfilePage';
 import ProfileDropdown from './components/ProfileDropdown';
+import NotificationDropdown from './components/dashboard/NotificationDropdown';
 import { useAuth } from './hooks/useAuth';
+import { supabase } from './lib/supabase';
 
 // ─── HOOKS ────────────────────────────────────────────────────────────────────
 
@@ -283,6 +285,21 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, user
     { label: 'Results', id: 'testimonials' },
     { label: 'FAQ', id: 'faq' },
   ];
+
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifCount, setNotifCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchCount = async () => {
+      const { count } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_read', false);
+      setNotifCount(count || 0);
+    };
+    fetchCount();
+  }, [user]);
   return (
     <>
       <header style={{
@@ -317,12 +334,30 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, user
 
         <div className="nav-desktop">
           {user ? (
-            <ProfileDropdown 
-              user={user} 
-              profile={profile} 
-              signOut={signOut} 
-              setPathname={setPathname} 
-            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              {/* Notification Bell Persistence */}
+              <div style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setNotifOpen(!notifOpen)}
+                  style={{ position: 'relative', padding: '0.45rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.6rem', cursor: 'pointer', color: notifOpen ? '#f9fafb' : '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+                >
+                  <Bell size={15} strokeWidth={1.5} />
+                  {notifCount > 0 && (
+                    <span style={{ position: 'absolute', top: -4, right: -4, background: '#ef4444', color: '#fff', fontSize: '0.5rem', fontWeight: 800, borderRadius: '999px', minWidth: 14, height: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {notifCount}
+                    </span>
+                  )}
+                </button>
+                {notifOpen && <NotificationDropdown onClose={() => setNotifOpen(false)} setPathname={setPathname} />}
+              </div>
+
+              <ProfileDropdown 
+                user={user} 
+                profile={profile} 
+                signOut={signOut} 
+                setPathname={setPathname} 
+              />
+            </div>
           ) : (
             <>
               <button onClick={() => setPathname('/login')} style={{ background: 'none', border: 'none', color: '#4b5563', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', marginRight: '0.75rem', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#9ca3af'}>Log in</button>
