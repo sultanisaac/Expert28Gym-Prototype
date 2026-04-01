@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../hooks/useAuth';
 
 interface NotificationRow {
   id: string;
@@ -15,6 +16,7 @@ interface NotificationDropdownProps {
 }
 
 export default function NotificationDropdown({ onClose, setPathname }: NotificationDropdownProps) {
+  const { profile } = useAuth();
   const [items, setItems] = useState<NotificationRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -45,8 +47,10 @@ export default function NotificationDropdown({ onClose, setPathname }: Notificat
   };
 
   const navigateToAll = () => {
-    setPathname('/admin/notifications');
-    history.pushState({}, '', '/admin/notifications');
+    const isAdmin = profile?.role === 'admin';
+    const path = isAdmin ? '/admin/notifications' : '/client/notifications';
+    setPathname(path);
+    history.pushState({}, '', path);
     onClose();
   };
 

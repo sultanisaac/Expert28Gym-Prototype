@@ -6,7 +6,7 @@ import NotificationDropdown from './NotificationDropdown';
 import {
   LayoutDashboard, Users, CreditCard, BarChart3, Bell,
   ChevronLeft, ChevronRight, Search, Command, Shield,
-  UserCheck, DollarSign, TrendingUp, Menu, X, Home
+  UserCheck, DollarSign, TrendingUp, Menu, X
 } from 'lucide-react';
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -151,14 +151,17 @@ function CommandSearch({ onClose, setPathname }: { onClose: () => void; setPathn
 
 // ─── SIDEBAR ──────────────────────────────────────────────────────────────────
 
-function Sidebar({ collapsed, setCollapsed, currentPath, setPathname, notificationCount }: {
+function Sidebar({ collapsed, setCollapsed, currentPath, setPathname, notificationCount, role }: {
   collapsed: boolean;
   setCollapsed: (v: boolean) => void;
   currentPath: string;
   setPathname: (p: string) => void;
   notificationCount: number;
+  role?: string;
 }) {
-  const navItems: NavItem[] = [
+  const isAdmin = role === 'admin';
+
+  const adminNav: NavItem[] = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
     { label: 'Clients', icon: Users, path: '/admin/clients' },
     { label: 'Payments', icon: CreditCard, path: '/admin/payments' },
@@ -166,6 +169,14 @@ function Sidebar({ collapsed, setCollapsed, currentPath, setPathname, notificati
     { label: 'Notifications', icon: Bell, path: '/admin/notifications', badge: notificationCount },
     { label: 'Audit Logs', icon: Shield, path: '/admin/audit-logs' },
   ];
+
+  const clientNav: NavItem[] = [
+    { label: 'Athlete Hub', icon: LayoutDashboard, path: '/client/dashboard' },
+    { label: 'The Lab Tracker', icon: BarChart3, path: '/client/workouts' },
+    { label: 'Notifications', icon: Bell, path: '/client/notifications', badge: notificationCount },
+  ];
+
+  const navItems = isAdmin ? adminNav : clientNav;
 
   const navigate = (path: string) => {
     setPathname(path);
@@ -196,7 +207,7 @@ function Sidebar({ collapsed, setCollapsed, currentPath, setPathname, notificati
         {!collapsed && (
           <div>
             <p style={{ fontSize: '0.8rem', fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1.2, whiteSpace: 'nowrap' }}>Expert<span style={{ color: '#10b981' }}>28</span></p>
-            <p style={{ fontSize: '0.55rem', fontWeight: 700, color: '#f59e0b', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Admin Panel</p>
+            <p style={{ fontSize: '0.55rem', fontWeight: 700, color: isAdmin ? '#f59e0b' : '#10b981', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{isAdmin ? 'Admin Panel' : 'Athlete Hub'}</p>
           </div>
         )}
       </div>
@@ -404,6 +415,7 @@ export default function DashboardLayout({ children, currentPath, setPathname, br
               currentPath={currentPath}
               setPathname={(p) => { setPathname(p); setIsMobileMenuOpen(false); }}
               notificationCount={notificationCount}
+              role={profile?.role}
             />
             {/* Close button for mobile drawer */}
             <button
@@ -425,6 +437,7 @@ export default function DashboardLayout({ children, currentPath, setPathname, br
             currentPath={currentPath}
             setPathname={setPathname}
             notificationCount={notificationCount}
+            role={profile?.role}
           />
         </div>
 
@@ -452,17 +465,6 @@ export default function DashboardLayout({ children, currentPath, setPathname, br
             {/* Right: Home + Search + Notifications + Profile */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
               {/* Home button */}
-              {profile?.role !== 'admin' && (
-                <button
-                  onClick={() => { history.pushState({}, '', '/'); setPathname('/'); }}
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.45rem 0.85rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.6rem', cursor: 'pointer', color: '#6b7280', fontSize: '0.75rem', transition: 'all 0.15s' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#f9fafb'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#6b7280'; }}
-                >
-                  <Home size={13} strokeWidth={1.5} />
-                  <span className="search-label">Visit Website</span>
-                </button>
-              )}
 
               {/* Quick Search Trigger */}
               <button

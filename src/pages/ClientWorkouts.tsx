@@ -1,10 +1,11 @@
 import { useAuth } from '../hooks/useAuth';
 import {
-  Dumbbell, Lock, ArrowLeft, Plus, Minus, CheckCircle2,
+  Dumbbell, Lock, Plus, Minus, CheckCircle2,
   Trash2, CalendarDays, Flame, RotateCcw, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import DashboardLayout from '../components/dashboard/DashboardLayout';
 
 interface WorkoutEntry {
   id: string;
@@ -118,8 +119,8 @@ function QuickLogPanel({ onSaved }: { onSaved: () => void }) {
                 type="button"
                 onClick={() => setTitle(ex)}
                 className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg border transition-all ${title === ex
-                    ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
-                    : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20 hover:text-gray-300'
+                  ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
+                  : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20 hover:text-gray-300'
                   }`}
               >
                 {ex}
@@ -171,8 +172,8 @@ function QuickLogPanel({ onSaved }: { onSaved: () => void }) {
           onClick={handleSave}
           disabled={saving || !title.trim()}
           className={`w-full py-4 rounded-xl font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${saved
-              ? 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-400'
-              : 'btn-blue'
+            ? 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-400'
+            : 'btn-blue'
             } ${(!title.trim() || saving) ? 'opacity-50 pointer-events-none' : ''}`}
         >
           {saved ? (
@@ -240,13 +241,20 @@ function HistoryEntry({ entry, onDelete }: { entry: WorkoutEntry; onDelete: (id:
       {/* Delete */}
       <button
         onClick={handleDelete}
-        className={`flex-shrink-0 p-2 rounded-lg transition-all md:opacity-0 group-hover:opacity-100 focus:opacity-100 ${confirming
-            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-            : 'text-gray-600 hover:text-red-400 hover:bg-red-500/10'
+        className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl transition-all ${confirming
+          ? 'bg-red-500 text-white shadow-lg shadow-red-500/20'
+          : 'bg-white/5 text-gray-500 hover:bg-red-500/10 hover:text-red-400 border border-white/5'
           }`}
-        title={confirming ? 'Tap again to confirm delete' : 'Delete'}
+        title={confirming ? 'Confirm deletion' : 'Delete entry'}
       >
-        {confirming ? <RotateCcw size={15} /> : <Trash2 size={15} />}
+        {confirming ? (
+          <>
+            <span className="text-[10px] font-black uppercase tracking-widest">Confirm?</span>
+            <RotateCcw size={14} className="animate-spin-slow" />
+          </>
+        ) : (
+          <Trash2 size={15} />
+        )}
       </button>
     </div>
   );
@@ -300,6 +308,7 @@ export default function ClientWorkouts({ setPathname }: { setPathname?: (path: s
   const { profile, user } = useAuth();
   const [entries, setEntries] = useState<WorkoutEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [showAll, setShowAll] = useState(false);
 
   const isGuest = !profile?.role || profile?.role === 'guest';
@@ -338,18 +347,23 @@ export default function ClientWorkouts({ setPathname }: { setPathname?: (path: s
   };
 
   const goBack = () => setPathname ? setPathname('/client/dashboard') : (window.location.href = '/client/dashboard');
-
-  // Group entries by date label for "Today"/"Yesterday" display
   const today = new Date().toISOString().split('T')[0];
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
 
-  const getDateLabel = (dateStr: string) => {
-    if (dateStr === today) return 'Today';
-    if (dateStr === yesterday) return 'Yesterday';
-    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
-  };
+  // ─── DATA CALCULATIONS ──────────────────────────────────────────────────────
+  
+  // Weekly Consistency (Last 7 days)
+  const last7Days = [...Array(7)].map((_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    return d.toISOString().split('T')[0];
+  }).reverse();
 
-  // Group by date
+  // Monthly breakdown
+  const thisMonth = new Date().toISOString().slice(0, 7);
+  const monthEntries = entries.filter(e => e.date.startsWith(thisMonth));
+  const monthVolume = monthEntries.reduce((sum, e) => sum + ((e.weights_lbs || 0) * (e.reps || 0)), 0);
+
+  // Grouping for Daily view
   const grouped = entries.reduce<Record<string, WorkoutEntry[]>>((acc, entry) => {
     const key = entry.date;
     if (!acc[key]) acc[key] = [];
@@ -359,115 +373,174 @@ export default function ClientWorkouts({ setPathname }: { setPathname?: (path: s
   const groupedKeys = Object.keys(grouped);
   const visibleKeys = showAll ? groupedKeys : groupedKeys.slice(0, 5);
 
-  // Quick stats
-  const thisMonth = new Date().toISOString().slice(0, 7);
-  const monthCount = entries.filter(e => e.date.startsWith(thisMonth)).length;
-  const totalVolume = entries
-    .filter(e => e.date.startsWith(thisMonth) && e.weights_lbs && e.reps)
-    .reduce((sum, e) => sum + (e.weights_lbs! * e.reps!), 0);
-
   return (
-    <div className="min-h-screen bg-[#030712] text-white pb-16">
-      {/* Background orb */}
-      <div className="orb" style={{ width: '50vw', height: '50vw', background: 'var(--emerald)', top: '-20%', left: '-15%', opacity: 0.07 }} />
-
-      <div className="max-w-2xl mx-auto px-4 pt-6 relative z-10">
-
-        {/* ── HEADER ── */}
-        <header className="flex items-center gap-4 mb-8">
-          <button
-            onClick={goBack}
-            className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors flex-shrink-0"
-          >
-            <ArrowLeft size={20} className="text-emerald-500" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-black uppercase tracking-tight text-white flex items-center gap-2">
-              <Dumbbell size={22} className="text-emerald-500" />
-              The Lab Tracker
-            </h1>
-            <p className="text-gray-500 text-xs font-bold mt-0.5">Log your reps. Track your progression.</p>
-          </div>
+    <DashboardLayout 
+      currentPath="/client/workouts" 
+      setPathname={setPathname || (() => {})}
+      breadcrumbs={[{ label: 'Athlete Hub', path: '/client/dashboard' }, { label: 'The Lab Tracker' }]}
+    >
+      <div className="max-w-4xl mx-auto px-4 py-8 relative z-10">
+        <header className="mb-8 text-center md:text-left">
+          <h1 className="text-3xl font-black uppercase tracking-tight text-white flex items-center justify-center md:justify-start gap-3">
+            <Dumbbell size={28} className="text-emerald-500" />
+            The Lab Tracker
+          </h1>
+          <p className="text-gray-500 mt-1 font-bold">Monitor your progression across all timeframes.</p>
         </header>
 
         {isGuest ? (
           <PaywallOverlay onUpgrade={goBack} />
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-8">
 
-            {/* ── MONTH STATS ── */}
-            {!loading && entries.length > 0 && (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="glass-card p-4 text-center">
-                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">This Month</p>
-                  <p className="text-3xl font-black text-white">{monthCount}</p>
-                  <p className="text-[10px] text-emerald-500 font-bold mt-1">logged sets</p>
-                </div>
-                <div className="glass-card p-4 text-center">
-                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Total Volume</p>
-                  <p className="text-3xl font-black text-white">
-                    {totalVolume >= 1000 ? `${(totalVolume / 1000).toFixed(1)}k` : totalVolume}
-                  </p>
-                  <p className="text-[10px] text-blue-400 font-bold mt-1">lbs lifted</p>
-                </div>
+            {/* ── VIEW MODE SWITCHER ── */}
+            <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10 max-w-sm mx-auto md:mx-0">
+              {(['daily', 'weekly', 'monthly'] as const).map((mode) => (
+                <button 
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${viewMode === mode ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20' : 'text-gray-500 hover:text-white'}`}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
+
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20 opacity-40">
+                <RotateCcw className="animate-spin text-emerald-500 mb-4" size={32} />
+                <p className="text-[10px] font-black uppercase tracking-widest">Analyzing performance...</p>
               </div>
-            )}
-
-            {/* ── QUICK LOG PANEL ── */}
-            <QuickLogPanel onSaved={fetchEntries} />
-
-            {/* ── HISTORY ── */}
-            <div>
-              <h2 className="text-sm font-black text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                <CalendarDays size={14} />
-                Session History
-              </h2>
-
-              {loading ? (
-                <div className="glass-card p-10 flex flex-col items-center justify-center">
-                  <div className="w-8 h-8 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin mb-3" />
-                  <p className="text-xs text-gray-600 font-bold uppercase tracking-widest animate-pulse">Loading...</p>
-                </div>
-              ) : entries.length === 0 ? (
-                <div className="glass-card p-10 flex flex-col items-center justify-center text-center">
-                  <Dumbbell className="text-gray-700 mb-3" size={36} />
-                  <p className="text-sm font-black text-gray-500">No sets logged yet.</p>
-                  <p className="text-xs text-gray-700 mt-1">Use the Quick Log above to log your first entry.</p>
-                </div>
-              ) : (
-                <div className="space-y-5">
-                  {visibleKeys.map(dateKey => (
-                    <div key={dateKey}>
-                      {/* Date group label */}
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
-                          {getDateLabel(dateKey)}
-                        </span>
-                        <div className="flex-1 h-px bg-white/5" />
-                        <span className="text-[10px] font-bold text-gray-700">{grouped[dateKey].length} set{grouped[dateKey].length !== 1 ? 's' : ''}</span>
+            ) : (
+              <>
+                {/* ── DAILY VIEW ── */}
+                {viewMode === 'daily' && (
+                  <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <QuickLogPanel onSaved={fetchEntries} />
+                    
+                    <div>
+                      <h2 className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <CalendarDays size={12} /> Recent Sessions
+                      </h2>
+                      <div className="space-y-8">
+                        {visibleKeys.length === 0 ? (
+                          <div className="glass-card p-12 text-center border-white/5">
+                            <Dumbbell className="mx-auto text-gray-800 mb-4" size={40} />
+                            <p className="text-gray-500 font-bold italic">No sessions logged yet.</p>
+                          </div>
+                        ) : visibleKeys.map(dateKey => (
+                          <div key={dateKey}>
+                            <div className="flex items-center gap-4 mb-4">
+                              <span className="text-[10px] font-black text-gray-700 uppercase tracking-[0.2em] whitespace-nowrap">
+                                {dateKey === today ? 'Today' : new Date(dateKey).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                              </span>
+                              <div className="h-px flex-1 bg-white/5" />
+                            </div>
+                            <div className="space-y-3">
+                              {grouped[dateKey].map(entry => (
+                                <HistoryEntry key={entry.id} entry={entry} onDelete={handleDelete} />
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                        
+                        {groupedKeys.length > 5 && (
+                          <button onClick={() => setShowAll(!showAll)} className="w-full p-4 border border-white/5 rounded-xl text-[10px] font-black text-gray-600 uppercase hover:text-gray-400 transition-colors">
+                            {showAll ? 'Show Less' : `Show All ${groupedKeys.length} Days`}
+                          </button>
+                        )}
                       </div>
-                      <div className="space-y-2">
-                        {grouped[dateKey].map(entry => (
-                          <HistoryEntry key={entry.id} entry={entry} onDelete={handleDelete} />
+                    </div>
+                  </div>
+                )}
+
+                {/* ── WEEKLY VIEW ── */}
+                {viewMode === 'weekly' && (
+                  <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <div className="glass-card p-6">
+                      <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-6">Weekly Consistency Strip</h3>
+                      <div className="flex justify-between gap-1.5 md:gap-3">
+                        {last7Days.map((d) => {
+                          const hasWorkout = entries.some(e => e.date === d);
+                          const isToday = d === today;
+                          const dayName = new Date(d).toLocaleDateString('en-GB', { weekday: 'narrow' });
+                          return (
+                            <div key={d} className="flex-1 flex flex-col items-center gap-2">
+                              <span className={`text-[10px] font-black uppercase ${isToday ? 'text-emerald-500' : 'text-gray-600'}`}>{dayName}</span>
+                              <div className={`w-full aspect-square md:h-12 rounded-lg md:rounded-xl border flex items-center justify-center transition-all ${hasWorkout ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.1)]' : 'bg-white/5 border-white/10 opacity-30'}`}>
+                                {hasWorkout && <CheckCircle2 size={16} />}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="glass-card p-6 border-blue-500/20">
+                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Weekly Volume Trend</p>
+                         <p className="text-3xl font-black text-white">Calculated...</p>
+                         <div className="h-1 w-full bg-white/5 rounded-full mt-4 overflow-hidden">
+                           <div className="h-full bg-blue-500 w-[65%]" />
+                         </div>
+                      </div>
+                      <div className="glass-card p-6 border-emerald-500/20">
+                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Top Performer</p>
+                         <p className="text-3xl font-black text-white">Compound Lifts</p>
+                         <div className="flex gap-2 mt-4">
+                            <div className="px-2 py-1 bg-white/5 rounded text-[10px] font-bold text-gray-500">SQ</div>
+                            <div className="px-2 py-1 bg-white/5 rounded text-[10px] font-bold text-gray-500">BP</div>
+                            <div className="px-2 py-1 bg-white/5 rounded text-[10px] font-bold text-gray-500">DL</div>
+                         </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── MONTHLY VIEW ── */}
+                {viewMode === 'monthly' && (
+                  <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="glass-card p-6 text-center">
+                        <Flame className="mx-auto text-orange-500 mb-2" size={20} />
+                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Active Days</p>
+                        <p className="text-3xl font-black text-white">{new Set(monthEntries.map(e => e.date)).size}</p>
+                      </div>
+                      <div className="glass-card p-6 text-center">
+                        <Dumbbell className="mx-auto text-emerald-500 mb-2" size={20} />
+                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Total Sets</p>
+                        <p className="text-3xl font-black text-white">{monthEntries.length}</p>
+                      </div>
+                      <div className="glass-card p-6 text-center">
+                        <RotateCcw className="mx-auto text-blue-500 mb-2" size={20} />
+                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Avg Volume/Day</p>
+                        <p className="text-3xl font-black text-white">
+                          {monthEntries.length > 0 ? (monthVolume / new Set(monthEntries.map(e => e.date)).size / 1000).toFixed(1) : 0}k
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="glass-card p-8 text-center border-white/5">
+                      <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4">
+                        <CalendarDays className="text-gray-600" size={24} />
+                      </div>
+                      <h3 className="font-black uppercase tracking-tight text-gray-400">Monthly Progress Map</h3>
+                      <p className="text-xs text-gray-600 mt-2 max-w-sm mx-auto">Visualize your daily commitment in a calendar heatmap (Coming in v1.4)</p>
+                      
+                      {/* Simple dot grid placeholder */}
+                      <div className="flex flex-wrap gap-2 justify-center mt-8 opacity-20">
+                        {[...Array(30)].map((_, i) => (
+                          <div key={i} className="w-4 h-4 rounded bg-emerald-500/50" />
                         ))}
                       </div>
                     </div>
-                  ))}
-
-                  {groupedKeys.length > 5 && (
-                    <button
-                      onClick={() => setShowAll(v => !v)}
-                      className="w-full p-3 bg-white/3 border border-white/8 rounded-xl text-xs font-black text-gray-500 uppercase tracking-widest hover:bg-white/5 hover:text-gray-400 transition-all flex items-center justify-center gap-2"
-                    >
-                      {showAll ? <><ChevronUp size={14} /> Show Less</> : <><ChevronDown size={14} /> Show All {groupedKeys.length} Days</>}
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
