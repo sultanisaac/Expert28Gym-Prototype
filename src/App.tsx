@@ -17,7 +17,8 @@ import ClientWorkouts from './pages/ClientWorkouts';
 import ProfilePage from './pages/ProfilePage';
 import ProfileDropdown from './components/ProfileDropdown';
 import NotificationDropdown from './components/dashboard/NotificationDropdown';
-import { useAuth } from './hooks/useAuth';
+import { useAuth, Profile } from './hooks/useAuth';
+import type { User } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
 
 // ─── HOOKS ────────────────────────────────────────────────────────────────────
@@ -289,7 +290,19 @@ function PrototypeBanner({ onToggle }: { onToggle: (show: boolean) => void }) {
 
 // ─── HEADER ───────────────────────────────────────────────────────────────────
 
-function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, user, profile, signOut, setPathname }: any) {
+interface HeaderProps {
+  scrolled: boolean;
+  goto: (id: string) => void;
+  mobileOpen: boolean;
+  setMobileOpen: (v: boolean) => void;
+  bannerVisible: boolean;
+  user: User | null; // user object from supabase auth
+  profile: Profile | null; // profile object from our DB
+  signOut: () => Promise<void>;
+  setPathname: (p: string) => void;
+}
+
+function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, user, profile, signOut, setPathname }: HeaderProps) {
   const links = [
     { label: 'Home', id: 'hero' },
     { label: 'Facilities', id: 'facilities' },
@@ -407,7 +420,7 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, user
 
 // ─── HERO ─────────────────────────────────────────────────────────────────────
 
-function Hero({ goto }: any) {
+function Hero({ goto }: { goto: (id: string) => void }) {
   const { ref, visible } = useReveal();
   const members = useCountUp(500, 0, visible);
   const rating = useCountUp(4.9, 1, visible);
@@ -463,7 +476,7 @@ function Hero({ goto }: any) {
             src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1000&auto=format"
             alt="Expert28 Gym"
             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-            onError={(e: any) => e.target.src = 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=1000'}
+            onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => e.currentTarget.src = 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=1000'}
           />
           {/* Gradient overlay */}
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '55%', background: 'linear-gradient(to top, rgba(3,7,18,0.95) 0%, rgba(3,7,18,0.5) 50%, transparent 100%)', pointerEvents: 'none' }} />
@@ -596,7 +609,7 @@ function Facilities() {
                     style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s cubic-bezier(0.16,1,0.3,1)' }}
                     onMouseEnter={e => (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.07)'}
                     onMouseLeave={e => (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'}
-                    onError={(e: any) => e.target.src = 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=800'}
+                    onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => e.currentTarget.src = 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=800'}
                   />
                 </div>
                 <div style={{ padding: '1.25rem' }}>
@@ -621,7 +634,7 @@ function Facilities() {
 
 // ─── PRICING ──────────────────────────────────────────────────────────────────
 
-function Pricing({ openModal }: any) {
+function Pricing({ openModal }: { openModal: (p: string) => void }) {
   const { ref, visible } = useReveal();
 
   const plans = [
@@ -846,7 +859,7 @@ function FinalCTA({ goto }: { goto: (id: string) => void }) {
 
 // ─── FOOTER ───────────────────────────────────────────────────────────────────
 
-function Footer({ goto }: any) {
+function Footer({ goto }: { goto: (id: string) => void }) {
   return (
     <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '3rem 2rem 6rem', maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '3rem' }} className="footer-grid">
       <div>
@@ -888,7 +901,7 @@ function Footer({ goto }: any) {
 
 // ─── FLOATING CTA ─────────────────────────────────────────────────────────────
 
-function FloatingCTA({ openModal }: any) {
+function FloatingCTA({ openModal }: { openModal: () => void }) {
   return (
     <button onClick={openModal} className="floating-cta" onMouseDown={addRipple}>
       <Zap size={13} />

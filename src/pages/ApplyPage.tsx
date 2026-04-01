@@ -49,8 +49,8 @@ export default function ApplyPage() {
       } else {
         throw new Error(result.error || 'Failed to initiate checkout');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to initiate checkout');
       setLoading(false);
     }
   };

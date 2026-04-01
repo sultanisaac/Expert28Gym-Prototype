@@ -137,8 +137,8 @@ export default function AdminClients({ setPathname }: { setPathname: (p: string)
 
       if (err) throw err;
       setClients(data as ClientProfile[]);
-    } catch (e: any) {
-      setError(e.message || 'Failed to load clients');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to load clients');
     } finally {
       setLoading(false);
     }
@@ -187,8 +187,8 @@ export default function AdminClients({ setPathname }: { setPathname: (p: string)
         setClients(prev => prev.map(c => c.id === client.id ? { ...c, role: nextRole } : c));
         showToast(`${client.full_name ?? client.email}'s role changed to ${nextRole}.`);
       }
-    } catch (e: any) {
-      showToast(e.message || 'Action failed', 'error');
+    } catch (e: unknown) {
+      showToast(e instanceof Error ? e.message : 'Action failed', 'error');
     } finally {
       setSaving(null);
     }

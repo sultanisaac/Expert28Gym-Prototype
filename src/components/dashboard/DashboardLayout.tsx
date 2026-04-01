@@ -330,7 +330,8 @@ export default function DashboardLayout({ children, currentPath, setPathname, br
           .select('*', { count: 'exact', head: true })
           .eq('is_read', false);
         setNotificationCount(count ?? 0);
-      } catch {
+      } catch (err: unknown) {
+        console.error('Error fetching notification count:', err instanceof Error ? err.message : err);
         setNotificationCount(0);
       }
     };
@@ -351,7 +352,9 @@ export default function DashboardLayout({ children, currentPath, setPathname, br
       })
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => { 
+      supabase.removeChannel(channel); 
+    };
   }, []);
 
   // Cmd+K / Ctrl+K shortcut

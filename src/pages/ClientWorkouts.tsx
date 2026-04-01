@@ -3,7 +3,7 @@ import {
   Dumbbell, Lock, Plus, Minus, CheckCircle2,
   Trash2, CalendarDays, Flame, RotateCcw, ChevronDown, ChevronUp
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 
@@ -56,9 +56,9 @@ function QuickLogPanel({ onSaved }: { onSaved: () => void }) {
       setNotes('');
       setShowNotes(false);
       onSaved();
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
-      alert('Failed to log. Try again.');
+      alert(err instanceof Error ? err.message : 'Failed to log set. Try again.');
     } finally {
       setSaving(false);
     }
@@ -313,12 +313,7 @@ export default function ClientWorkouts({ setPathname }: { setPathname?: (path: s
 
   const isGuest = !profile?.role || profile?.role === 'guest';
 
-  useEffect(() => {
-    if (!user || isGuest) { setLoading(false); return; }
-    fetchEntries();
-  }, [user, isGuest]);
-
-  const fetchEntries = async () => {
+  const fetchEntries = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
@@ -329,13 +324,18 @@ export default function ClientWorkouts({ setPathname }: { setPathname?: (path: s
         .order('date', { ascending: false })
         .order('created_at', { ascending: false });
       if (error) throw error;
-      setEntries(data || []);
-    } catch (err) {
-      console.error('Failed to fetch workouts:', err);
+      setEntries((data as WorkoutEntry[]) || []);
+    } catch (err: unknown) {
+      console.error('Failed to fetch workouts:', err instanceof Error ? err.message : err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (!user || isGuest) { setLoading(false); return; }
+    fetchEntries();
+  }, [user, isGuest, fetchEntries]);
 
   const handleDelete = async (id: string) => {
     try {

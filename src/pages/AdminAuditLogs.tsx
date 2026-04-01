@@ -126,9 +126,9 @@ export default function AdminAuditLogs({ setPathname }: { setPathname: (p: strin
 
       const { data, error } = await query;
       if (error) throw error;
-      setLogs(data as any[]);
-    } catch (e) {
-      console.error('Audit log fetch error:', e);
+      setLogs((data as AuditLogRow[]) ?? []);
+    } catch (e: unknown) {
+      console.error('Audit log fetch error:', e instanceof Error ? e.message : e);
     } finally {
       setLoading(false);
     }

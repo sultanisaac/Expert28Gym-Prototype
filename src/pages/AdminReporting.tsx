@@ -190,7 +190,7 @@ export default function AdminReporting({ setPathname }: { setPathname: (p: strin
         .in('status', ['paid', 'completed'])
         .gte('created_at', startOfMonth.toISOString());
 
-      const monthlyRevenue = (revenueData ?? []).reduce((s: number, p: any) => s + (p.amount ?? 0), 0);
+      const monthlyRevenue = (revenueData ?? []).reduce((s: number, p: { amount: number | null }) => s + (p.amount ?? 0), 0);
 
       // ── Avg daily attendance (last 30 days) ───────────────
       const thirtyAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
@@ -207,7 +207,7 @@ export default function AdminReporting({ setPathname }: { setPathname: (p: strin
         .select('membership_tier');
 
       const tierCounts: Record<string, number> = {};
-      (profilesData ?? []).forEach((p: any) => {
+      (profilesData ?? []).forEach((p: { membership_tier: string | null }) => {
         const t = p.membership_tier ?? 'Unassigned';
         tierCounts[t] = (tierCounts[t] ?? 0) + 1;
       });
@@ -219,7 +219,11 @@ export default function AdminReporting({ setPathname }: { setPathname: (p: strin
         .in('status', ['paid', 'completed']);
 
       const tierRevenue: Record<string, number> = {};
-      (tierRevData ?? []).forEach((p: any) => {
+      interface TierRevItem {
+        amount: number | null;
+        profiles: { membership_tier: string | null } | null;
+      }
+      (tierRevData as unknown as TierRevItem[] ?? []).forEach((p) => {
         const t = p.profiles?.membership_tier ?? 'Unassigned';
         tierRevenue[t] = (tierRevenue[t] ?? 0) + (p.amount ?? 0);
       });
@@ -239,7 +243,7 @@ export default function AdminReporting({ setPathname }: { setPathname: (p: strin
         .gte('check_in_time', thirtyAgo);
 
       const checkinMap: Record<string, number> = {};
-      (attendanceRaw ?? []).forEach((a: any) => {
+      (attendanceRaw ?? []).forEach((a: { user_id: string }) => {
         checkinMap[a.user_id] = (checkinMap[a.user_id] ?? 0) + 1;
       });
 
@@ -256,7 +260,7 @@ export default function AdminReporting({ setPathname }: { setPathname: (p: strin
           .in('id', topUserIds);
 
         topMembers = topUserIds.map(uid => {
-          const p = (topProfiles ?? []).find((x: any) => x.id === uid);
+          const p = (topProfiles ?? []).find((x: { id: string }) => x.id === uid) as { full_name: string | null; email: string | null; membership_tier: string | null } | undefined;
           return {
             name: p?.full_name ?? p?.email ?? 'Unknown',
             tier: p?.membership_tier ?? '—',
@@ -279,12 +283,12 @@ export default function AdminReporting({ setPathname }: { setPathname: (p: strin
           .lt('created_at', end.toISOString());
         months.push({
           month: d.toLocaleString('en-US', { month: 'short' }),
-          value: (rev ?? []).reduce((s: number, p: any) => s + (p.amount ?? 0), 0),
+          value: (rev ?? []).reduce((s: number, p: { amount: number | null }) => s + (p.amount ?? 0), 0),
         });
       }
 
       // ── Retention rate proxy ──────────────────────────────
-      const activeCount = (profilesData ?? []).filter((p: any) => p.membership_tier && p.membership_tier !== 'Unassigned').length;
+      const activeCount = (profilesData ?? []).filter((p: { membership_tier: string | null }) => p.membership_tier && p.membership_tier !== 'Unassigned').length;
       const retentionRate = (totalMembers ?? 0) > 0
         ? Math.round((activeCount / (totalMembers ?? 1)) * 100)
         : 0;
@@ -298,8 +302,8 @@ export default function AdminReporting({ setPathname }: { setPathname: (p: strin
         topMembers,
         monthlyRevenueSeries: months,
       });
-    } catch (e: any) {
-      setError(e.message || 'Failed to load reporting data');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to load reporting data');
     } finally {
       setLoading(false);
     }

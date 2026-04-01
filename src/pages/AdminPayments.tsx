@@ -115,7 +115,22 @@ export default function AdminPayments({ setPathname }: { setPathname: (p: string
 
       if (err) throw err;
 
-      const mapped: PaymentRecord[] = (data ?? []).map((p: any) => ({
+      interface PaymentJoinResult {
+        id: string;
+        user_id: string | null;
+        stripe_session_id: string | null;
+        amount: number | null;
+        currency: string | null;
+        status: string | null;
+        created_at: string | null;
+        profiles: {
+          full_name: string | null;
+          email: string | null;
+          membership_tier: string | null;
+        } | null;
+      }
+
+      const mapped: PaymentRecord[] = (data as unknown as PaymentJoinResult[] ?? []).map((p) => ({
         id: p.id,
         user_id: p.user_id,
         stripe_session_id: p.stripe_session_id,
@@ -123,14 +138,14 @@ export default function AdminPayments({ setPathname }: { setPathname: (p: string
         currency: p.currency ?? 'USD',
         status: p.status,
         created_at: p.created_at,
-        member_name: p.profiles?.full_name ?? null,
-        member_email: p.profiles?.email ?? null,
-        membership_tier: p.profiles?.membership_tier ?? null,
+        member_name: p.profiles?.full_name ?? undefined,
+        member_email: p.profiles?.email ?? undefined,
+        membership_tier: p.profiles?.membership_tier ?? undefined,
       }));
 
       setPayments(mapped);
-    } catch (e: any) {
-      setError(e.message || 'Failed to load payments');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to load payments');
     } finally {
       setLoading(false);
     }

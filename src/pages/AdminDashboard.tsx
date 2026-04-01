@@ -183,7 +183,7 @@ export default function AdminDashboard({ setPathname }: { setPathname: (p: strin
         .in('status', ['paid', 'completed'])
         .gte('created_at', startOfMonth.toISOString());
 
-      const monthlyRevenue = (revenueData ?? []).reduce((s: number, p: any) => s + (p.amount ?? 0), 0);
+      const monthlyRevenue = (revenueData ?? []).reduce((s: number, p: { amount: number | null }) => s + (p.amount ?? 0), 0);
 
       // ── 3. Today's attendance ─────────────────────────────
       const startOfDay = new Date();
@@ -232,7 +232,7 @@ export default function AdminDashboard({ setPathname }: { setPathname: (p: strin
 
       const activityItems: ActivityItem[] = [];
 
-      (recentProfiles ?? []).forEach((p: any) => {
+      (recentProfiles ?? []).forEach((p: { full_name: string | null; email: string | null; membership_tier: string | null; created_at: string }) => {
         activityItems.push({
           type: 'signup',
           text: `${p.full_name ?? p.email} joined ${p.membership_tier ?? 'as a new member'}`,
@@ -242,7 +242,14 @@ export default function AdminDashboard({ setPathname }: { setPathname: (p: strin
         });
       });
 
-      (recentPayments ?? []).forEach((p: any) => {
+      interface PaymentWithProfile {
+        amount: number;
+        status: string;
+        created_at: string;
+        profiles: { full_name: string | null; email: string | null } | null;
+      }
+
+      (recentPayments as unknown as PaymentWithProfile[] ?? []).forEach((p) => {
         if (p.status === 'paid' || p.status === 'completed') {
           const name = p.profiles?.full_name ?? p.profiles?.email ?? 'Unknown';
           activityItems.push({
@@ -255,7 +262,12 @@ export default function AdminDashboard({ setPathname }: { setPathname: (p: strin
         }
       });
 
-      (recentAttendance ?? []).forEach((a: any) => {
+      interface AttendanceWithProfile {
+        check_in_time: string;
+        profiles: { full_name: string | null; email: string | null } | null;
+      }
+
+      (recentAttendance as unknown as AttendanceWithProfile[] ?? []).forEach((a) => {
         const name = a.profiles?.full_name ?? a.profiles?.email ?? 'Athlete';
         activityItems.push({
           type: 'attendance',
@@ -285,8 +297,8 @@ export default function AdminDashboard({ setPathname }: { setPathname: (p: strin
         { label: 'Make.com Automation',   status: 'Active', color: '#10b981' },
       ]);
 
-    } catch (e) {
-      console.error('Dashboard fetch error:', e);
+    } catch (err: unknown) {
+      console.error('Dashboard fetch error:', err instanceof Error ? err.message : err);
     } finally {
       setLoading(false);
     }

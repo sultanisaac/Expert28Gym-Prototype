@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import type { User } from '@supabase/supabase-js';
 
-interface Profile {
+export interface Profile {
   id: string;
   email: string;
   role: 'admin' | 'client' | 'guest';
@@ -119,8 +119,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) throw error;
       setProfile(data as Profile);
-    } catch (e: any) {
-      console.error('Error in fetchProfile:', e.message || e);
+    } catch (e: unknown) {
+      console.error('Error in fetchProfile:', e instanceof Error ? e.message : e);
     }
   };
 

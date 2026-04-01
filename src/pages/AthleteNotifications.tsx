@@ -46,8 +46,8 @@ export default function AthleteNotifications({ setPathname }: { setPathname: (p:
         .limit(40);
       if (error) throw error;
       setItems(data as NotificationRow[]);
-    } catch (e) {
-      console.error('Notification fetch error:', e);
+    } catch (e: unknown) {
+      console.error('Notification fetch error:', e instanceof Error ? e.message : e);
     } finally {
       setLoading(false);
     }

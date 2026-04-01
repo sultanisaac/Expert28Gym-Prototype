@@ -29,8 +29,8 @@ export default function NotificationDropdown({ onClose, setPathname }: Notificat
           .order('created_at', { ascending: false })
           .limit(6);
         setItems(data as NotificationRow[] ?? []);
-      } catch (err) {
-        console.error('Notif fetch error:', err);
+      } catch (err: unknown) {
+        console.error('Notif fetch error:', err instanceof Error ? err.message : err);
       } finally {
         setLoading(false);
       }

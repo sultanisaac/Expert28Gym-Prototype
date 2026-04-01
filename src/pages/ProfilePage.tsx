@@ -83,9 +83,9 @@ export default function ProfilePage() {
 
       toast.success('Avatar updated!');
       if (refreshProfile) await refreshProfile();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Upload error:', err);
-      toast.error('Upload failed', { description: err.message });
+      toast.error('Upload failed', { description: err instanceof Error ? err.message : 'Unknown error' });
     } finally {
       setIsUploading(false);
     }
@@ -116,10 +116,10 @@ export default function ProfilePage() {
       });
       
       if (refreshProfile) await refreshProfile();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Update profile error:', err);
       toast.error('Failed to update profile', {
-        description: err.message || 'An unexpected error occurred.'
+        description: err instanceof Error ? err.message : 'An unexpected error occurred.'
       });
     } finally {
       setIsSaving(false);

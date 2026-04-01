@@ -105,8 +105,8 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
       const { error } = await supabase.from('attendance').insert([{ user_id: user.id, method: 'self_check_in' }]);
       if (error) throw error;
       setIsCheckedIn(true);
-    } catch (err) {
-      alert('Failed to check in. Please try again.');
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to check in. Please try again.');
     } finally {
       setIsCheckingIn(false);
     }
@@ -123,8 +123,8 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
       const result = await response.json();
       if (response.ok && result.url) window.location.href = result.url;
       else throw new Error(result.error);
-    } catch (err) {
-      alert('Failed to initiate checkout.');
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to initiate checkout.');
     } finally {
       setCheckoutLoading(null);
     }
@@ -141,8 +141,8 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
       });
       const result = await response.json();
       if (response.ok && result.url) window.location.href = result.url;
-    } catch (err) {
-      alert('Failed to open billing portal.');
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to open billing portal.');
     } finally {
       setBillingLoading(false);
     }
