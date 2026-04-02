@@ -34,8 +34,8 @@ export default function LoginPage() {
 
       <div className="glass-card w-full max-w-md p-8 relative z-10">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-center mb-4">
-            <Shield className="text-[#10b981]" size={24} />
+          <div className="w-12 h-12 rounded-xl overflow-hidden mb-4">
+            <img src="/Logo.png" alt="Expert28" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-2xl font-black tracking-tight text-white">Welcome Back</h1>
           <p className="text-gray-400 text-sm mt-2 text-center">Login to your Expert28 performance dashboard</p>

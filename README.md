@@ -83,12 +83,6 @@ npm run dev
 
 ---
 
-## 📈 Roadmap
-- [ ] **AI Coaching Engine:** Integration of LLMs for personalized training program generation.
-- [ ] **Wearable Sync:** Direct API bridges to Apple Health and Garmin.
-- [ ] **Pro Mobile App:** Native iOS/Android builds via Capacitor.
-
----
 
 <div align="center">
   <p>Built with precision by <b>Expert28 Engineering</b></p>

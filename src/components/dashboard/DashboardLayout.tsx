@@ -201,8 +201,8 @@ function Sidebar({ collapsed, setCollapsed, currentPath, setPathname, notificati
     }}>
       {/* Logo */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', padding: '0.25rem 0.5rem', marginBottom: '1.5rem', overflow: 'hidden', flexShrink: 0 }}>
-        <div style={{ width: 32, height: 32, borderRadius: '0.5rem', background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <Shield size={16} color="#f59e0b" strokeWidth={1.5} />
+        <div style={{ width: 32, height: 32, borderRadius: '0.4rem', overflow: 'hidden', flexShrink: 0 }}>
+          <img src="/Logo.png" alt="Expert28" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
         {!collapsed && (
           <div>
