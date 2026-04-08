@@ -1,6 +1,11 @@
 import Stripe from 'stripe';
+import { createClient } from '@supabase/supabase-js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export default async function handler(req: any, res: any) {
   // Only allow POST
@@ -15,16 +20,28 @@ export default async function handler(req: any, res: any) {
     return res.status(400).json({ error: 'Missing required fields: email or plan' });
   }
 
-  // Map plan names to their respective Price IDs from environment variables
-  let priceId = process.env.STRIPE_PRICE_ELITE; // Default fallback
-
-  if (plan === 'Base Expert') priceId = process.env.STRIPE_PRICE_BASE;
-  if (plan === '7-Day Trial') priceId = process.env.STRIPE_PRICE_TRIAL;
-
-  // Base URL for redirects — use vercel URL in production, or fallback for local
-  const baseUrl = process.env.VITE_APP_URL || (req.headers.host ? `http://${req.headers.host}` : '');
-
   try {
+    // 1. Fetch current price ID and metadata from Supabase
+    const { data: planData, error: planError } = await supabase
+      .from('membership_plans')
+      .select('stripe_price_id, price, interval')
+      .eq('name', plan)
+      .eq('is_active', true)
+      .single();
+
+    if (planError || !planData) {
+      console.error('[Stripe] Plan lookup error:', planError);
+      return res.status(404).json({ error: 'Plan not found or inactive' });
+    }
+
+    const priceId = planData.stripe_price_id;
+    const mode = planData.interval === 'one-time' ? 'payment' : 'subscription';
+
+    // Base URL for redirects
+    const host = req.headers.host || '';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = process.env.VITE_APP_URL || `${protocol}://${host}`;
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       customer_email: email,
@@ -34,16 +51,15 @@ export default async function handler(req: any, res: any) {
           quantity: 1,
         },
       ],
-      mode: 'payment', // Most prototyping prices are one-time. Using subscription mode requires 'recurring' prices in Stripe.
-      // Metadata allows Make.com to receive all form data via Stripe webhooks
+      mode: mode,
       metadata: {
-        email: email || '', // Explicitly pass the registered email for Make.com
+        email: email || '',
         name: name || '',
         phone: phone || '',
         goal: goal || '',
         plan: plan,
         user_id: user_id || '',
-        role_upgrade: 'client' // Specific flag for webhooks
+        role_upgrade: 'client'
       },
       success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/client/dashboard?cancelled=true`,

@@ -24,6 +24,7 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
   const [consistencyPct, setConsistencyPct] = useState<number | null>(null);
   const [recentWorkouts, setRecentWorkouts] = useState<RecentWorkout[]>([]);
   const [allWorkouts, setAllWorkouts] = useState<RecentWorkout[]>([]);
+  const [plans, setPlans] = useState<any[]>([]);
 
   const isGuest = !profile?.role || profile?.role === 'guest';
 
@@ -95,7 +96,13 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
       setAllWorkouts(wAll || []);
     };
 
+    const fetchPlans = async () => {
+      const { data } = await supabase.from('membership_plans').select('*').eq('is_active', true).order('price', { ascending: false });
+      if (data) setPlans(data);
+    };
+
     fetchStats();
+    fetchPlans();
   }, [user, isGuest]);
 
   const handleSelfCheckIn = async () => {
@@ -265,27 +272,24 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
                 <h2 className="text-xl font-black uppercase tracking-tight mb-8">Status</h2>
                 {isGuest ? (
                   <div className="space-y-6">
-                    <div className="p-6 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl group hover:border-emerald-500/50 transition-all">
-                      <p className="text-sm font-black text-white uppercase group-hover:text-emerald-400 transition-colors">Elite member</p>
-                      <p className="text-2xl font-black text-emerald-500 mt-1 mb-6">$149/mo</p>
-                      <button
-                        onClick={() => handleCheckout('Elite Expert')}
-                        disabled={checkoutLoading !== null}
-                        className="w-full py-4 bg-emerald-500 text-black rounded-xl font-black text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
-                      >
-                        {checkoutLoading === 'Elite Expert' ? <Loader2 className="animate-spin" size={16} /> : 'Claim Elite Status'}
-                      </button>
-                    </div>
-                    <button
-                      onClick={() => handleCheckout('Base Expert')}
-                      className="w-full p-5 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/[0.08] transition-all text-left flex justify-between items-center group"
-                    >
-                       <div>
-                          <p className="text-xs font-black text-white uppercase mb-1">Base Plan</p>
-                          <p className="text-lg font-black text-white/50">$100/mo</p>
-                       </div>
-                       <ArrowRight size={14} className="text-emerald-500 group-hover:translate-x-1 transition-transform" />
-                    </button>
+                    {plans.map((p, i) => (
+                      <div key={p.id} className={`${i === 0 ? 'p-6 bg-emerald-500/5 border border-emerald-500/20' : 'p-5 bg-white/5 border border-white/10'} rounded-2xl group hover:border-emerald-500/50 transition-all cursor-pointer`}>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-sm font-black text-white uppercase group-hover:text-emerald-400 transition-colors">{p.name}</p>
+                            <p className={`${i === 0 ? 'text-2xl' : 'text-lg'} font-black ${i === 0 ? 'text-emerald-500' : 'text-white/50'} mt-1`}>Rp {p.price.toLocaleString()}/{p.interval}</p>
+                          </div>
+                          {i !== 0 && <ArrowRight size={14} className="text-emerald-500 group-hover:translate-x-1 transition-transform mt-1" />}
+                        </div>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleCheckout(p.name); }}
+                          disabled={checkoutLoading !== null}
+                          className={`w-full mt-4 py-3 ${i === 0 ? 'bg-emerald-500 text-black' : 'bg-white/10 text-white'} rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2`}
+                        >
+                          {checkoutLoading === p.name ? <Loader2 className="animate-spin" size={16} /> : `Select ${p.name}`}
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="space-y-6">
