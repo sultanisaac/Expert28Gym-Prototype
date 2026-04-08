@@ -1,249 +1,86 @@
 # STRIPE PAYMENT INTEGRATION — Expert28 Gym Prototype
 
-**Status**: Implementation Plan (pre-code)
-**Last Updated**: 2026-03-26
+**Status**: ✅ Live & Dynamic
+**Currency**: IDR (Rp)
 
 ---
-
-**GitHub Tracking**: [Issue #3](https://github.com/sultanisaac26-create/Expert28Gym-Prototype/issues/3)
 
 ## Overview
 
-We use **Stripe Checkout (hosted redirect)** for payments, triggered from a dedicated `/apply` page.
-The existing "Join Expert28" modal is repurposed as a **marketing teaser** — it shows benefits and pricing, with a single CTA that navigates the user to `/apply`.
+Expert28 uses a **Dynamic Pricing Model**. Instead of hardcoding Stripe Price IDs into code or environment variables, the system manages plans directly via the database.
 
-No Supabase. No custom webhook handler on the site. Stripe fires webhooks directly to Make.com.
-
----
-
-## User Flow
-
-```
-[Pricing Card] → "Join Expert28" button
-      ↓
-[JoinModal] — shows plan benefits, price, social proof
-      ↓ clicks "Apply Now" / "Continue to Application"
-[/apply page] — form: Name, Email, Phone, Goal + selected plan
-      ↓ submits form
-[Vercel API /api/create-checkout-session] — creates Stripe session
-      ↓ redirects
-[Stripe Checkout] — hosted payment page (Stripe handles all card UI)
-      ↓ payment succeeds
-[/success page] — confirmation, next steps
-      ↓
-[Stripe → Make.com Webhook] — automation triggers (email, WhatsApp, CRM, etc.)
-```
-
-If user cancels on Stripe → redirected to `/apply?cancelled=true` (shows a soft message, keeps form data).
-
----
-
-## Pages to Create
-
-| Page | Route | Description |
-|---|---|---|
-| Apply | `/apply` | Full application form (Name, Email, Phone, Goal) + plan summary + Pay CTA |
-| Success | `/success` | Post-payment confirmation. Shows next steps. |
-| *(cancel stays on)* | `/apply?cancelled=true` | Soft message, keeps form, user can retry |
-
-Since this is a **Vite SPA** (no React Router installed), pages are handled via:
-- **Hash-based routing** using `window.location.hash` — e.g. `/#/apply`, `/#/success`
-- Or by detecting `window.location.pathname` if the Vercel `vercel.json` rewrites all routes to `index.html`
-
-**Recommended: use `vercel.json` rewrites + pathname-based routing** — cleaner URLs, better SEO.
-
----
-
-## Files to Create / Modify
-
-```
-Expert28Gym-Prototype/
-├── api/
-│   └── create-checkout-session.ts   ← NEW: Vercel serverless function
-├── src/
-│   ├── pages/
-│   │   ├── ApplyPage.tsx            ← NEW: Form + pay
-│   │   └── SuccessPage.tsx          ← NEW: Post-payment confirmation
-│   ├── components/
-│   │   └── JoinModal.tsx            ← MODIFY: teaser only, no form
-│   └── App.tsx                      ← MODIFY: add routing, wire modal/pages
-├── vercel.json                      ← NEW: SPA route rewrites
-├── .env.local                       ← NEW: local env vars (never commit)
-└── STRIPE.md                        ← This file
-```
+1. **Admins** manage plans (Price, Features, Name) in the Admin Dashboard.
+2. **Back-end** (`api/manage-plan`) syncs these changes to Stripe Products automatically.
+3. **Checkout** (`api/create-checkout-session`) looks up active Price IDs from Supabase at runtime.
 
 ---
 
 ## Environment Variables
 
-Set these in two places:
-1. **`.env.local`** — for local development (`npm run dev`)
-2. **Vercel Dashboard → Project → Settings → Environment Variables** — for production
+Only the core API keys are required. Individual Price IDs are now dynamic.
 
-| Variable | Value | Side | Where to get it |
+| Variable | Side | Required | Purpose |
 |---|---|---|---|
-| `STRIPE_SECRET_KEY` | `sk_live_...` or `sk_test_...` | Server only | See §A below |
-| `VITE_STRIPE_PUBLISHABLE_KEY` | `pk_live_...` or `pk_test_...` | Client-safe | See §A below |
-| `STRIPE_PRICE_ID` | `price_...` | Server only | See §B below |
-| `VITE_APP_URL` | `https://your-site.vercel.app` | Client + Server | Your Vercel project URL |
+| `STRIPE_SECRET_KEY` | Server | Yes | Authenticates backend requests to Stripe |
+| `VITE_STRIPE_PUBLISHABLE_KEY` | Client | No | Used if manual client-side Stripe elements are added later |
+| `VITE_SUPABASE_URL` | Both | Yes | Database connection URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server | Yes | Elevated permissions for API management tasks |
 
-> ⚠️ **NEVER prefix `STRIPE_SECRET_KEY` with `VITE_`** — Vite embeds `VITE_` vars into the browser bundle. The secret key must stay server-side only.
-
----
-
-## §A — Where to Get API Keys from Stripe
-
-1. Go to **[https://dashboard.stripe.com](https://dashboard.stripe.com)**
-2. In the left sidebar click **"Developers"**
-3. Click **"API keys"**
-4. You will see two keys:
-   - **Publishable key** — starts with `pk_test_` (testing) or `pk_live_` (live). Safe for browser.
-   - **Secret key** — starts with `sk_test_` or `sk_live_`. **Never expose this.**
-5. Use **test keys** (`sk_test_` / `pk_test_`) until you're ready to go live.
-
-> 💡 Use **test mode** (toggle in top-left of Stripe dashboard) while building. Test card: `4242 4242 4242 4242`, any future expiry, any CVC.
+> ⚠️ **STRIPE_PRICE_BASE/ELITE** are deprecated and should be removed from `.env`.
 
 ---
 
-## §B — Where to Get the Price ID from Stripe
+## The Dynamic Sync Logic
 
-The Checkout Session requires a **Price ID** (`price_...`), NOT the Product ID (`prod_...`).
+When an Admin interacts with the **Manage Plans** tab:
 
-**Step-by-step:**
+### 1. Create Plan
+- Creates a `Product` in Stripe.
+- Creates a `Price` in Stripe (IDR currency).
+- Saves both IDs to `public.membership_plans`.
 
-1. Go to **Stripe Dashboard → Products** (in the left sidebar)
-2. Click **"Add product"** (or select an existing one)
-3. Fill in:
-   - **Name**: e.g. `Expert28 Transformation Plan`
-   - **Description**: optional but good for the Stripe-hosted checkout page
-   - **Image**: optional — appears on the Stripe checkout page
-4. Under **Pricing**, set:
-   - **Price**: e.g. `£49.00` (or your actual price)
-   - **Billing period**: One-time (since it's a transformation plan, not a recurring membership)
-   - Or set to **Recurring / Monthly** if it's a subscription
-5. Click **Save product**
-6. On the product detail page, under **Pricing**, you'll see the price listed with an ID like `price_1PxxxxxxxxxxxxxxxxxxxxX`
-7. **Copy that `price_xxx` ID** — this goes into `STRIPE_PRICE_ID` env var
+### 2. Update Plan
+- **Metadata**: Name/Description changes update the existing Stripe Product.
+- **Price/Interval**: Since Stripe Price objects are immutable, changing the price or billing period in the dashboard triggers the creation of a **new Stripe Price ID**. This ensures existing subscribers are not affected while new ones get the updated rate.
 
-> 💡 If you have multiple plans (Base $29, Elite $49, Trial $8), you can create multiple products/prices and store multiple price IDs as separate env vars: `STRIPE_PRICE_BASE`, `STRIPE_PRICE_ELITE`, `STRIPE_PRICE_TRIAL`. The selected plan from the modal can then determine which price ID the API uses.
+### 3. Delete Plan
+- Removes the record from the database.
 
 ---
 
-## §C — Setting Up Make.com Webhook from Stripe
+## Checkout Workflow
 
-This connects Stripe payments to your Make.com automations. **No code needed on the site for this step.**
+### `POST /api/create-checkout-session`
 
-1. In **Make.com**, create a new Scenario
-2. Add a **Webhook** trigger → copy the webhook URL (looks like `https://hook.eu1.make.com/xxxxx`)
-3. Go to **Stripe Dashboard → Developers → Webhooks**
-4. Click **"Add endpoint"**
-5. Paste the Make.com webhook URL
-6. Under **"Events to send"**, select:
-   - `checkout.session.completed` ← this is the key one — fires when payment succeeds
-   - Optionally: `payment_intent.payment_failed` for failed payment handling
-7. Click **"Add endpoint"**
+The checkout session handles both **One-time** and **Recurring** memberships:
 
-Make.com will receive the full Stripe event payload including:
-```json
-{
-  "customer_email": "user@email.com",
-  "amount_total": 4900,
-  "metadata": {
-    "name": "John Doe",
-    "phone": "+447700000000",
-    "goal": "Lose 10kg in 28 days",
-    "plan": "Elite Expert"
-  },
-  "payment_status": "paid"
-}
-```
+| Interval | Mode | Stripe Flow |
+|---|---|---|
+| `one-time` | `payment` | One-off transaction for kits or trials. |
+| `month` / `week`| `subscription` | Recurring billing (SaaS style). |
+
+**Metadata included in Stripe Session:**
+- `full_name`, `email`, `phone`, `goal`
+- `plan_name`
+- `user_id` (for linking payment back to the athlete profile)
 
 ---
 
-## Vercel Serverless Function — How It Works
+## Webhook Automation (Make.com)
 
-| | Detail |
-|---|---|
-| **File location** | `api/create-checkout-session.ts` |
-| **Route** | Vercel auto-exposes it at `POST /api/create-checkout-session` |
-| **Inputs** | `name`, `email`, `phone`, `goal`, `plan` (JSON body) |
-| **What it does** | Creates a Stripe Checkout Session with form data as metadata |
-| **Output** | `{ url: "https://checkout.stripe.com/..." }` |
-| **Frontend** | React calls this endpoint, then `window.location.href = url` to redirect |
+Stripe webhooks should be sent to Make.com for post-payment processing:
+1. **Event**: `checkout.session.completed`
+2. **Action**: Make.com receives the `metadata`, creates the user in the Gym CRM, and sends the WhatsApp/Email welcome kit.
 
 ---
 
-## JoinModal — Teaser Mode (Post-Change)
+## Testing (Stripe Test Mode)
 
-The modal **no longer contains a form**. It becomes a conversion teaser:
-
-- Shows the selected plan name + price
-- Lists 3–4 key benefits of the transformation
-- Shows a social proof line ("Join 500+ members")
-- Single CTA button: **"Apply Now →"** or **"Continue to Application"**
-  - This button closes the modal and navigates to `/apply` (passing the selected plan via URL param: `/apply?plan=elite`)
-
----
-
-## Apply Page — What It Contains
-
-| Element | Detail |
-|---|---|
-| Header | "Apply for the Expert28 Transformation" |
-| Plan summary | Shows the plan they selected (pre-filled from URL param) |
-| Form | Full Name, Email, Phone Number, Training Goal (textarea) |
-| Validation | `react-hook-form` + `zod` (already installed) |
-| Submit button | "Pay & Apply — £49" with loading spinner |
-| On submit | Calls `/api/create-checkout-session` → redirects to Stripe |
-| On cancel return | Soft message: "Payment cancelled — your application is still saved below" |
-
----
-
-## Success Page — What It Contains
-
-- ✅ Large confirmation icon
-- Headline: "You're in. Welcome to Expert28."
-- Sub-copy: "Check your email for next steps. We'll be in touch within 24 hours."
-- CTA back to homepage
-- Social media links
-
----
-
-## Implementation Checklist
-
-### Before coding:
-- [ ] Create product + price in Stripe dashboard (§B)
-- [ ] Copy `price_xxx` ID
-- [ ] Copy `sk_test_xxx` and `pk_test_xxx` API keys (§A)
-- [ ] Set up Make.com webhook and connect to Stripe (§C) — can do after coding
-
-### Dev implementation order:
-- [ ] Install `stripe` npm package ✅ (already done)
-- [ ] Create GitHub Issue ✅ ([Issue #3](https://github.com/sultanisaac26-create/Expert28Gym-Prototype/issues/3))
-- [x] Create `.env.local` with real keys ✅
-- [ ] Create `vercel.json` for SPA route rewrites
-- [ ] Create `api/create-checkout-session.ts`
-- [ ] Create `src/pages/ApplyPage.tsx`
-- [ ] Create `src/pages/SuccessPage.tsx`
-- [ ] Update `src/components/JoinModal.tsx` (teaser only)
-- [ ] Update `src/App.tsx` (routing + modal wiring)
-
-### After coding:
-- [ ] Test locally with Stripe test card `4242 4242 4242 4242`
-- [ ] Deploy to Vercel
-- [ ] Add all env vars in Vercel dashboard
-- [ ] Test on production with test keys
-- [ ] Switch Stripe to live mode + update keys
-- [ ] Verify Make.com webhook receives test event
-
----
-
-## Local Test Card (Stripe Test Mode)
+Use the following card in **Test Mode** (ensure `STRIPE_SECRET_KEY` starts with `sk_test_`):
 
 | Field | Value |
 |---|---|
 | Card number | `4242 4242 4242 4242` |
-| Expiry | Any future date (e.g. `12/29`) |
-| CVC | Any 3 digits (e.g. `123`) |
-| Name | Anything |
-| Zip | Anything |
+| Expiry | Any future date |
+| CVC | 123 |
+| Minimum Charge | 10,000 IDR |

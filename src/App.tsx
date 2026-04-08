@@ -276,7 +276,7 @@ export default function App() {
           <div className="mobile-sticky-bar">
             <div>
               <p style={{ fontWeight: 800, fontSize: '0.85rem', lineHeight: 1 }}>Join Expert<span style={{ color: '#10b981' }}>28</span></p>
-              <p style={{ color: '#6b7280', fontSize: '0.65rem', marginTop: '0.15rem' }}>From <span style={{ color: '#10b981' }}>${lowestPrice}</span> / {lowestInterval}</p>
+              <p style={{ color: '#6b7280', fontSize: '0.65rem', marginTop: '0.15rem' }}>From <span style={{ color: '#10b981' }}>Rp {lowestPrice.toLocaleString()}</span> / {lowestInterval}</p>
             </div>
             <button onClick={() => {
               const trial = plans.find(p => p.name.toLowerCase().includes('trial')) || plans[0];
@@ -602,10 +602,10 @@ function Pricing({ plans, openModal }: { plans: MembershipPlan[]; openModal: (p:
                 </div>
               )}
               <h3 style={{ fontWeight: 800, fontSize: '1.2rem', marginBottom: '0.3rem' }}>{plan.name}</h3>
-              <p style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '1.5rem' }}>{plan.description}</p>
-              <div style={{ marginBottom: '1.5rem' }}>
-                <span style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.04em' }}>£{plan.price}</span>
-                <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>/{plan.interval}</span>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginBottom: '2rem' }}>
+                <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#10b981' }}>Rp</span>
+                <span style={{ fontSize: '3.5rem', fontWeight: 900, color: '#fff', letterSpacing: '-0.04em' }}>{plan.price.toLocaleString()}</span>
+                <span style={{ color: '#6b7280', fontSize: '0.85rem', fontWeight: 600 }}>/{plan.interval === 'week' ? 'week' : 'mo'}</span>
               </div>
               <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '1.5rem 0', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {plan.features?.map((f, j) => (

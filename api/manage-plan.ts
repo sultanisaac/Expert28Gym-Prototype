@@ -30,21 +30,21 @@ export default async function handler(req: any, res: any) {
       });
 
       // 2. Create Price in Stripe
-      const stripePrice = await stripe.prices.create({
-        unit_amount: Math.round(price * 100),
-        currency: currency || 'gbp',
-        product: product.id,
-        recurring: { interval: interval === 'week' ? 'week' : 'month' }
-      });
-
-      // 3. Save to Supabase
-      const { data: newPlan, error: insertError } = await supabase
-        .from('membership_plans')
-        .insert({
-          name,
-          description,
-          price,
-          currency: currency || 'gbp',
+        const stripePrice = await stripe.prices.create({
+          unit_amount: Math.round(price * 100),
+          currency: currency || 'idr',
+          product: product.id,
+          recurring: { interval: interval === 'week' ? 'week' : 'month' }
+        });
+  
+        // 3. Save to Supabase
+        const { data: newPlan, error: insertError } = await supabase
+          .from('membership_plans')
+          .insert({
+            name,
+            description,
+            price,
+            currency: currency || 'idr',
           interval: interval || 'month',
           features: features || [],
           badge,

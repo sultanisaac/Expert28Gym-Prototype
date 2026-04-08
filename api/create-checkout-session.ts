@@ -21,10 +21,10 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    // 1. Fetch current price ID from Supabase instead of environment variables
+    // 1. Fetch current price ID and metadata from Supabase
     const { data: planData, error: planError } = await supabase
       .from('membership_plans')
-      .select('stripe_price_id, price')
+      .select('stripe_price_id, price, interval')
       .eq('name', plan)
       .eq('is_active', true)
       .single();
@@ -35,9 +35,12 @@ export default async function handler(req: any, res: any) {
     }
 
     const priceId = planData.stripe_price_id;
+    const mode = planData.interval === 'one-time' ? 'payment' : 'subscription';
 
-    // Base URL for redirects — use vercel URL in production, or fallback for local
-    const baseUrl = process.env.VITE_APP_URL || (req.headers.host ? `http://${req.headers.host}` : '');
+    // Base URL for redirects
+    const host = req.headers.host || '';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = process.env.VITE_APP_URL || `${protocol}://${host}`;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -48,7 +51,7 @@ export default async function handler(req: any, res: any) {
           quantity: 1,
         },
       ],
-      mode: 'payment',
+      mode: mode,
       metadata: {
         email: email || '',
         name: name || '',

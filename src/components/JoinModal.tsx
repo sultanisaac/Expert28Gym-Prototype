@@ -45,7 +45,7 @@ export default function JoinModal({ isOpen, onClose, selectedPlan }: JoinModalPr
             {selectedPlan.name}
           </h2>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
-            <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#10b981' }}>£{selectedPlan.price}</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#10b981' }}>Rp {selectedPlan.price.toLocaleString()}</span>
             <span style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 500 }}>/ {selectedPlan.interval}</span>
           </div>
         </div>

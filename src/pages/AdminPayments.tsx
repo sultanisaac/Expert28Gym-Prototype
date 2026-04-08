@@ -283,7 +283,7 @@ export default function AdminPayments({ setPathname }: { setPathname: (p: string
 
                 <div style={{ display: 'flex', gap: '1rem' }}>
                   <div style={{ flex: 1 }}>
-                    <p style={{ margin: 0, fontSize: '0.6rem', color: '#9ca3af' }}>Price (£)</p>
+                    <p style={{ margin: 0, fontSize: '0.6rem', color: '#9ca3af' }}>Price (Rp)</p>
                     <input 
                       type="number"
                       defaultValue={plan.price}
@@ -291,7 +291,7 @@ export default function AdminPayments({ setPathname }: { setPathname: (p: string
                         const val = parseFloat(e.target.value);
                         if (val !== plan.price && !isNaN(val)) handleManagePlan('update', { price: val }, plan.id);
                       }}
-                      style={{ background: 'none', border: 'none', fontSize: '1.4rem', fontWeight: 900, color: '#fff', width: '100%', outline: 'none' }}
+                      style={{ background: 'none', border: 'none', fontSize: '1.2rem', fontWeight: 900, color: '#fff', width: '100%', outline: 'none' }}
                     />
                   </div>
                   <div style={{ flex: 1 }}>
@@ -299,10 +299,11 @@ export default function AdminPayments({ setPathname }: { setPathname: (p: string
                     <select 
                       defaultValue={plan.interval}
                       onChange={(e) => handleManagePlan('update', { interval: e.target.value }, plan.id)}
-                      style={{ background: 'none', border: 'none', fontSize: '0.9rem', color: '#fff', cursor: 'pointer' }}
+                      style={{ background: 'none', border: 'none', fontSize: '0.9rem', color: '#fff', cursor: 'pointer', outline: 'none' }}
                     >
                       <option value="month">Monthly</option>
                       <option value="week">Weekly</option>
+                      <option value="one-time">One-time</option>
                     </select>
                   </div>
                 </div>

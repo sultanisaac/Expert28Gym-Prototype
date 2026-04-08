@@ -277,7 +277,7 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
                         <div className="flex justify-between items-start">
                           <div>
                             <p className="text-sm font-black text-white uppercase group-hover:text-emerald-400 transition-colors">{p.name}</p>
-                            <p className={`${i === 0 ? 'text-2xl' : 'text-lg'} font-black ${i === 0 ? 'text-emerald-500' : 'text-white/50'} mt-1`}>£{p.price}/{p.interval}</p>
+                            <p className={`${i === 0 ? 'text-2xl' : 'text-lg'} font-black ${i === 0 ? 'text-emerald-500' : 'text-white/50'} mt-1`}>Rp {p.price.toLocaleString()}/{p.interval}</p>
                           </div>
                           {i !== 0 && <ArrowRight size={14} className="text-emerald-500 group-hover:translate-x-1 transition-transform mt-1" />}
                         </div>

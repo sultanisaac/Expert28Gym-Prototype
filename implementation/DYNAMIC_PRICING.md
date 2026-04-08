@@ -1,62 +1,76 @@
-# Implementation Plan: Dynamic Pricing Management
+# Implementation Plan: Dynamic Membership & Pricing Management
 
-**Status**: Planning / In Progress
-**Goal**: Allow Admin role users to update membership prices directly from the dashboard, which automatically updates Stripe and the website checkout flow.
+**Status**: ✅ Completed
+**Goal**: Allow Admin role users to fully manage membership plans (CRUD) directly from the dashboard, with automatic synchronization to Stripe products/prices and live updates to the website.
 
 ---
 
 ## 1. Database Schema (Supabase)
-We have added a `membership_plans` table to track the source of truth for all packages.
+The `membership_plans` table is the Single Source of Truth for all active offerings.
 
 | Column | Type | Description |
 |---|---|---|
 | `id` | UUID | Primary Key |
-| `name` | Text | Unique identifier (e.g. 'Base Expert') |
-| `price` | Numeric | Display price in the UI |
-| `stripe_product_id` | Text | Reference to the Stripe Product |
-| `stripe_price_id` | Text | **Current** Active Price ID in Stripe |
-| `is_active` | Boolean | Visibility toggle |
+| `name` | Text | Unique plan name (e.g. 'Elite Expert') |
+| `description` | Text | Marketing description |
+| `price` | Numeric | Amount in IDR (Rp) |
+| `currency` | Text | Default: 'idr' |
+| `features` | Text[] | Array of benefit bullet points |
+| `interval` | Text | 'month', 'week', or 'one-time' |
+| `badge` | Text | Ribbon text (e.g. 'Popular') |
+| `stripe_product_id`| Text | Reference to the Stripe Product |
+| `stripe_price_id` | Text | **Current** Active Price ID |
+| `is_active` | Boolean | Visibility toggle (Live / Hidden) |
 
 ---
 
 ## 2. API Architecture (Vercel Serverless)
 
-### `POST /api/manage-plan-price`
-This new endpoint will handle the synchronization between Supabase and Stripe.
-1. **Verify Authorization**: Ensure the requester is an Admin in Supabase.
-2. **Create Stripe Price**: Uses `stripe.prices.create()` to generate a new Price object for the existing Product ID.
-3. **Update Supabase**: Updates the `membership_plans` record with the new `price` and `stripe_price_id`.
+### `POST /api/manage-plan`
+This comprehensive endpoint handles full CRUD operations:
+1. **Create**: Generates a new Product and Price in Stripe, then saves the metadata to Supabase.
+2. **Update**: 
+   - Syncs Product metadata (Name/Description) to Stripe.
+   - **Immutability Check**: If Price or Interval changes, it creates a *new* Price object in Stripe and updates the DB pointer.
+3. **Delete**: Removes the plan record from Supabase.
 
-### Refactor `POST /api/create-checkout-session`
-1. Instead of reading `process.env.STRIPE_PRICE_...`, it will query the `membership_plans` table in Supabase.
-2. Example: `const { data: plan } = await supabase.from('membership_plans').select('stripe_price_id').eq('name', planName).single()`
+### `POST /api/create-checkout-session`
+1. Dynamically queries the `membership_plans` table by name.
+2. Fetches the latest `stripe_price_id`.
+3. Detects `interval`:
+   - If `one-time`: use `mode: 'payment'`.
+   - If `month/week`: use `mode: 'subscription'`.
 
 ---
 
-## 3. UI Updates
+## 3. UI Features
 
 ### Admin Dashboard (`AdminPayments.tsx`)
-- Add a **"Manage Plans"** tab.
-- Display a list of all plans from the database.
-- Provide an **"Edit Price"** modal/form.
-- Trigger the `/api/manage-plan-price` endpoint on save.
+- **Real-time CRUD**: Add/Edit/Delete plans without code changes.
+- **Live Toggle**: Instantly hide/show plans on the landing page.
+- **Save-on-Blur**: edits are saved automatically as the admin types.
+
+### Dynamic Landing Page (`App.tsx`)
+- **Automated Pricing**: Fetches only `is_active: true` plans.
+- **Smart Sticky Bar**: Automatically calculates "From Rp XXX" based on the cheapest active plan.
+- **Dynamic Modals**: The Join Modal now populates features and pricing directly from the DB.
 
 ---
 
-## 4. Implementation Steps
+## 4. Implementation Log
 
-### Phase 1: Database & API Refactor (Current)
-- [x] Create `membership_plans` table.
-- [x] Seed initial plan data from `.env`.
-- [ ] Create `api/manage-plan-price.ts`.
-- [ ] Update `api/create-checkout-session.ts` to use DB.
+### Phase 1: Infrastructure
+- [x] Create `membership_plans` table with RLS.
+- [x] Implement Stripe Node.js SDK integration.
+- [x] Create core `api/manage-plan.ts` logic.
 
-### Phase 2: User Interface
-- [ ] Add "Manage Plans" section to `AdminPayments.tsx`.
-- [ ] Implement price update feedback (loading states, success/error).
+### Phase 2: Refactoring
+- [x] Replace hardcoded environment variables with DB dynamic lookups.
+- [x] Align currency to IDR (Rp) with proper number formatting.
+- [x] Support both One-time and Subscription checkout sessions.
 
 ---
 
-## 5. Security Note
-- Admin verification will be performed via the Supabase Service Role key combined with the user's JWT `role` check.
-- Stripe Secret Key remains server-side only.
+## 5. Security & Maintenance
+- **Service Role**: Backend operations use the `SUPABASE_SERVICE_ROLE_KEY` for secure Stripe sync.
+- **Sync Integrity**: If a price update fails in Stripe, the DB is not updated (Atomic consistency).
