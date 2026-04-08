@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Dumbbell, Zap, Users, TrendingUp, AlertTriangle, Star, Menu, X, ArrowRight, ChevronRight, ChevronDown, Clock, CheckCircle2, Shield, Bell } from 'lucide-react';
+import { Dumbbell, Zap, Users, TrendingUp, AlertTriangle, Star, Menu, X, ChevronRight, Clock, CheckCircle2, Shield, Bell } from 'lucide-react';
 import ApplyPage from './pages/ApplyPage';
 import SuccessPage from './pages/SuccessPage';
 import JoinModal from './components/JoinModal';
