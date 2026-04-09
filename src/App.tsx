@@ -588,6 +588,12 @@ function Facilities() {
 // ─── PRICING ──────────────────────────────────────────────────────────────────
 
 function Pricing({ plans, openModal }: { plans: MembershipPlan[]; openModal: (p: string) => void }) {
+  const getCurrencySymbol = (currency?: string) => {
+    const c = (currency || 'idr').toLowerCase();
+    if (c === 'idr') return 'Rp';
+    if (c === 'gbp') return '£';
+    return '$';
+  };
   const { ref, visible } = useReveal();
 
   return (
@@ -613,14 +619,14 @@ function Pricing({ plans, openModal }: { plans: MembershipPlan[]; openModal: (p:
               <h3 style={{ fontWeight: 800, fontSize: '1.2rem', marginBottom: '0.3rem' }}>{plan.name}</h3>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#10b981' }}>
-                  {plan.currency?.toLowerCase() === 'idr' ? 'Rp' : (plan.currency?.toLowerCase() === 'gbp' ? '£' : '$')}
+                  {getCurrencySymbol(plan.currency)}
                 </span>
                 <span style={{ fontSize: '3.5rem', fontWeight: 900, color: '#fff', letterSpacing: '-0.04em' }}>{plan.price.toLocaleString()}</span>
                 
                 {plan.original_price && plan.original_price > plan.price && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginLeft: '0.5rem' }}>
                     <span style={{ fontSize: '1rem', color: '#6b7280', textDecoration: 'line-through', fontWeight: 600 }}>
-                      {plan.original_price.toLocaleString()}
+                      {getCurrencySymbol(plan.currency)}{plan.original_price.toLocaleString()}
                     </span>
                     <span style={{ fontSize: '0.65rem', color: '#10b981', fontWeight: 800, background: 'rgba(16,185,129,0.1)', padding: '0.1rem 0.4rem', borderRadius: '4px', textTransform: 'uppercase' }}>
                       Save {Math.round(((plan.original_price - plan.price) / plan.original_price) * 100)}%

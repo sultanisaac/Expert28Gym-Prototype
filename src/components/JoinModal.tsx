@@ -25,6 +25,13 @@ interface JoinModalProps {
 export default function JoinModal({ isOpen, onClose, selectedPlan, user, profile }: JoinModalProps) {
   const [loading, setLoading] = useState(false);
 
+  const getCurrencySymbol = (currency?: string) => {
+    const c = (currency || 'idr').toLowerCase();
+    if (c === 'idr') return 'Rp';
+    if (c === 'gbp') return '£';
+    return '$';
+  };
+
   if (!isOpen || !selectedPlan) return null;
 
   const handleCheckout = async () => {
@@ -86,11 +93,11 @@ export default function JoinModal({ isOpen, onClose, selectedPlan, user, profile
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
             {selectedPlan.original_price && selectedPlan.original_price > selectedPlan.price && (
               <span style={{ fontSize: '1rem', color: '#6b7280', textDecoration: 'line-through', fontWeight: 600 }}>
-                {selectedPlan.original_price.toLocaleString()}
+                {getCurrencySymbol(selectedPlan.currency)}{selectedPlan.original_price.toLocaleString()}
               </span>
             )}
             <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#10b981' }}>
-              {(selectedPlan as any).currency?.toLowerCase() === 'idr' ? 'Rp' : ((selectedPlan as any).currency?.toLowerCase() === 'gbp' ? '£' : '$')} {selectedPlan.price.toLocaleString()}
+              {getCurrencySymbol(selectedPlan.currency)} {selectedPlan.price.toLocaleString()}
             </span>
             <span style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 500 }}>/ {selectedPlan.interval}</span>
             {selectedPlan.original_price && selectedPlan.original_price > selectedPlan.price && (
