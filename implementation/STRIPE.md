@@ -64,6 +64,11 @@ The checkout session handles both **One-time** and **Recurring** memberships:
 - `plan_name`
 - `user_id` (for linking payment back to the athlete profile)
 
+### 🛡️ Currency Guard & Auto-Correction
+The checkout API (`create-checkout-session.ts`) includes a security layer to prevent currency mismatches:
+- If a price exists in Stripe but its currency does not match the dashboard setting (e.g., Stripe is set to GBP but Dashboard requires IDR), the API **automatically generates a corrected Stripe Price** in the right currency.
+- This new Price ID is then **permanently synced back to Supabase** during the first checkout attempt, ensuring the system remains self-healing.
+
 ---
 
 ## Webhook Automation (Make.com)

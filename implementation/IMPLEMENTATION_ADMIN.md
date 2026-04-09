@@ -125,6 +125,13 @@ The dashboard home provides high-level "Performance Lab" stats.
 - [x] **Performance Sharing**: Integrated social sharing for lab stats.
 - [x] **Global Insights**: High-level training volume visibility for admins (integrated into `AdminReporting.tsx`).
 
+### Phase 11 — Dynamic Membership & Revenue Lab ✅ COMPLETE
+- [x] **Save & Sync Workflow**: Implemented an explicit "Confirm & Sync" state in Admin Payments to prevent accidental Stripe API calls during editing.
+- [x] **Dynamic Discount System**: Added `original_price` support for strike-through pricing and %-off badges on the landing page and checkout modals.
+- [x] **Category Labeling**: Support for "Most Popular", "Best Value", etc., manageable via admin UI.
+- [x] **Real-time Revenue Monitoring**: Integrated `supabase.channel()` in `AdminPayments.tsx` to push live transaction notifications to the dashboard without refreshing.
+- [x] **Currency Localization (IDR/Rp)**: Global enforcement of IDR currency with automated Stripe Price correction logic.
+
 ---
 
 **Current Status**: `v1.3.0 - PLATFORM FULLY AUTONOMOUS` 🚀

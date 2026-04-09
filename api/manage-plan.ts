@@ -20,7 +20,7 @@ export default async function handler(req: any, res: any) {
 
   try {
     if (action === 'create') {
-      const { name, description, price, features, interval, currency, badge } = data;
+      const { name, description, price, features, interval, currency, badge, original_price } = data;
       
       // 1. Create Product in Stripe
       const product = await stripe.products.create({
@@ -34,7 +34,9 @@ export default async function handler(req: any, res: any) {
           unit_amount: Math.round(price * 100),
           currency: currency || 'idr',
           product: product.id,
-          recurring: { interval: interval === 'week' ? 'week' : 'month' }
+          ...(interval !== 'one-time' && {
+            recurring: { interval: interval === 'week' ? 'week' : 'month' }
+          })
         });
   
         // 3. Save to Supabase
@@ -44,10 +46,11 @@ export default async function handler(req: any, res: any) {
             name,
             description,
             price,
-            currency: currency || 'idr',
+            currency: (currency || 'idr').toLowerCase(),
           interval: interval || 'month',
           features: features || [],
           badge,
+          original_price,
           stripe_product_id: product.id,
           stripe_price_id: stripePrice.id,
           is_active: true
@@ -62,7 +65,7 @@ export default async function handler(req: any, res: any) {
     if (action === 'update') {
       if (!plan_id) return res.status(400).json({ error: 'Missing plan_id' });
       
-      const { name, description, price, features, interval, badge, is_active } = data;
+      const { name, description, price, features, interval, badge, is_active, original_price } = data;
 
       // Get existing plan to check if price changed
       const { data: existingPlan, error: fetchError } = await supabase
@@ -81,18 +84,19 @@ export default async function handler(req: any, res: any) {
           unit_amount: Math.round(price * 100),
           currency: existingPlan.currency,
           product: existingPlan.stripe_product_id,
-          recurring: { interval: (interval || existingPlan.interval) === 'week' ? 'week' : 'month' }
+          ...((interval || existingPlan.interval) !== 'one-time' && {
+            recurring: { interval: (interval || existingPlan.interval) === 'week' ? 'week' : 'month' }
+          })
         });
         newPriceId = stripePrice.id;
       }
 
-      // Update Stripe Product name/description if changed
-      if (name || description) {
-        await stripe.products.update(existingPlan.stripe_product_id, {
-          name: name || existingPlan.name,
-          description: description || existingPlan.description
-        });
-      }
+      // 3. Update Stripe Product status and metadata
+      await stripe.products.update(existingPlan.stripe_product_id, {
+        name: name || existingPlan.name,
+        description: description || existingPlan.description,
+        active: is_active !== undefined ? is_active : true // Reactivate if it was archived
+      });
 
       // Update Supabase
       const { data: updatedPlan, error: updateError } = await supabase
@@ -104,6 +108,7 @@ export default async function handler(req: any, res: any) {
           features: features ?? existingPlan.features,
           interval: interval ?? existingPlan.interval,
           badge: badge ?? existingPlan.badge,
+          original_price: original_price !== undefined ? original_price : existingPlan.original_price,
           is_active: is_active ?? existingPlan.is_active,
           stripe_price_id: newPriceId,
           updated_at: new Date().toISOString()

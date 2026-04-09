@@ -9,21 +9,21 @@ import { Badge } from './ui/badge';
 interface Account {
   email: string;
   pas: string;
-  role: 'Guest' | 'Client' | 'Admin';
+  role: 'Guest' | 'Member' | 'Admin';
 }
 
 const ACCOUNTS: Account[] = [
   { email: 'user1@gmail.com', pas: 'user123', role: 'Guest' },
   { email: 'user2@gmail.com', pas: 'user123', role: 'Guest' },
-  { email: 'client1@gmail.com', pas: 'client123', role: 'Client' },
-  { email: 'client2@gmail.com', pas: 'client123', role: 'Client' },
+  { email: 'client1@gmail.com', pas: 'client123', role: 'Member' },
+  { email: 'client2@gmail.com', pas: 'client123', role: 'Member' },
   { email: 'peter.alban26@gmail.com', pas: 'Peter123.', role: 'Admin' },
 ];
 
 export function QuickLogin() {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'All' | 'Guest' | 'Client' | 'Admin'>('All');
+  const [filter, setFilter] = useState<'All' | 'Guest' | 'Member' | 'Admin'>('All');
 
   const handleLogin = async (account: Account) => {
     setLoading(account.email);
@@ -76,7 +76,7 @@ export function QuickLogin() {
 
               {/* Filters */}
               <div className="p-4 flex gap-2 overflow-x-auto no-scrollbar border-b border-white/5">
-                {(['All', 'Guest', 'Client', 'Admin'] as const).map((role) => (
+                {(['All', 'Guest', 'Member', 'Admin'] as const).map((role) => (
                   <button
                     key={role}
                     onClick={() => setFilter(role)}
@@ -103,11 +103,11 @@ export function QuickLogin() {
                     <div className="flex items-center gap-4">
                       <div className={`p-2.5 rounded-lg ${
                         account.role === 'Admin' ? 'bg-purple-500/20' :
-                        account.role === 'Client' ? 'bg-blue-500/20' :
+                        account.role === 'Member' ? 'bg-blue-500/20' :
                         'bg-slate-500/20'
                       }`}>
                         {account.role === 'Admin' ? <ShieldAlert className="h-5 w-5 text-purple-400" /> :
-                         account.role === 'Client' ? <Users className="h-5 w-5 text-blue-400" /> :
+                         account.role === 'Member' ? <Users className="h-5 w-5 text-blue-400" /> :
                          <HelpCircle className="h-5 w-5 text-slate-400" />}
                       </div>
                       <div>
@@ -117,7 +117,7 @@ export function QuickLogin() {
                           </span>
                           <Badge variant="outline" className={`text-[10px] uppercase py-0 px-1.5 h-4 ${
                             account.role === 'Admin' ? 'text-purple-400 border-purple-400/30' :
-                            account.role === 'Client' ? 'text-blue-400 border-blue-400/30' :
+                            account.role === 'Member' ? 'text-blue-400 border-blue-400/30' :
                             'text-slate-400 border-slate-400/30'
                           }`}>
                             {account.role}
