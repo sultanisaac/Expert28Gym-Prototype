@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Dumbbell, CheckCircle2, TrendingUp, Zap, Loader2, CreditCard, ArrowRight } from 'lucide-react';
+import { Dumbbell, CheckCircle2, TrendingUp, Zap, Loader2, CreditCard } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import AthleteAnalytics from '../components/dashboard/AthleteAnalytics';
@@ -18,13 +18,11 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
   const { profile, user } = useAuth();
   const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
-  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [billingLoading, setBillingLoading] = useState(false);
   const [workoutCount, setWorkoutCount] = useState<number | null>(null);
   const [consistencyPct, setConsistencyPct] = useState<number | null>(null);
   const [recentWorkouts, setRecentWorkouts] = useState<RecentWorkout[]>([]);
   const [allWorkouts, setAllWorkouts] = useState<RecentWorkout[]>([]);
-  const [plans, setPlans] = useState<any[]>([]);
 
   const isGuest = !profile?.role || profile?.role === 'guest';
 
@@ -48,13 +46,6 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
     checkTodayAttendance();
   }, [user, isGuest]);
 
-  useEffect(() => {
-    const fetchPlans = async () => {
-      const { data } = await supabase.from('membership_plans').select('*').eq('is_active', true).order('price', { ascending: false });
-      if (data) setPlans(data);
-    };
-    fetchPlans();
-  }, []);
 
   useEffect(() => {
     if (!user || isGuest) return;
@@ -121,23 +112,6 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
     }
   };
 
-  const handleCheckout = async (plan: string) => {
-    setCheckoutLoading(plan);
-    try {
-      const response = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: user?.email, plan, user_id: user?.id, name: profile?.full_name }),
-      });
-      const result = await response.json();
-      if (response.ok && result.url) window.location.href = result.url;
-      else throw new Error(result.error);
-    } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Failed to initiate checkout.');
-    } finally {
-      setCheckoutLoading(null);
-    }
-  };
 
   const handleManageBilling = async () => {
     if (!user?.email || billingLoading) return;

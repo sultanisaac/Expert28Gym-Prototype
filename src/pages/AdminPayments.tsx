@@ -72,7 +72,7 @@ function SkeletonRow({ cols }: { cols: string }) {
 const PAGE_SIZE = 25;
 interface PlanCardProps {
   plan: MembershipPlan;
-  onSave: (action: 'update', data: any, id: string) => Promise<any>;
+  onSave: (action: 'update' | 'delete', data: any, id: string) => Promise<any>;
   isUpdating: boolean;
 }
 

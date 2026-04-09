@@ -15,6 +15,7 @@ export interface Profile {
   city?: string;
   post_code?: string;
   membership_tier?: string;
+  membership_expires_at?: string;
   created_at?: string;
   updated_at?: string;
 }
