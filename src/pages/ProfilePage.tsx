@@ -1,5 +1,5 @@
 import { useAuth } from '../hooks/useAuth';
-import { Mail, Shield, Calendar, MapPin, Phone, CreditCard, ChevronLeft, Loader2, Save, Camera } from 'lucide-react';
+import { Mail, Shield, Calendar, MapPin, Phone, CreditCard, ChevronLeft, Loader2, Save, Camera, Zap } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
@@ -270,23 +270,50 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="p-6 rounded-3xl border border-emerald-500/10 bg-emerald-500/[0.02] relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-3xl rounded-full translate-x-16 -translate-y-16" />
-              <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Membership</h3>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center text-black">
-                  <CreditCard size={20} />
+            {profile?.role === 'guest' || !profile?.membership_tier ? (
+              <div className="p-6 rounded-3xl border border-white/10 bg-white/[0.02] relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl rounded-full translate-x-16 -translate-y-16" />
+                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Membership</h3>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500">
+                    <CreditCard size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-white leading-none">No Active Membership</p>
+                    <p className="text-xs text-gray-600 mt-1">You haven't purchased a plan yet.</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-lg font-black leading-none">{profile?.membership_tier || 'Expert28 Elite'}</p>
-                  <p className="text-xs text-gray-500 mt-1 uppercase font-bold tracking-tighter">Gold Tier Access</p>
+                <a
+                  href="/#pricing"
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-emerald-500 text-black text-[10px] font-black uppercase tracking-widest hover:bg-emerald-400 transition-colors"
+                >
+                  <Zap size={13} />
+                  Get Membership
+                </a>
+              </div>
+            ) : (
+              <div className="p-6 rounded-3xl border border-emerald-500/10 bg-emerald-500/[0.02] relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-3xl rounded-full translate-x-16 -translate-y-16" />
+                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Membership</h3>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center text-black">
+                    <CreditCard size={20} />
+                  </div>
+                  <div>
+                    <p className="text-lg font-black leading-none">{profile.membership_tier}</p>
+                    <p className="text-xs text-gray-500 mt-1 uppercase font-bold tracking-tighter">Active Access</p>
+                  </div>
+                </div>
+                <div className="pt-4 border-t border-white/5 text-xs font-bold flex justify-between items-center">
+                  <span className="text-gray-500 uppercase tracking-widest">Expires</span>
+                  <span className="text-emerald-500">
+                    {profile?.membership_expires_at
+                      ? new Date(profile.membership_expires_at).toLocaleDateString()
+                      : 'Active'}
+                  </span>
                 </div>
               </div>
-              <div className="pt-4 border-t border-white/5 text-xs font-bold flex justify-between items-center">
-                <span className="text-gray-500 uppercase tracking-widest">Next Billing</span>
-                <span className="text-emerald-500">April 28, 2024</span>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Right Column: Address & Contact */}

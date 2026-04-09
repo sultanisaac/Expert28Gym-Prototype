@@ -49,6 +49,14 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
   }, [user, isGuest]);
 
   useEffect(() => {
+    const fetchPlans = async () => {
+      const { data } = await supabase.from('membership_plans').select('*').eq('is_active', true).order('price', { ascending: false });
+      if (data) setPlans(data);
+    };
+    fetchPlans();
+  }, []);
+
+  useEffect(() => {
     if (!user || isGuest) return;
 
     const fetchStats = async () => {
@@ -96,13 +104,7 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
       setAllWorkouts(wAll || []);
     };
 
-    const fetchPlans = async () => {
-      const { data } = await supabase.from('membership_plans').select('*').eq('is_active', true).order('price', { ascending: false });
-      if (data) setPlans(data);
-    };
-
     fetchStats();
-    fetchPlans();
   }, [user, isGuest]);
 
   const handleSelfCheckIn = async () => {
@@ -204,11 +206,17 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
             <div className="relative z-10 max-w-2xl">
               <h2 className="text-2xl font-black uppercase tracking-tight text-emerald-400 mb-2">Unlock Lab Access</h2>
               <p className="text-gray-300 mb-6">Upgrade to unlock full analytics, workout tracking, and facility check-ins.</p>
-              <div className="flex flex-wrap gap-4 text-[10px] font-black uppercase tracking-widest text-emerald-500/60">
+              <div className="flex flex-wrap gap-4 text-[10px] font-black uppercase tracking-widest text-emerald-500/60 mb-8">
                 <span className="flex items-center gap-1"><CheckCircle2 size={12} /> Workout History</span>
                 <span className="flex items-center gap-1"><CheckCircle2 size={12} /> Live Performance Radar</span>
                 <span className="flex items-center gap-1"><CheckCircle2 size={12} /> 24/7 Facility Entry</span>
               </div>
+              <button
+                onClick={() => window.location.href = '/#pricing'}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 text-black text-xs font-black uppercase tracking-widest hover:bg-emerald-400 transition-all"
+              >
+                <Zap size={14} /> View Membership Plans
+              </button>
             </div>
             <Zap className="absolute -right-20 top-1/2 -translate-y-1/2 text-emerald-500 opacity-5" size={300} />
           </div>
@@ -259,8 +267,14 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
                          <div key={i} className="h-20 bg-white/5 rounded-2xl border border-white/5" />
                        ))}
                     </div>
-                    <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
                        <div className="bg-black/60 backdrop-blur-md p-4 px-6 rounded-2xl border border-white/10 text-xs font-black uppercase tracking-widest text-emerald-500">Membership Required</div>
+                       <button
+                         onClick={() => window.location.href = '/#pricing'}
+                         className="bg-emerald-500 text-black text-[10px] font-black uppercase tracking-widest py-2 px-5 rounded-xl hover:bg-emerald-400 transition-all"
+                       >
+                         View Plans
+                       </button>
                     </div>
                   </div>
                 )}
@@ -271,25 +285,18 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
              <div className="glass-card p-8 border-white/5">
                 <h2 className="text-xl font-black uppercase tracking-tight mb-8">Status</h2>
                 {isGuest ? (
-                  <div className="space-y-6">
-                    {plans.map((p, i) => (
-                      <div key={p.id} className={`${i === 0 ? 'p-6 bg-emerald-500/5 border border-emerald-500/20' : 'p-5 bg-white/5 border border-white/10'} rounded-2xl group hover:border-emerald-500/50 transition-all cursor-pointer`}>
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="text-sm font-black text-white uppercase group-hover:text-emerald-400 transition-colors">{p.name}</p>
-                            <p className={`${i === 0 ? 'text-2xl' : 'text-lg'} font-black ${i === 0 ? 'text-emerald-500' : 'text-white/50'} mt-1`}>Rp {p.price.toLocaleString()}/{p.interval}</p>
-                          </div>
-                          {i !== 0 && <ArrowRight size={14} className="text-emerald-500 group-hover:translate-x-1 transition-transform mt-1" />}
-                        </div>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleCheckout(p.name); }}
-                          disabled={checkoutLoading !== null}
-                          className={`w-full mt-4 py-3 ${i === 0 ? 'bg-emerald-500 text-black' : 'bg-white/10 text-white'} rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2`}
-                        >
-                          {checkoutLoading === p.name ? <Loader2 className="animate-spin" size={16} /> : `Select ${p.name}`}
-                        </button>
-                      </div>
-                    ))}
+                  <div className="space-y-4">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
+                      <CreditCard className="mx-auto text-gray-500 mb-3" size={24} />
+                      <p className="text-sm font-bold text-white mb-2">No Active Plan</p>
+                      <p className="text-xs text-gray-500 mb-6">Join the community to unlock full access to the performance platform.</p>
+                      <button
+                        onClick={() => window.location.href = '/#pricing'}
+                        className="w-full py-3 bg-emerald-500 text-black rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-400 transition-all flex items-center justify-center gap-2"
+                      >
+                        <Zap size={14} /> Browse Plans
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-6">

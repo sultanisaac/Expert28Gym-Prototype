@@ -1,4 +1,6 @@
-import { X, Zap, ArrowRight, TrendingUp, Users, Clock } from 'lucide-react';
+import { X, Zap, ArrowRight, TrendingUp, Users, Clock, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { User, Profile } from '../hooks/useAuth';
 
 interface MembershipPlan {
   id: string;
@@ -8,16 +10,53 @@ interface MembershipPlan {
   interval: string;
   features: string[];
   badge: string;
+  currency?: string;
+  original_price?: number;
 }
 
 interface JoinModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedPlan: MembershipPlan | null;
+  user?: User | null;
+  profile?: Profile | null;
 }
 
-export default function JoinModal({ isOpen, onClose, selectedPlan }: JoinModalProps) {
+export default function JoinModal({ isOpen, onClose, selectedPlan, user, profile }: JoinModalProps) {
+  const [loading, setLoading] = useState(false);
+
   if (!isOpen || !selectedPlan) return null;
+
+  const handleCheckout = async () => {
+    if (!user) {
+      window.location.href = `/signup?plan=${selectedPlan.name}`;
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: user?.email, 
+          plan: selectedPlan.name, 
+          user_id: user?.id, 
+          name: profile?.full_name 
+        }),
+      });
+      const result = await response.json();
+      if (response.ok && result.url) {
+        window.location.href = result.url;
+      } else {
+        throw new Error(result.error || 'Failed to create checkout session');
+      }
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Checkout failed');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
@@ -44,9 +83,23 @@ export default function JoinModal({ isOpen, onClose, selectedPlan }: JoinModalPr
           <h2 style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '0.5rem' }}>
             {selectedPlan.name}
           </h2>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
-            <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#10b981' }}>Rp {selectedPlan.price.toLocaleString()}</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+            {selectedPlan.original_price && selectedPlan.original_price > selectedPlan.price && (
+              <span style={{ fontSize: '1rem', color: '#6b7280', textDecoration: 'line-through', fontWeight: 600 }}>
+                {selectedPlan.original_price.toLocaleString()}
+              </span>
+            )}
+            <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#10b981' }}>
+              {(selectedPlan as any).currency?.toLowerCase() === 'idr' ? 'Rp' : ((selectedPlan as any).currency?.toLowerCase() === 'gbp' ? '£' : '$')} {selectedPlan.price.toLocaleString()}
+            </span>
             <span style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 500 }}>/ {selectedPlan.interval}</span>
+            {selectedPlan.original_price && selectedPlan.original_price > selectedPlan.price && (
+                <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginTop: '0.2rem' }}>
+                    <span style={{ fontSize: '0.65rem', color: '#10b981', fontWeight: 800, background: 'rgba(16,185,129,0.1)', padding: '0.2rem 0.6rem', borderRadius: '1rem', textTransform: 'uppercase' }}>
+                        Limited Time Offer: Save {Math.round(((selectedPlan.original_price - selectedPlan.price) / selectedPlan.original_price) * 100)}%
+                    </span>
+                </div>
+            )}
           </div>
         </div>
 
@@ -82,11 +135,18 @@ export default function JoinModal({ isOpen, onClose, selectedPlan }: JoinModalPr
         </div>
 
         <button 
-          onClick={() => window.location.href = `/signup?plan=${selectedPlan.name}`}
+          onClick={handleCheckout}
+          disabled={loading}
           className="btn-blue"
           style={{ width: '100%', padding: '1rem', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}
         >
-          Create Account to Join <ArrowRight size={18} />
+          {loading ? (
+            <Loader2 className="animate-spin" size={20} />
+          ) : user ? (
+            <>Proceed to Payment <ArrowRight size={18} /></>
+          ) : (
+            <>Create Account to Join <ArrowRight size={18} /></>
+          )}
         </button>
       </div>
 

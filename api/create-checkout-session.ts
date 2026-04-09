@@ -35,7 +35,10 @@ export default async function handler(req: any, res: any) {
     }
 
     const priceId = planData.stripe_price_id;
-    const mode = planData.interval === 'one-time' ? 'payment' : 'subscription';
+    
+    // 2. Fetch the price from Stripe to confirm if it is recurring
+    const stripePrice = await stripe.prices.retrieve(priceId!);
+    const mode = stripePrice.recurring ? 'subscription' : 'payment';
 
     // Base URL for redirects
     const host = req.headers.host || '';

@@ -32,6 +32,7 @@ interface MembershipPlan {
   features: string[];
   badge: string;
   stripe_price_id: string;
+  original_price?: number;
 }
 
 // ─── HOOKS ────────────────────────────────────────────────────────────────────
@@ -105,6 +106,17 @@ export default function App() {
     fetchPlans();
   }, []);
 
+  // Handle hash scrolling on landing page
+  useEffect(() => {
+    if (pathname === '/' && window.location.hash) {
+      const id = window.location.hash.replace('#', '');
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 500); // Wait for load
+    }
+  }, [pathname]);
+
   // Handle automatic redirects based on role/auth
   useEffect(() => {
     if (loading) return;
@@ -134,11 +146,6 @@ export default function App() {
   }, []);
 
   const openPlanModal = (planName: string) => {
-    if (user && profile?.role === 'guest') {
-      setPathname('/client/dashboard');
-      history.pushState({}, '', '/client/dashboard');
-      return;
-    }
     const plan = plans.find(p => p.name === planName);
     if (plan) setSelectedPlan(plan);
     setModalOpen(true);
@@ -290,6 +297,8 @@ export default function App() {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         selectedPlan={selectedPlan}
+        user={user}
+        profile={profile}
       />
       {!user && <QuickLogin />}
     </div>
@@ -602,10 +611,24 @@ function Pricing({ plans, openModal }: { plans: MembershipPlan[]; openModal: (p:
                 </div>
               )}
               <h3 style={{ fontWeight: 800, fontSize: '1.2rem', marginBottom: '0.3rem' }}>{plan.name}</h3>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginBottom: '2rem' }}>
-                <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#10b981' }}>Rp</span>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#10b981' }}>
+                  {plan.currency?.toLowerCase() === 'idr' ? 'Rp' : (plan.currency?.toLowerCase() === 'gbp' ? '£' : '$')}
+                </span>
                 <span style={{ fontSize: '3.5rem', fontWeight: 900, color: '#fff', letterSpacing: '-0.04em' }}>{plan.price.toLocaleString()}</span>
-                <span style={{ color: '#6b7280', fontSize: '0.85rem', fontWeight: 600 }}>/{plan.interval === 'week' ? 'week' : 'mo'}</span>
+                
+                {plan.original_price && plan.original_price > plan.price && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginLeft: '0.5rem' }}>
+                    <span style={{ fontSize: '1rem', color: '#6b7280', textDecoration: 'line-through', fontWeight: 600 }}>
+                      {plan.original_price.toLocaleString()}
+                    </span>
+                    <span style={{ fontSize: '0.65rem', color: '#10b981', fontWeight: 800, background: 'rgba(16,185,129,0.1)', padding: '0.1rem 0.4rem', borderRadius: '4px', textTransform: 'uppercase' }}>
+                      Save {Math.round(((plan.original_price - plan.price) / plan.original_price) * 100)}%
+                    </span>
+                  </div>
+                )}
+                
+                <span style={{ color: '#6b7280', fontSize: '0.85rem', fontWeight: 600, marginLeft: 'auto' }}>/{plan.interval === 'week' ? 'week' : 'mo'}</span>
               </div>
               <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '1.5rem 0', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {plan.features?.map((f, j) => (
