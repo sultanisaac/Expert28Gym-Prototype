@@ -46,7 +46,7 @@ export default async function handler(req: any, res: any) {
             name,
             description,
             price,
-            currency: currency || 'idr',
+            currency: (currency || 'idr').toLowerCase(),
           interval: interval || 'month',
           features: features || [],
           badge,

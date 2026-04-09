@@ -54,6 +54,12 @@ export default async function handler(req: any, res: any) {
         })
       });
       finalPriceId = correctedPrice.id;
+      // Permanently fix the stripe_price_id in Supabase so future checkouts use the correct IDR price
+      await supabase
+        .from('membership_plans')
+        .update({ stripe_price_id: correctedPrice.id })
+        .eq('stripe_price_id', priceId!);
+      console.log(`[Stripe] Permanently updated stripe_price_id to IDR price: ${correctedPrice.id}`);
     }
 
     // Base URL for redirects

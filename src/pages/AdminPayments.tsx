@@ -34,6 +34,7 @@ interface MembershipPlan {
   stripe_price_id: string;
   is_active: boolean;
   original_price?: number;
+  currency?: string;
   updated_at: string;
 }
 
@@ -79,6 +80,14 @@ function PlanManagerCard({ plan, onSave, isUpdating }: PlanCardProps) {
   const [editedPlan, setEditedPlan] = useState<Partial<MembershipPlan>>({});
   const isDirty = Object.keys(editedPlan).length > 0;
 
+  const getCurrencySymbol = (currency?: string) => {
+    const c = (currency || 'idr').toLowerCase();
+    if (c === 'idr') return 'Rp';
+    if (c === 'gbp') return '£';
+    return '$';
+  };
+  const currencySymbol = getCurrencySymbol(plan.currency);
+
   const currentName = editedPlan.name ?? plan.name;
   const currentDesc = editedPlan.description ?? plan.description;
   const currentPrice = editedPlan.price ?? plan.price;
@@ -100,7 +109,11 @@ function PlanManagerCard({ plan, onSave, isUpdating }: PlanCardProps) {
 
   const saveChanges = async () => {
     if (!isDirty) return;
-    const success = await onSave('update', editedPlan, plan.id);
+    const finalData = { ...editedPlan };
+    if (finalData.features) {
+      finalData.features = finalData.features.map(f => f.trim()).filter(f => f);
+    }
+    const success = await onSave('update', finalData, plan.id);
     if (success) setEditedPlan({});
   };
 
@@ -201,7 +214,7 @@ function PlanManagerCard({ plan, onSave, isUpdating }: PlanCardProps) {
         <div>
           <p style={{ margin: 0, fontSize: '0.6rem', color: '#6b7280', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.3rem' }}>Sale Price</p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <span style={{ fontWeight: 800, color: '#10b981' }}>Rp</span>
+            <span style={{ fontWeight: 800, color: '#10b981' }}>{currencySymbol}</span>
             <input 
               type="number"
               value={currentPrice}
@@ -213,7 +226,7 @@ function PlanManagerCard({ plan, onSave, isUpdating }: PlanCardProps) {
         <div>
           <p style={{ margin: 0, fontSize: '0.6rem', color: '#6b7280', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.3rem' }}>Original (Before Sale)</p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <span style={{ fontWeight: 800, color: '#6b7280' }}>Rp</span>
+            <span style={{ fontWeight: 800, color: '#6b7280' }}>{currencySymbol}</span>
             <input 
               type="number"
               value={currentOriginalPrice || ''}
@@ -253,8 +266,8 @@ function PlanManagerCard({ plan, onSave, isUpdating }: PlanCardProps) {
           ))}
         </div>
         <textarea 
-          value={currentFeatures?.join(', ')}
-          onChange={(e) => handleUpdate('features', e.target.value.split(',').map(v => v.trim()).filter(v => v))}
+          value={currentFeatures?.join(',') || ''}
+          onChange={(e) => handleUpdate('features', e.target.value.split(','))}
           placeholder="Comma separated features..."
           style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '0.75rem', color: '#9ca3af', fontSize: '0.7rem', padding: '0.75rem', width: '100%', outline: 'none', resize: 'none' }}
         />
@@ -308,6 +321,7 @@ export default function AdminPayments({ setPathname }: { setPathname: (p: string
   const [statusFilter] = useState('All');
   const [page] = useState(1);
   const [updatingPlanId, setUpdatingPlanId] = useState<string | null>(null);
+  const [liveConnected, setLiveConnected] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -358,6 +372,39 @@ export default function AdminPayments({ setPathname }: { setPathname: (p: string
     fetchData();
   }, [fetchData]);
 
+  // ─── REAL-TIME SUBSCRIPTION ────────────────────────────────────────────────
+  useEffect(() => {
+    const channel = supabase
+      .channel('payment_history_live')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'payment_history' },
+        async (payload) => {
+          // Fetch the full row with profile join so the new row matches our format
+          const { data } = await supabase
+            .from('payment_history')
+            .select(`id, user_id, stripe_session_id, amount, currency, status, created_at,
+              profiles ( full_name, email, membership_tier )`)
+            .eq('id', payload.new.id)
+            .single();
+          if (data) {
+            const enriched = {
+              ...(data as any),
+              member_name: (data as any).profiles?.full_name,
+              member_email: (data as any).profiles?.email,
+              membership_tier: (data as any).profiles?.membership_tier,
+            };
+            setPayments(prev => [enriched, ...prev]);
+          }
+        }
+      )
+      .subscribe((status) => {
+        setLiveConnected(status === 'SUBSCRIBED');
+      });
+
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
   const handleManagePlan = async (action: 'create' | 'update' | 'delete', data?: any, planId?: string) => {
     setUpdatingPlanId(planId || 'new');
     try {
@@ -398,9 +445,19 @@ export default function AdminPayments({ setPathname }: { setPathname: (p: string
         {/* Header & Tabs */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <h1 style={{ fontSize: '1.6rem', fontWeight: 900, letterSpacing: '-0.03em', margin: 0 }}>
-              Payment <span style={{ color: '#3b82f6' }}>Dashboard</span>
-            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <h1 style={{ fontSize: '1.6rem', fontWeight: 900, letterSpacing: '-0.03em', margin: 0 }}>
+                Payment <span style={{ color: '#3b82f6' }}>Dashboard</span>
+              </h1>
+              {activeTab === 'logs' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.2rem 0.6rem', background: liveConnected ? 'rgba(16,185,129,0.1)' : 'rgba(107,114,128,0.1)', border: `1px solid ${liveConnected ? 'rgba(16,185,129,0.3)' : 'rgba(107,114,128,0.2)'}`, borderRadius: '1rem' }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: liveConnected ? '#10b981' : '#6b7280', boxShadow: liveConnected ? '0 0 8px #10b981' : 'none', animation: liveConnected ? 'pulse 2s ease-in-out infinite' : 'none' }} />
+                  <span style={{ fontSize: '0.6rem', fontWeight: 800, color: liveConnected ? '#10b981' : '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    {liveConnected ? 'Live' : 'Connecting...'}
+                  </span>
+                </div>
+              )}
+            </div>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '0.75rem' }}>
               <button 
                 onClick={() => setActiveTab('logs')}
@@ -412,7 +469,7 @@ export default function AdminPayments({ setPathname }: { setPathname: (p: string
               >Manage Plans</button>
             </div>
           </div>
-          <button onClick={fetchData} style={{ padding: '0.55rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: '0.6rem', cursor: 'pointer' }}>
+          <button onClick={fetchData} style={{ padding: '0.55rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: '0.6rem', cursor: 'pointer' }} title="Manual refresh">
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
           </button>
         </div>
@@ -420,8 +477,9 @@ export default function AdminPayments({ setPathname }: { setPathname: (p: string
         {activeTab === 'logs' ? (
           <>
             <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-              <SummaryStat label="Total Revenue" value={`$${payments.filter(p => p.status === 'paid').reduce((s, p) => s + (p.amount ?? 0), 0).toLocaleString()}`} color="#10b981" />
+              <SummaryStat label="Total Revenue" value={`Rp ${payments.filter(p => p.status === 'paid' || p.status === 'completed').reduce((s, p) => s + (p.amount ?? 0), 0).toLocaleString()}`} color="#10b981" />
               <SummaryStat label="Transactions" value={`${payments.length}`} color="#f9fafb" />
+              <SummaryStat label="Paid" value={`${payments.filter(p => p.status === 'paid' || p.status === 'completed').length}`} color="#10b981" />
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
@@ -436,19 +494,23 @@ export default function AdminPayments({ setPathname }: { setPathname: (p: string
                 <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr 1.5fr 0.8fr 1fr 1fr', gap: '0.5rem', padding: '0.9rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
                   {['Session ID', 'Member', 'Tier', 'Amount', 'Status', 'Date'].map(h => <span key={h} style={{ fontSize: '0.65rem', fontWeight: 700, color: '#4b5563', textTransform: 'uppercase' }}>{h}</span>)}
                 </div>
-                {loading ? <SkeletonRow cols="1.2fr 2fr 1.5fr 0.8fr 1fr 1fr" /> : paginated.map(p => (
-                  <div key={p.id} style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr 1.5fr 0.8fr 1fr 1fr', gap: '0.5rem', padding: '0.85rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.04)', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.65rem', fontFamily: 'monospace' }}>{p.stripe_session_id?.slice(-10) || p.id.slice(0, 8)}</span>
-                    <div>
-                      <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700 }}>{p.member_name || '—'}</p>
-                      <p style={{ margin: 0, fontSize: '0.65rem', color: '#6b7280' }}>{p.member_email || '—'}</p>
+                {loading ? <SkeletonRow cols="1.2fr 2fr 1.5fr 0.8fr 1fr 1fr" /> : paginated.map(p => {
+                  const curr = (p.currency || 'idr').toLowerCase();
+                  const sym = curr === 'idr' ? 'Rp' : curr === 'gbp' ? '£' : '$';
+                  return (
+                    <div key={p.id} style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr 1.5fr 0.8fr 1fr 1fr', gap: '0.5rem', padding: '0.85rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.04)', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.65rem', fontFamily: 'monospace' }}>{p.stripe_session_id?.slice(-10) || p.id.slice(0, 8)}</span>
+                      <div>
+                        <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700 }}>{p.member_name || '—'}</p>
+                        <p style={{ margin: 0, fontSize: '0.65rem', color: '#6b7280' }}>{p.member_email || '—'}</p>
+                      </div>
+                      <span style={{ fontSize: '0.75rem' }}>{p.membership_tier}</span>
+                      <span style={{ fontWeight: 800 }}>{sym} {p.amount?.toLocaleString()}</span>
+                      <span style={{ fontSize: '0.65rem', color: STATUS_CFG[p.status || 'pending']?.color, background: `${STATUS_CFG[p.status || 'pending']?.color}15`, padding: '0.2rem 0.6rem', borderRadius: '1rem' }}>{p.status}</span>
+                      <span style={{ fontSize: '0.7rem', color: '#6b7280' }}>{p.created_at ? new Date(p.created_at).toLocaleDateString() : '—'}</span>
                     </div>
-                    <span style={{ fontSize: '0.75rem' }}>{p.membership_tier}</span>
-                    <span style={{ fontWeight: 800 }}>${p.amount}</span>
-                    <span style={{ fontSize: '0.65rem', color: STATUS_CFG[p.status || 'pending']?.color, background: `${STATUS_CFG[p.status || 'pending']?.color}15`, padding: '0.2rem 0.6rem', borderRadius: '1rem' }}>{p.status}</span>
-                    <span style={{ fontSize: '0.7rem', color: '#6b7280' }}>{p.created_at ? new Date(p.created_at).toLocaleDateString() : '—'}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </>
