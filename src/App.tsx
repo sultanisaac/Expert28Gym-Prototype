@@ -33,6 +33,7 @@ interface MembershipPlan {
   badge: string;
   stripe_price_id: string;
   original_price?: number;
+  currency?: string;
 }
 
 // ─── HOOKS ────────────────────────────────────────────────────────────────────
