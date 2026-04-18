@@ -47,7 +47,7 @@ export function QuickLogin() {
   return (
     <>
       {/* Desktop Trigger - Vertical Side Tab (Left) */}
-      <div className="fixed left-0 top-1/2 -translate-y-1/2 z-[1000] hidden md:block">
+      <div className="fixed left-0 top-[calc(50%-228px)] -translate-y-1/2 z-[1000] hidden md:block">
         <Button
           onClick={() => setIsOpen(!isOpen)}
           className="h-auto py-8 px-2 rounded-r-2xl rounded-l-none bg-gradient-to-b from-blue-600 to-indigo-700 shadow-[20px_0_40px_rgba(0,0,0,0.4)] hover:translate-x-1.5 transition-all flex flex-col items-center gap-5 border-2 border-l-0 border-white/20 group"
@@ -95,7 +95,7 @@ export function QuickLogin() {
             initial={{ opacity: 0, x: -50, scale: 0.9 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: -50, scale: 0.9 }}
-            className="fixed bottom-24 left-6 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:left-20 z-[1001] w-[350px] max-w-[calc(100vw-3rem)]"
+            className="fixed bottom-24 left-6 md:bottom-auto md:top-[calc(50%-228px)] md:-translate-y-1/2 md:left-20 z-[1001] w-[350px] max-w-[calc(100vw-3rem)]"
           >
             <Card className="overflow-hidden border-0 bg-white/10 dark:bg-black/60 backdrop-blur-2xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] border-white/10">
               {/* Header */}
