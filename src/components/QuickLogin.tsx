@@ -46,30 +46,71 @@ export function QuickLogin() {
 
   return (
     <>
-      {/* Floating Trigger */}
-      <div className="fixed bottom-6 right-6 z-50">
+      {/* Desktop Trigger - Vertical Side Tab (Left) */}
+      <div className="fixed left-0 top-1/2 -translate-y-1/2 z-[1000] hidden md:block">
         <Button
           onClick={() => setIsOpen(!isOpen)}
-          className="h-14 w-14 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 shadow-2xl hover:scale-110 transition-transform flex items-center justify-center border-2 border-white/20"
+          className="h-auto py-8 px-2 rounded-r-2xl rounded-l-none bg-gradient-to-b from-blue-600 to-indigo-700 shadow-[20px_0_40px_rgba(0,0,0,0.4)] hover:translate-x-1.5 transition-all flex flex-col items-center gap-5 border-2 border-l-0 border-white/20 group"
+        >
+          {isOpen ? <X className="h-6 w-6" /> : (
+            <>
+              <motion.div
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 4, repeat: Infinity }}
+              >
+                <LogIn className="h-5 w-5 group-hover:scale-110 transition-transform" />
+              </motion.div>
+              <span className="[writing-mode:vertical-lr] rotate-180 text-[10px] font-black uppercase tracking-[0.3em] text-white/90 group-hover:text-white transition-colors py-2">
+                Account Demo
+              </span>
+            </>
+          )}
+        </Button>
+      </div>
+
+      {/* Mobile Trigger - Bottom Left (Raised above sticky bar) */}
+      <div className="fixed bottom-24 left-6 z-[1000] md:hidden">
+        <Button
+          onClick={() => setIsOpen(!isOpen)}
+          className="h-14 w-14 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 shadow-2xl hover:scale-110 active:scale-95 transition-transform flex items-center justify-center border-2 border-white/20"
         >
           {isOpen ? <X className="h-6 w-6" /> : <LogIn className="h-6 w-6" />}
+          
+          {!isOpen && (
+            <motion.span 
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="absolute left-16 bg-blue-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl border border-white/20 pointer-events-none"
+            >
+              ACCOUNT DEMO
+              <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-2 bg-blue-600 rotate-45" />
+            </motion.span>
+          )}
         </Button>
       </div>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="fixed bottom-24 right-6 z-50 w-[350px] max-w-[calc(100vw-3rem)]"
+            initial={{ opacity: 0, x: -50, scale: 0.9 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: -50, scale: 0.9 }}
+            className="fixed bottom-24 left-6 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:left-20 z-[1001] w-[350px] max-w-[calc(100vw-3rem)]"
           >
             <Card className="overflow-hidden border-0 bg-white/10 dark:bg-black/60 backdrop-blur-2xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] border-white/10">
               {/* Header */}
-              <div className="bg-gradient-to-r from-blue-600/20 to-indigo-600/20 p-6 border-b border-white/5">
-                <div className="flex items-center gap-3 mb-1">
-                  <Play className="h-5 w-5 text-blue-400 fill-blue-400" />
-                  <h3 className="font-bold text-lg text-white">Experience Portal</h3>
+              <div className="bg-gradient-to-r from-blue-600/20 to-indigo-600/20 p-6 border-b border-white/5 relative">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-3">
+                    <Play className="h-5 w-5 text-blue-400 fill-blue-400" />
+                    <h3 className="font-bold text-lg text-white">Account Demo</h3>
+                  </div>
+                  <button 
+                    onClick={() => setIsOpen(false)}
+                    className="p-1.5 rounded-lg hover:bg-white/5 text-white/40 hover:text-white transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
                 <p className="text-white/50 text-sm">Select a role to preview the platform</p>
               </div>
