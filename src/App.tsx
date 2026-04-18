@@ -441,17 +441,17 @@ function Hero({ goto }: { goto: (id: string) => void }) {
   const days = useCountUp(7, 0, visible);
 
   return (
-    <section id="hero" style={{ position: 'relative', maxWidth: '1280px', margin: '0 auto', padding: '7rem 2rem 5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }} className="grid-hero">
+    <section id="hero" style={{ position: 'relative', maxWidth: '1280px', margin: '0 auto', padding: '7rem 2rem 5rem' }} className="grid-hero">
       <div style={{ position: 'absolute', right: '-2%', top: '50%', transform: 'translateY(-50%)', fontSize: 'clamp(280px, 40vw, 600px)', fontWeight: 900, lineHeight: 1, color: '#f9fafb', opacity: 0.032, userSelect: 'none', pointerEvents: 'none', letterSpacing: '-0.06em', zIndex: 0 }}>28</div>
       <div style={{ position: 'absolute', top: '30%', left: '0', width: '50%', height: '60%', background: 'radial-gradient(ellipse at center, rgba(16,185,129,0.12) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
 
-      <div style={{ position: 'relative', zIndex: 1 }}>
+      <div className="hero-content">
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '999px', padding: '0.3rem 0.85rem', marginBottom: '1.75rem' }}>
           <Zap size={11} color="#10b981" />
           <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#10b981' }}>Expert28 Gym — Join Now</span>
         </div>
 
-        <h1 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: '1.5rem' }}>
+        <h1 style={{ fontSize: 'clamp(3rem, 6vw, 4.5rem)', fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: '1.5rem' }}>
           <span className="hero-line hero-line-1" style={{ display: 'block' }}>Get Stronger.</span>
           <span className="hero-line hero-line-2" style={{ display: 'block', color: '#10b981' }}>Train Smarter.</span>
           <span className="hero-line hero-line-3" style={{ display: 'block' }}>In 28 Days.</span>
@@ -461,15 +461,15 @@ function Hero({ goto }: { goto: (id: string) => void }) {
           6x/week access · Elite equipment · Expert coaching — designed for athletes who refuse to settle for average results.
         </p>
 
-        <div ref={ref} className={`reveal hero-stats ${visible ? 'visible' : ''}`} style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', marginBottom: '2.5rem', flexWrap: 'wrap' }}>
-          <div><p style={{ fontWeight: 900, fontSize: '1.75rem', letterSpacing: '-0.03em', lineHeight: 1 }}>{members}+</p><p style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 500, marginTop: '0.2rem' }}>Active Members</p></div>
+        <div ref={ref} className={`reveal hero-stats ${visible ? 'visible' : ''}`} style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', marginBottom: '2.5rem', flexWrap: 'wrap' }}>
+          <div><p style={{ fontWeight: 900, fontSize: '1.75rem', letterSpacing: '-0.03em', lineHeight: 1 }}>{members}+</p><p style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 500, marginTop: '0.2rem' }}>Members</p></div>
           <div className="stat-divider" />
-          <div><p style={{ fontWeight: 900, fontSize: '1.75rem', letterSpacing: '-0.03em', lineHeight: 1 }}>{rating}/5</p><p style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 500, marginTop: '0.2rem' }}>Member Rating</p></div>
+          <div><p style={{ fontWeight: 900, fontSize: '1.75rem', letterSpacing: '-0.03em', lineHeight: 1 }}>{rating}/5</p><p style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 500, marginTop: '0.2rem' }}>Rating</p></div>
           <div className="stat-divider" />
-          <div><p style={{ fontWeight: 900, fontSize: '1.75rem', letterSpacing: '-0.03em', lineHeight: 1 }}>{days}</p><p style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 500, marginTop: '0.2rem' }}>Days a Week</p></div>
+          <div><p style={{ fontWeight: 900, fontSize: '1.75rem', letterSpacing: '-0.03em', lineHeight: 1 }}>{days}</p><p style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 500, marginTop: '0.2rem' }}>Days/Wk</p></div>
         </div>
 
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <div className="hero-button-group">
           <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1rem 2.25rem', fontSize: '0.9rem', fontWeight: 800, minWidth: '180px' }} onMouseDown={addRipple}>Get Started Now</button>
           <button onClick={() => goto('facilities')} className="btn-outline-white" style={{ padding: '1rem 2rem', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             Explore Facility <ChevronRight size={16} />
@@ -567,7 +567,7 @@ function Facilities() {
       <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
         <div ref={ref} className={`reveal ${visible ? 'visible' : ''}`}>
           <p className="section-label" style={{ marginBottom: '0.75rem' }}>The Facility</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+          <div className="facilities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
             {zones.map((zone, i) => (
               <div key={i} className={`glass-card stagger-child ${visible ? 'visible' : ''}`} style={{ overflow: 'hidden', transitionDelay: `${i * 75}ms` }}>
                 <div style={{ height: '200px' }}>
