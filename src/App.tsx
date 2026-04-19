@@ -388,9 +388,9 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, user
           ))}
         </nav>
 
-        <div className="nav-desktop">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           {user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <div style={{ position: 'relative' }}>
                 <button
                   onClick={() => setNotifOpen(!notifOpen)}
@@ -408,16 +408,16 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, user
               <ProfileDropdown user={user} profile={profile} signOut={signOut} setPathname={setPathname} />
             </div>
           ) : (
-            <>
+            <div className="nav-desktop">
               <button onClick={() => setPathname('/login')} style={{ background: 'none', border: 'none', color: '#4b5563', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', marginRight: '0.75rem' }}>Log in</button>
               <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '0.55rem 1.4rem', fontSize: '0.8rem', fontWeight: 700 }} onMouseDown={addRipple}>Join Expert28</button>
-            </>
+            </div>
           )}
-        </div>
 
-        <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', padding: '0.4rem', color: '#f9fafb', cursor: 'pointer', zIndex: 101 }}>
-          {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-        </button>
+          <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', padding: '0.4rem', color: '#f9fafb', cursor: 'pointer', zIndex: 101 }}>
+            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
+        </div>
       </header>
 
       <div className={`mobile-menu-overlay ${mobileOpen ? 'open' : ''}`} onClick={() => setMobileOpen(false)} />
@@ -425,7 +425,24 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, user
         {links.map(l => (
           <button key={l.id} onClick={() => goto(l.id)} style={{ background: 'none', border: 'none', textAlign: 'left', fontSize: '1.75rem', fontWeight: 900, color: '#f9fafb', cursor: 'pointer', letterSpacing: '-0.02em', padding: '0.25rem 0' }}>{l.label}</button>
         ))}
-        <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1.25rem', fontSize: '1rem', marginTop: '2.5rem', borderRadius: '1rem', width: '100%', fontWeight: 800 }} onMouseDown={addRipple}>Join Expert28</button>
+        {user ? (
+          <div style={{ marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <button 
+              onClick={() => { setPathname(profile?.role === 'admin' ? '/admin/dashboard' : '/client/dashboard'); setMobileOpen(false); }} 
+              className="btn-blue" style={{ padding: '1.25rem', fontSize: '1rem', borderRadius: '1rem', width: '100%', fontWeight: 800 }}
+            >
+              Go to Dashboard
+            </button>
+            <button 
+              onClick={() => { signOut(); setPathname('/'); setMobileOpen(false); }} 
+              style={{ padding: '1.25rem', fontSize: '1rem', borderRadius: '1rem', width: '100%', fontWeight: 800, background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}
+            >
+              Log Out
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1.25rem', fontSize: '1rem', marginTop: '2.5rem', borderRadius: '1rem', width: '100%', fontWeight: 800 }} onMouseDown={addRipple}>Join Expert28</button>
+        )}
       </div>
       <style>{`@keyframes pulse-amber { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.7); } }`}</style>
     </>
