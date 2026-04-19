@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import type { User, AuthChangeEvent, Session } from '@supabase/supabase-js';
+import { useToast } from './use-toast';
 export type { User, AuthChangeEvent, Session };
 
 export interface Profile {
@@ -26,6 +27,7 @@ interface AuthContextType {
   loading: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  isExpired: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -34,12 +36,16 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   signOut: async () => {},
   refreshProfile: async () => {},
+  isExpired: false,
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  const isExpired = !!profile?.membership_expires_at && new Date(profile.membership_expires_at) < new Date();
 
   useEffect(() => {
     // Initial loading setup
@@ -63,26 +69,72 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event: AuthChangeEvent, session: Session | null) => {
+    const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
       if (!isMounted) return;
 
       if (session?.user) {
         setUser(session.user);
-        fetchProfile(session.user.id);
+        await fetchProfile(session.user.id);
+        
+        if (event === 'SIGNED_IN') {
+          toast({
+            title: "Logged in successfully",
+            description: `Welcome back, ${session.user.email}`,
+          });
+        }
       } else {
         setUser(null);
         setProfile(null);
       }
-      setLoading(false); // Ensure loading is cleared on any auth change
+      setLoading(false);
     });
+
+    // SET UP REAL-TIME PROFILE SYNC
+    let profileSubscription: any = null;
+
+    const setupProfileSubscription = (userId: string) => {
+      if (profileSubscription) profileSubscription.unsubscribe();
+
+      profileSubscription = supabase
+        .channel(`profile:${userId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'profiles',
+            filter: `id=eq.${userId}`,
+          },
+          (payload) => {
+            const updatedProfile = payload.new as Profile;
+            setProfile(updatedProfile);
+
+            // SECURITY LOCKDOWN: If user is banned, kick them immediately
+            if (updatedProfile.status === 'banned') {
+              toast({
+                variant: "destructive",
+                title: "Account Banned",
+                description: "Your account has been suspended. Contact support.",
+              });
+              signOut();
+            }
+          }
+        )
+        .subscribe();
+    };
+
+    if (user?.id) {
+      setupProfileSubscription(user.id);
+    }
 
     checkInitialAuth();
 
     return () => {
       isMounted = false;
-      subscription.unsubscribe();
+      authSubscription.unsubscribe();
+      if (profileSubscription) profileSubscription.unsubscribe();
     };
-  }, []);
+  }, [user?.id]);
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -133,22 +185,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
+    setLoading(true);
     try {
-      // Use scope: 'local' so logging out of one device doesn't 
-      // kick you out of all your other devices!
-      await supabase.auth.signOut({ scope: 'local' });
-    } catch (err) {
-      console.error('Error during signOut:', err);
-    } finally {
-      // Force local state clearance to ensure UI consistency
+      // 1. Tell Supabase to sign out (scope: local ensures we don't kill sessions on other devices)
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
+      if (error) throw error;
+
+      // 2. Clear local React state
       setUser(null);
       setProfile(null);
+
+      toast({
+        title: "Logged out",
+        description: "See you later!",
+      });
+      
+      // 3. Clear any potential leftovers in local storage manually just in case
+      // Supabase keys typically start with 'sb-'
+      Object.keys(localStorage).forEach(key => {
+        if (key.includes('-auth-token')) {
+          localStorage.removeItem(key);
+        }
+      });
+
+    } catch (err) {
+      console.error('Error during signOut:', err);
+      // Even if server call fails, we MUST clear local state to prevent re-login
+      setUser(null);
+      setProfile(null);
+    } finally {
       setLoading(false);
+      // Small timeout then redirect/refresh state to ensure brand new context
+      window.location.href = '/'; 
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, profile, loading, signOut, refreshProfile, isExpired }}>
       {children}
     </AuthContext.Provider>
   );
