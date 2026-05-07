@@ -5,6 +5,7 @@ import SuccessPage from './pages/SuccessPage';
 import JoinModal from './components/JoinModal';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminClients from './pages/AdminClients';
 import AdminPayments from './pages/AdminPayments';
@@ -213,6 +214,7 @@ export default function App() {
   const renderContent = () => {
     if (pathname === '/login') return <LoginPage />;
     if (pathname === '/signup') return <SignupPage />;
+    if (pathname === '/reset-password') return <ResetPasswordPage />;
     if (pathname === '/profile') return <ProfilePage />;
     if (pathname === '/apply') return <ApplyPage />;
     if (pathname === '/success') return <SuccessPage />;
