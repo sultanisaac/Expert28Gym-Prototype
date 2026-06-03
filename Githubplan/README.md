@@ -7,7 +7,7 @@ Expert28 Gym is a high-performance athlete management and gym orchestration plat
 
 ## Features
 
-### 🏛️ Admin Control Center
+### 🏛️ Admin Command Center
 A comprehensive control panel for gym owners to manage operations with live telemetry:
 - **Reporting & KPI Analytics:** Live charts and tables tracking revenue, client growth, daily attendance, and retention rates.
 - **Client Workspace:** Complete member roster control with role promotion, account suspension/banning, and profile management.
@@ -100,9 +100,6 @@ Open your browser and navigate to `http://localhost:5173`.
 To validate build performance and code splitting optimization before deployment:
 ```bash
 npm run build
-```
-Wait, we should build:
-```bash
 npm run preview
 ```
 
@@ -118,7 +115,7 @@ This project is pre-configured for seamless deployment to **Vercel**:
 ---
 
 ## License
-Refer to the [LICENSE](LICENSE) file in this repository (MIT License).
+*Placeholder* - Refer to the LICENSE file in this repository (To be configured by the repository owner).
 
 ---
 
