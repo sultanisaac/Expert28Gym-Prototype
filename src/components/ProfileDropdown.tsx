@@ -119,7 +119,7 @@ export default function ProfileDropdown({ user, profile, signOut, setPathname }:
 
           <div className="p-2 border-t border-white/5 bg-white/[0.01]">
             <button 
-              onClick={() => { signOut(); setPathname('/'); }}
+              onClick={() => signOut()}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-400/80 hover:text-red-400 hover:bg-red-400/10 transition-all group"
             >
               <div className="p-1.5 rounded-md bg-white/5 group-hover:bg-red-400/20 transition-colors">
