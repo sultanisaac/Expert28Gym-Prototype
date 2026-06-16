@@ -436,7 +436,7 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, user
               Go to Dashboard
             </button>
             <button 
-              onClick={() => { signOut(); setPathname('/'); setMobileOpen(false); }} 
+              onClick={() => { signOut(); setMobileOpen(false); }} 
               style={{ padding: '1.25rem', fontSize: '1rem', borderRadius: '1rem', width: '100%', fontWeight: 800, background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}
             >
               Log Out
