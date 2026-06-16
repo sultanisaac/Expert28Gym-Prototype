@@ -123,9 +123,24 @@ export default function App() {
   useEffect(() => {
     if (loading) return;
 
-    if (user && (pathname === '/login' || pathname === '/signup')) {
-      if (profile?.role === 'admin') setPathname('/admin/dashboard');
-      else setPathname('/client/dashboard');
+    // Detect if user just came back from Google OAuth
+    // Supabase PKCE flow uses ?code= in the URL; legacy flow uses #access_token
+    const isOAuthCallback =
+      window.location.search.includes('code=') ||
+      window.location.hash.includes('access_token');
+
+    if (user && (pathname === '/login' || pathname === '/signup' || isOAuthCallback)) {
+      // Clean up the OAuth params from the URL bar
+      if (isOAuthCallback) {
+        history.replaceState({}, '', '/');
+      }
+      if (profile?.role === 'admin') {
+        setPathname('/admin/dashboard');
+        history.replaceState({}, '', '/admin/dashboard');
+      } else {
+        setPathname('/client/dashboard');
+        history.replaceState({}, '', '/client/dashboard');
+      }
     }
   }, [user, profile, pathname, loading]);
 
