@@ -18,6 +18,7 @@ import ClientWorkouts from './pages/ClientWorkouts';
 import ProfilePage from './pages/ProfilePage';
 import ProfileDropdown from './components/ProfileDropdown';
 import NotificationDropdown from './components/dashboard/NotificationDropdown';
+import MaintenancePage from './pages/MaintenancePage';
 import { useAuth, Profile, User } from './hooks/useAuth';
 import { supabase } from './lib/supabase';
 import { QuickLogin } from './components/QuickLogin';
@@ -85,6 +86,11 @@ function addRipple(e: React.MouseEvent<HTMLButtonElement>) {
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 
 export default function App() {
+  // ── Maintenance Mode Gate ─────────────────────────────────────────────────
+  if (import.meta.env.VITE_MAINTENANCE_MODE === 'true') {
+    return <MaintenancePage />;
+  }
+
   const { user, profile, loading, signOut } = useAuth();
   const [pathname, setPathname] = useState(window.location.pathname);
   const [mobileOpen, setMobileOpen] = useState(false);
