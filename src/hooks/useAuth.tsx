@@ -42,40 +42,24 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [authInitialized, setAuthInitialized] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
   const { toast } = useToast();
 
+  const loading = !authInitialized || (!!user && !profileLoaded);
   const isExpired = !!profile?.membership_expires_at && new Date(profile.membership_expires_at) < new Date();
 
+  // 1. Initial auth check and listener (runs once on mount)
   useEffect(() => {
-    // Initial loading setup
     let isMounted = true;
 
-    const checkInitialAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!isMounted) return;
-
-        if (session?.user) {
-          setUser(session.user);
-          // Await profile to ensure state is ready
-          await fetchProfile(session.user.id);
-        }
-      } catch (err) {
-        console.error('Auth check error:', err);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
     // Listen for auth changes
-    const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
+    const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
+      console.log("[useAuth] onAuthStateChange event:", event, "user:", session?.user?.email);
       if (!isMounted) return;
 
       if (session?.user) {
         setUser(session.user);
-        await fetchProfile(session.user.id);
-        
         if (event === 'SIGNED_IN') {
           toast({
             title: "Logged in successfully",
@@ -83,60 +67,112 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           });
         }
       } else {
+        console.log("[useAuth] onAuthStateChange: clear user/profile");
         setUser(null);
         setProfile(null);
+        setProfileLoaded(false);
       }
-      setLoading(false);
+      setAuthInitialized(true);
     });
 
-    // SET UP REAL-TIME PROFILE SYNC
-    let profileSubscription: any = null;
+    const checkInitialAuth = async () => {
+      console.log("[useAuth] checkInitialAuth starting...");
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log("[useAuth] checkInitialAuth getSession resolved:", session?.user?.email);
+        if (!isMounted) return;
 
-    const setupProfileSubscription = (userId: string) => {
-      if (profileSubscription) profileSubscription.unsubscribe();
-
-      profileSubscription = supabase
-        .channel(`profile:${userId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'profiles',
-            filter: `id=eq.${userId}`,
-          },
-          (payload) => {
-            const updatedProfile = payload.new as Profile;
-            setProfile(updatedProfile);
-
-            // SECURITY LOCKDOWN: If user is banned, kick them immediately
-            if (updatedProfile.status === 'banned') {
-              toast({
-                variant: "destructive",
-                title: "Account Banned",
-                description: "Your account has been suspended. Contact support.",
-              });
-              signOut();
-            }
-          }
-        )
-        .subscribe();
+        if (session?.user) {
+          setUser(session.user);
+        } else {
+          console.log("[useAuth] checkInitialAuth: no session user");
+          setUser(null);
+          setProfile(null);
+          setProfileLoaded(false);
+        }
+      } catch (err) {
+        console.error('[useAuth] Auth check error:', err);
+      } finally {
+        if (isMounted) {
+          setAuthInitialized(true);
+        }
+      }
     };
-
-    if (user?.id) {
-      setupProfileSubscription(user.id);
-    }
 
     checkInitialAuth();
 
     return () => {
+      console.log("[useAuth] useEffect cleanup running");
       isMounted = false;
       authSubscription.unsubscribe();
-      if (profileSubscription) profileSubscription.unsubscribe();
+    };
+  }, []);
+
+  // 2. Fetch profile when user changes (decoupled from initial check to prevent deadlocks)
+  useEffect(() => {
+    if (!user?.id) {
+      setProfile(null);
+      setProfileLoaded(false);
+      return;
+    }
+
+    let isCurrentFetch = true;
+    const loadProfile = async () => {
+      setProfileLoaded(false);
+      await fetchProfile(user.id);
+      if (isCurrentFetch) {
+        setProfileLoaded(true);
+      }
+    };
+
+    loadProfile();
+
+    return () => {
+      isCurrentFetch = false;
     };
   }, [user?.id]);
 
-  const fetchProfile = async (userId: string) => {
+  // 3. Real-time profile subscription (runs when user changes)
+  useEffect(() => {
+    if (!user?.id) return;
+    console.log("[useAuth] setting up real-time profile subscription for", user.id);
+
+    const profileSubscription = supabase
+      .channel(`profile:${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log("[useAuth] real-time profile update payload:", payload);
+          const updatedProfile = payload.new as Profile;
+          setProfile(updatedProfile);
+
+          // SECURITY LOCKDOWN: If user is banned, kick them immediately
+          if (updatedProfile.status === 'banned') {
+            toast({
+              variant: "destructive",
+              title: "Account Banned",
+              description: "Your account has been suspended. Contact support.",
+            });
+            signOut();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log("[useAuth] unsubscribing real-time profile for", user.id);
+      profileSubscription.unsubscribe();
+    };
+  }, [user?.id]);
+
+  const fetchProfile = async (userId: string, retries = 3) => {
+    console.log("[useAuth] fetchProfile called for", userId, "retries remaining:", retries);
     try {
       // 1. Try to fetch the profile
       const { data, error } = await supabase
@@ -146,35 +182,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .single();
 
       if (error && error.code === 'PGRST116') {
-        // Code PGRST116 means no rows found - let's create the profile
-        const { data: userData } = await supabase.auth.getUser();
-        if (!userData.user) return;
-
-        const newProfile = {
-          id: userId,
-          email: userData.user.email,
-          full_name: userData.user.user_metadata?.full_name || 'Expert28 Member',
-          role: 'guest', // Default role
-          status: 'active',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-
-        const { data: createdProfile, error: createError } = await supabase
-          .from('profiles')
-          .insert([newProfile])
-          .select()
-          .single();
-
-        if (createError) throw createError;
-        setProfile(createdProfile as Profile);
-        return;
+        console.warn("[useAuth] fetchProfile: profile not found (PGRST116)");
+        if (retries > 0) {
+          console.log("[useAuth] fetchProfile: waiting 500ms and retrying...");
+          // Wait 500ms and retry, as the backend trigger might be creating it
+          await new Promise(resolve => setTimeout(resolve, 500));
+          return fetchProfile(userId, retries - 1);
+        } else {
+          console.log("[useAuth] fetchProfile: no retries left, falling back to local guest profile");
+          // Fallback to a local guest profile if backend failed or is too slow
+          const { data: userData } = await supabase.auth.getUser();
+          if (userData?.user) {
+            setProfile({
+              id: userId,
+              email: userData.user.email || '',
+              role: 'guest', // Default role
+              status: 'active',
+              full_name: userData.user.user_metadata?.full_name || 'Member',
+              avatar_url: userData.user.user_metadata?.avatar_url || '',
+            });
+          }
+          return;
+        }
       }
 
-      if (error) throw error;
+      if (error) {
+        console.error("[useAuth] fetchProfile DB error:", error);
+        throw error;
+      }
+      console.log("[useAuth] fetchProfile success, setting profile:", data);
       setProfile(data as Profile);
     } catch (e: unknown) {
-      console.error('Error in fetchProfile:', e instanceof Error ? e.message : e);
+      console.error('[useAuth] Error in fetchProfile:', e instanceof Error ? e.message : e);
     }
   };
 
@@ -185,7 +224,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    setLoading(true);
+    setAuthInitialized(false);
+    setProfileLoaded(false);
     try {
       // 1. Immediately wipe all browser storage unconditionally
       localStorage.clear();

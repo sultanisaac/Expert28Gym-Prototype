@@ -15,7 +15,7 @@ interface RecentWorkout {
 }
 
 export default function ClientDashboard({ setPathname }: { setPathname?: (path: string) => void }) {
-  const { profile, user } = useAuth();
+  const { profile, user, isExpired } = useAuth();
   const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [billingLoading, setBillingLoading] = useState(false);
@@ -24,7 +24,8 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
   const [recentWorkouts, setRecentWorkouts] = useState<RecentWorkout[]>([]);
   const [allWorkouts, setAllWorkouts] = useState<RecentWorkout[]>([]);
 
-  const isGuest = !profile?.role || profile?.role === 'guest';
+  const hasActivePlan = profile?.role === 'admin' || (profile?.role === 'client' && !!profile?.membership_tier && !isExpired);
+  const isGuest = !hasActivePlan;
 
   useEffect(() => {
     if (!user || isGuest) return;
@@ -138,7 +139,7 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
           <h1 className="text-3xl font-black uppercase tracking-tight">Athlete Hub</h1>
           <p className="text-gray-500 mt-1">Welcome back, {profile?.full_name || 'Expert'}</p>
           <div className="flex gap-2 mt-4">
-            <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[10px] font-black uppercase text-emerald-500">Tier: {profile?.membership_tier || 'Elite'}</span>
+            <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[10px] font-black uppercase text-emerald-500">Tier: {profile?.membership_tier || 'Guest'}</span>
             <span className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full text-[10px] font-black uppercase text-blue-500">Goal: 50 Sets / Mo</span>
           </div>
         </header>

@@ -10,6 +10,7 @@ export default function ProfilePage() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  const [avatarError, setAvatarError] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
     phone_number: '',
@@ -28,6 +29,7 @@ export default function ProfilePage() {
         city: profile.city || '',
         post_code: profile.post_code || '',
       });
+      setAvatarError(false);
     }
   }, [profile]);
 
@@ -82,6 +84,7 @@ export default function ProfilePage() {
       if (updateError) throw updateError;
 
       toast.success('Avatar updated!');
+      setAvatarError(false);
       if (refreshProfile) await refreshProfile();
     } catch (err: unknown) {
       console.error('Upload error:', err);
@@ -164,9 +167,10 @@ export default function ProfilePage() {
                 accept="image/*"
               />
               
-              {profile?.avatar_url ? (
+              {profile?.avatar_url && !avatarError ? (
                 <img 
                   src={profile.avatar_url} 
+                  onError={() => setAvatarError(true)}
                   className="w-32 h-32 md:w-48 md:h-48 rounded-3xl border-4 border-[#0a0f1d] object-cover shadow-2xl shadow-emerald-500/20 transition-all duration-500 group-hover/avatar:scale-105" 
                 />
               ) : (
