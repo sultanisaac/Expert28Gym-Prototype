@@ -12,6 +12,7 @@ interface ProfileDropdownProps {
 
 export default function ProfileDropdown({ user, profile, signOut, setPathname }: ProfileDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -24,6 +25,10 @@ export default function ProfileDropdown({ user, profile, signOut, setPathname }:
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [profile?.avatar_url]);
 
   const getInitials = (name: string) => {
     if (!name) return 'U';
@@ -66,10 +71,11 @@ export default function ProfileDropdown({ user, profile, signOut, setPathname }:
         </div>
         
         <div className="relative">
-          {profile?.avatar_url ? (
+          {profile?.avatar_url && !avatarError ? (
             <img 
               src={profile.avatar_url} 
               alt="Profile" 
+              onError={() => setAvatarError(true)}
               className="w-8 h-8 rounded-full border border-emerald-500/30 object-cover"
             />
           ) : (

@@ -44,6 +44,31 @@ function getInitials(name: string | null, email: string): string {
   return email.slice(0, 2).toUpperCase();
 }
 
+function ClientAvatar({ url, initials }: { url: string | null; initials: string }) {
+  const [error, setError] = useState(false);
+  
+  useEffect(() => {
+    setError(false);
+  }, [url]);
+
+  if (url && !error) {
+    return (
+      <img 
+        src={url} 
+        alt={initials} 
+        onError={() => setError(true)} 
+        style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} 
+      />
+    );
+  }
+  return (
+    <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(16,185,129,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 800, color: '#10b981', flexShrink: 0 }}>
+      {initials}
+    </div>
+  );
+}
+
+
 // ─── STATUS BADGE ─────────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: string }) {
@@ -305,11 +330,7 @@ export default function AdminClients({ setPathname }: { setPathname: (p: string)
                     onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                      {client.avatar_url ? (
-                        <img src={client.avatar_url} alt={initials} style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-                      ) : (
-                        <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(16,185,129,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 800, color: '#10b981', flexShrink: 0 }}>{initials}</div>
-                      )}
+                      <ClientAvatar url={client.avatar_url} initials={initials} />
                       <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#f9fafb', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{client.full_name ?? '—'}</span>
                     </div>
                     <span style={{ fontSize: '0.75rem', color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{client.email}</span>

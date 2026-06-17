@@ -71,11 +71,45 @@ The checkout API (`create-checkout-session.ts`) includes a security layer to pre
 
 ---
 
-## Webhook Automation (Make.com)
+## Webhook Automation (Supabase Edge Function) ✅ LIVE
 
-Stripe webhooks should be sent to Make.com for post-payment processing:
-1. **Event**: `checkout.session.completed`
-2. **Action**: Make.com receives the `metadata`, creates the user in the Gym CRM, and sends the WhatsApp/Email welcome kit.
+> Make.com / n8n are no longer required. All post-payment automation is handled natively inside Supabase.
+
+**Function URL:**
+```
+https://xuajmsxpnedvjxhclzfd.supabase.co/functions/v1/stripe-webhook
+```
+
+### Events Handled
+
+| Stripe Event | Action |
+|---|---|
+| `checkout.session.completed` | Upgrades user `role` → `client`, sets `membership_tier` & `membership_expires_at`, logs to `payment_history`, sends in-app notification |
+| `customer.subscription.deleted` | Downgrades user `role` → `user`, clears `membership_tier` & `membership_expires_at`, sends cancellation notification |
+
+### How It Works
+1. A user completes checkout. Stripe fires a `checkout.session.completed` event.
+2. The event is securely sent to the Edge Function URL (verified via `STRIPE_WEBHOOK_SECRET`).
+3. The function reads `metadata.user_id` (set during checkout) to identify the Supabase user.
+4. It updates `public.profiles`: sets `role = 'client'`, `membership_tier`, and `membership_expires_at` (30 days from now).
+5. It logs the transaction in `public.payment_history`.
+6. It fires an in-app welcome notification via `public.notifications`.
+
+### Required Secrets (set in Supabase Dashboard → Edge Functions → stripe-webhook → Secrets)
+
+| Secret Name | Where to get it |
+|---|---|
+| `STRIPE_SECRET_KEY` | Stripe Dashboard → Developers → API Keys |
+| `STRIPE_WEBHOOK_SECRET` | Stripe Dashboard → Webhooks → Signing Secret (`whsec_...`) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Dashboard → Project Settings → API |
+
+> ⚠️ `SUPABASE_URL` is auto-injected by Supabase and does not need to be set manually.
+
+### Stripe Dashboard Setup
+1. Go to **Stripe Dashboard → Developers → Webhooks → Add endpoint**.
+2. Paste the Function URL above.
+3. Select events: `checkout.session.completed` and `customer.subscription.deleted`.
+4. Copy the **Signing Secret** (`whsec_...`) and save it as `STRIPE_WEBHOOK_SECRET` in Supabase.
 
 ---
 
