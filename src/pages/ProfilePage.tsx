@@ -8,6 +8,7 @@ export default function ProfilePage() {
   const { user, profile, loading, refreshProfile } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [billingLoading, setBillingLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [avatarError, setAvatarError] = useState(false);
@@ -131,6 +132,25 @@ export default function ProfilePage() {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleManageBilling = async () => {
+    if (!user?.email || billingLoading) return;
+    setBillingLoading(true);
+    try {
+      const response = await fetch('/api/create-portal-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email }),
+      });
+      const result = await response.json();
+      if (response.ok && result.url) window.location.href = result.url;
+      else toast.error('Failed to open billing portal', { description: result.error || 'Unknown error' });
+    } catch (err: unknown) {
+      toast.error('Failed to open billing portal', { description: err instanceof Error ? err.message : 'Unknown error' });
+    } finally {
+      setBillingLoading(false);
+    }
   };
 
   return (
@@ -308,7 +328,7 @@ export default function ProfilePage() {
                     <p className="text-xs text-gray-500 mt-1 uppercase font-bold tracking-tighter">Active Access</p>
                   </div>
                 </div>
-                <div className="pt-4 border-t border-white/5 text-xs font-bold flex justify-between items-center">
+                <div className="pt-4 border-t border-white/5 text-xs font-bold flex justify-between items-center mb-6">
                   <span className="text-gray-500 uppercase tracking-widest">Expires</span>
                   <span className="text-emerald-500">
                     {profile?.membership_expires_at
@@ -316,6 +336,15 @@ export default function ProfilePage() {
                       : 'Active'}
                   </span>
                 </div>
+                
+                <button
+                  onClick={handleManageBilling}
+                  disabled={billingLoading}
+                  className="w-full p-4 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/5 transition-all flex items-center justify-center gap-3"
+                >
+                  {billingLoading ? <Loader2 size={16} className="animate-spin" /> : <CreditCard size={16} />}
+                  {billingLoading ? 'Loading Portal...' : 'Manage Billing'}
+                </button>
               </div>
             )}
           </div>
