@@ -121,7 +121,7 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
       const response = await fetch('/api/create-portal-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: user.email }),
+        body: JSON.stringify({ email: user.email, return_path: '/client/dashboard' }),
       });
       const result = await response.json();
       if (response.ok && result.url) window.location.href = result.url;

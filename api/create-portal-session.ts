@@ -7,7 +7,7 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { email } = req.body;
+  const { email, return_path = '/profile' } = req.body;
   if (!email) {
     return res.status(400).json({ error: 'Missing required field: email' });
   }
@@ -30,7 +30,7 @@ export default async function handler(req: any, res: any) {
 
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${baseUrl}/client/dashboard`,
+      return_url: `${baseUrl}${return_path}`,
     });
 
     return res.status(200).json({ url: portalSession.url });
