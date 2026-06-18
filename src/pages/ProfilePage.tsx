@@ -225,7 +225,7 @@ export default function ProfilePage() {
                       ? 'bg-blue-500/10 border-blue-500/20 text-blue-500'
                       : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
                 }`}>
-                  {profile?.role || 'Guest'}
+                  {profile?.role || 'User'}
                 </span>
                 <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-gray-400 text-[10px] uppercase font-black tracking-widest">
                   {profile?.status || 'Active'}
@@ -287,14 +287,14 @@ export default function ProfilePage() {
                           ? 'text-blue-500'
                           : 'text-emerald-500'
                     }`}>
-                      {profile?.role || 'Guest'}
+                      {profile?.role || 'User'}
                     </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {profile?.role === 'guest' || !profile?.membership_tier ? (
+            {profile?.role === 'user' || !profile?.membership_tier ? (
               <div className="p-6 rounded-3xl border border-white/10 bg-white/[0.02] relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl rounded-full translate-x-16 -translate-y-16" />
                 <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Membership</h3>

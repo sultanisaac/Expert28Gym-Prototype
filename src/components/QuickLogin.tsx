@@ -9,12 +9,12 @@ import { Badge } from './ui/badge';
 interface Account {
   email: string;
   pas: string;
-  role: 'Guest' | 'Member' | 'Admin';
+  role: 'User' | 'Member' | 'Admin';
 }
 
 const ACCOUNTS: Account[] = [
-  { email: 'user1@gmail.com', pas: 'user123', role: 'Guest' },
-  { email: 'user2@gmail.com', pas: 'user123', role: 'Guest' },
+  { email: 'user1@gmail.com', pas: 'user123', role: 'User' },
+  { email: 'user2@gmail.com', pas: 'user123', role: 'User' },
   { email: 'client1@gmail.com', pas: 'client123', role: 'Member' },
   { email: 'client2@gmail.com', pas: 'client123', role: 'Member' },
   { email: 'peter.alban26@gmail.com', pas: 'Peter123.', role: 'Admin' },
@@ -23,7 +23,7 @@ const ACCOUNTS: Account[] = [
 export function QuickLogin() {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'All' | 'Guest' | 'Member' | 'Admin'>('All');
+  const [filter, setFilter] = useState<'All' | 'User' | 'Member' | 'Admin'>('All');
 
   const handleLogin = async (account: Account) => {
     setLoading(account.email);
@@ -117,7 +117,7 @@ export function QuickLogin() {
 
               {/* Filters */}
               <div className="p-4 flex gap-2 overflow-x-auto no-scrollbar border-b border-white/5">
-                {(['All', 'Guest', 'Member', 'Admin'] as const).map((role) => (
+                {(['All', 'User', 'Member', 'Admin'] as const).map((role) => (
                   <button
                     key={role}
                     onClick={() => setFilter(role)}

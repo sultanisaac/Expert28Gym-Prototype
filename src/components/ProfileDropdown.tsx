@@ -62,8 +62,8 @@ export default function ProfileDropdown({ user, profile, signOut, setPathname }:
         className="flex items-center gap-2.5 pl-2.5 pr-1 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all group"
       >
         <div className="flex flex-col items-end mr-1 hidden sm:flex">
-          <span className={`text-[10px] font-bold uppercase tracking-tighter leading-none mb-1 ${getRoleColor(profile?.role || 'guest')}`}>
-            {profile?.role || 'Guest'}
+          <span className={`text-[10px] font-bold uppercase tracking-tighter leading-none mb-1 ${getRoleColor(profile?.role || 'user')}`}>
+            {profile?.role || 'User'}
           </span>
           <span className="text-xs font-semibold text-gray-200 leading-none">
             {profile?.full_name?.split(' ')[0] || 'Member'}

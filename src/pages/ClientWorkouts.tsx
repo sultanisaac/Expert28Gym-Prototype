@@ -339,7 +339,7 @@ export default function ClientWorkouts({ setPathname }: { setPathname?: (path: s
   const [viewMode, setViewMode] = useState<'daily' | 'weekly' | 'monthly' | 'routines'>('daily');
   const [showAll, setShowAll] = useState(false);
 
-  const isGuest = !profile?.role || profile?.role === 'guest';
+  const isBasicUser = !profile?.role || profile?.role === 'user';
 
   const fetchEntries = useCallback(async () => {
     if (!user) return;
@@ -361,9 +361,9 @@ export default function ClientWorkouts({ setPathname }: { setPathname?: (path: s
   }, [user]);
 
   useEffect(() => {
-    if (!user || isGuest) { setLoading(false); return; }
+    if (!user || isBasicUser) { setLoading(false); return; }
     fetchEntries();
-  }, [user, isGuest, fetchEntries]);
+  }, [user, isBasicUser, fetchEntries]);
 
   const handleDelete = async (id: string) => {
     try {
@@ -418,7 +418,7 @@ export default function ClientWorkouts({ setPathname }: { setPathname?: (path: s
           <p className="text-gray-500 mt-1 font-bold">Monitor your progression across all timeframes.</p>
         </header>
 
-        {isGuest ? (
+        {isBasicUser ? (
           <PaywallOverlay onUpgrade={goBack} />
         ) : (
           <div className="space-y-8">
