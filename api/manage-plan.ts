@@ -35,7 +35,7 @@ export default async function handler(req: any, res: any) {
           currency: currency || 'idr',
           product: product.id,
           ...(interval !== 'one-time' && {
-            recurring: { interval: interval === 'week' ? 'week' : 'month' }
+            recurring: { interval: interval === 'week' ? 'week' : (interval === 'year' ? 'year' : 'month') }
           })
         });
   
@@ -85,7 +85,7 @@ export default async function handler(req: any, res: any) {
           currency: existingPlan.currency,
           product: existingPlan.stripe_product_id,
           ...((interval || existingPlan.interval) !== 'one-time' && {
-            recurring: { interval: (interval || existingPlan.interval) === 'week' ? 'week' : 'month' }
+            recurring: { interval: (interval || existingPlan.interval) === 'week' ? 'week' : ((interval || existingPlan.interval) === 'year' ? 'year' : 'month') }
           })
         });
         newPriceId = stripePrice.id;
