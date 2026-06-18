@@ -39,21 +39,25 @@ export default async function handler(req: any, res: any) {
     
     // 2. Fetch the price from Stripe to confirm if it is recurring
     const stripePrice = await stripe.prices.retrieve(priceId!);
-    const mode = stripePrice.recurring ? 'subscription' : 'payment';
+    let mode = stripePrice.recurring ? 'subscription' : 'payment';
 
-    // 2b. If Stripe price currency doesn't match DB currency, create a new price in the correct currency
+    // 2b. If Stripe price currency or interval doesn't match DB, create a new price
     let finalPriceId = priceId!;
-    if (stripePrice.currency !== planCurrency) {
-      console.warn(`[Stripe] Currency mismatch: Stripe=${stripePrice.currency}, DB=${planCurrency}. Creating corrected price.`);
+    const stripeInterval = stripePrice.recurring?.interval || 'one-time';
+    const dbInterval = planData.interval || 'month';
+
+    if (stripePrice.currency !== planCurrency || stripeInterval !== dbInterval) {
+      console.warn(`[Stripe] Mismatch detected. Stripe: ${stripePrice.currency}/${stripeInterval}, DB: ${planCurrency}/${dbInterval}. Creating corrected price.`);
       const correctedPrice = await stripe.prices.create({
         unit_amount: Math.round(planData.price * 100),
         currency: planCurrency,
         product: stripePrice.product as string,
-        ...(stripePrice.recurring && {
-          recurring: { interval: stripePrice.recurring.interval }
+        ...(dbInterval !== 'one-time' && {
+          recurring: { interval: dbInterval === 'week' ? 'week' : (dbInterval === 'year' ? 'year' : 'month') }
         })
       });
       finalPriceId = correctedPrice.id;
+      mode = dbInterval !== 'one-time' ? 'subscription' : 'payment';
       // Permanently fix the stripe_price_id in Supabase so future checkouts use the correct IDR price
       await supabase
         .from('membership_plans')
