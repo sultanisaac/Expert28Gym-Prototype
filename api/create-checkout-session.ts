@@ -77,6 +77,9 @@ export default async function handler(req: any, res: any) {
         },
       ],
       mode: mode,
+      ...(mode === 'payment' && {
+        payment_intent_data: { receipt_email: email }
+      }),
       metadata: {
         email: email || '',
         name: name || '',
@@ -84,7 +87,8 @@ export default async function handler(req: any, res: any) {
         goal: goal || '',
         plan: plan,
         user_id: user_id || '',
-        role_upgrade: 'client'
+        role_upgrade: 'client',
+        plan_interval: planData.interval || 'month'
       },
       success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/client/dashboard?cancelled=true`,
