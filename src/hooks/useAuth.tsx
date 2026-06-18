@@ -7,7 +7,7 @@ export type { User, AuthChangeEvent, Session };
 export interface Profile {
   id: string;
   email: string;
-  role: 'admin' | 'client' | 'guest';
+  role: 'admin' | 'client' | 'user';
   status: 'active' | 'pending' | 'banned';
   full_name?: string;
   avatar_url?: string;
@@ -196,7 +196,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setProfile({
               id: userId,
               email: userData.user.email || '',
-              role: 'guest', // Default role
+              role: 'user', // Default role
               status: 'active',
               full_name: userData.user.user_metadata?.full_name || 'Member',
               avatar_url: userData.user.user_metadata?.avatar_url || '',

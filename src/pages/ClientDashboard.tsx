@@ -25,10 +25,10 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
   const [allWorkouts, setAllWorkouts] = useState<RecentWorkout[]>([]);
 
   const hasActivePlan = profile?.role === 'admin' || (profile?.role === 'client' && !!profile?.membership_tier && !isExpired);
-  const isGuest = !hasActivePlan;
+  const isBasicUser = !hasActivePlan;
 
   useEffect(() => {
-    if (!user || isGuest) return;
+    if (!user || isBasicUser) return;
 
     const checkTodayAttendance = async () => {
       const today = new Date();
@@ -45,11 +45,11 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
     };
 
     checkTodayAttendance();
-  }, [user, isGuest]);
+  }, [user, isBasicUser]);
 
 
   useEffect(() => {
-    if (!user || isGuest) return;
+    if (!user || isBasicUser) return;
 
     const fetchStats = async () => {
       const monthStart = new Date();
@@ -97,7 +97,7 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
     };
 
     fetchStats();
-  }, [user, isGuest]);
+  }, [user, isBasicUser]);
 
   const handleSelfCheckIn = async () => {
     if (!user || isCheckedIn) return;
@@ -139,12 +139,12 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
           <h1 className="text-3xl font-black uppercase tracking-tight">Athlete Hub</h1>
           <p className="text-gray-500 mt-1">Welcome back, {profile?.full_name || 'Expert'}</p>
           <div className="flex gap-2 mt-4">
-            <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[10px] font-black uppercase text-emerald-500">Tier: {profile?.membership_tier || 'Guest'}</span>
+            <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[10px] font-black uppercase text-emerald-500">Tier: {profile?.membership_tier || 'User'}</span>
             <span className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full text-[10px] font-black uppercase text-blue-500">Goal: 50 Sets / Mo</span>
           </div>
         </header>
 
-        {!isGuest ? (
+        {!isBasicUser ? (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
             <div className="md:col-span-2 glass-card p-8 relative overflow-hidden group">
               <h2 className="text-xl font-black uppercase tracking-tight mb-2">Facility Access</h2>
@@ -212,7 +212,7 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
                    <h2 className="text-xl font-black uppercase tracking-tight">Recent Workouts</h2>
                    <button onClick={() => setPathname?.('/client/workouts')} className="text-emerald-500 text-xs font-black tracking-widest uppercase hover:underline">View All</button>
                 </div>
-                {!isGuest ? (
+                {!isBasicUser ? (
                   <div className="space-y-4">
                     {recentWorkouts.length === 0 ? (
                        <p className="text-gray-500 text-sm font-bold py-10 text-center">No segments logged this month.</p>
@@ -259,7 +259,7 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
           <div className="space-y-6">
              <div className="glass-card p-8 border-white/5">
                 <h2 className="text-xl font-black uppercase tracking-tight mb-8">Status</h2>
-                {isGuest ? (
+                {isBasicUser ? (
                   <div className="space-y-4">
                     <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
                       <CreditCard className="mx-auto text-gray-500 mb-3" size={24} />
