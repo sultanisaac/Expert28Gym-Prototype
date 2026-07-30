@@ -286,7 +286,7 @@ export default function App() {
   const lowestInterval = plans.find(p => p.price === lowestPrice)?.interval || 'week';
 
   return (
-    <div style={{ background: '#030712', minHeight: '100vh', color: '#f9fafb', position: 'relative', overflowX: 'hidden' }} className="mobile-sticky-pad">
+    <div style={{ background: '#030712', minHeight: '100vh', color: '#f9fafb', position: 'relative' }} className="mobile-sticky-pad">
       <div id="scroll-progress-bar" style={{ width: `${scrollPct}%` }} />
       <div className="orb" style={{ width: '42vw', height: '42vw', background: 'var(--emerald)', top: '-12%', left: '-12%' }} />
       <div className="orb" style={{ width: '32vw', height: '32vw', background: 'var(--blue-cta)', bottom: '8%', right: '-6%', animationDelay: '-5s' }} />
