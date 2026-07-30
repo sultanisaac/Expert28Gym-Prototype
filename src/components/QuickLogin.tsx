@@ -15,8 +15,8 @@ interface Account {
 const ACCOUNTS: Account[] = [
   { email: 'user1@gmail.com', pas: 'user123', role: 'User' },
   { email: 'user2@gmail.com', pas: 'user123', role: 'User' },
-  { email: 'client1@gmail.com', pas: 'client123', role: 'Member' },
-  { email: 'client2@gmail.com', pas: 'client123', role: 'Member' },
+  { email: 'member1@gmail.com', pas: 'member123', role: 'Member' },
+  { email: 'member2@gmail.com', pas: 'member123', role: 'Member' },
   { email: 'admin1@gmail.com', pas: 'admin123', role: 'Admin' },
 ];
 
