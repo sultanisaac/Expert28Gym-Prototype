@@ -221,7 +221,7 @@ export default function ProfilePage() {
                 <span className={`px-3 py-1 rounded-full border text-[10px] uppercase font-black tracking-widest ${
                   profile?.role?.toLowerCase() === 'admin' 
                     ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' 
-                    : profile?.role?.toLowerCase() === 'client'
+                    : profile?.role?.toLowerCase() === 'member'
                       ? 'bg-blue-500/10 border-blue-500/20 text-blue-500'
                       : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
                 }`}>
@@ -283,7 +283,7 @@ export default function ProfilePage() {
                     <p className={`text-sm font-semibold capitalize ${
                       profile?.role?.toLowerCase() === 'admin' 
                         ? 'text-amber-500' 
-                        : profile?.role?.toLowerCase() === 'client'
+                        : profile?.role?.toLowerCase() === 'member'
                           ? 'text-blue-500'
                           : 'text-emerald-500'
                     }`}>

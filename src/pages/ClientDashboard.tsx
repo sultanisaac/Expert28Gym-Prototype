@@ -24,7 +24,7 @@ export default function ClientDashboard({ setPathname }: { setPathname?: (path: 
   const [recentWorkouts, setRecentWorkouts] = useState<RecentWorkout[]>([]);
   const [allWorkouts, setAllWorkouts] = useState<RecentWorkout[]>([]);
 
-  const hasActivePlan = profile?.role === 'admin' || (profile?.role === 'client' && !!profile?.membership_tier && !isExpired);
+  const hasActivePlan = profile?.role === 'admin' || (profile?.role === 'member' && !!profile?.membership_tier && !isExpired);
   const isBasicUser = !hasActivePlan;
 
   useEffect(() => {

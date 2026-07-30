@@ -13,7 +13,7 @@ interface ClientProfile {
   id: string;
   email: string;
   full_name: string | null;
-  role: 'admin' | 'client' | 'user';
+  role: 'admin' | 'member' | 'user';
   status: 'active' | 'pending' | 'banned';
   membership_tier: string | null;
   avatar_url: string | null;
@@ -29,7 +29,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
 
 const ROLE_CONFIG: Record<string, { label: string; color: string }> = {
   admin:  { label: 'Admin',  color: '#f59e0b' },
-  client: { label: 'Client', color: '#3b82f6' },
+  member: { label: 'Member', color: '#3b82f6' },
   user:   { label: 'User',   color: '#10b981' },
 };
 
@@ -203,7 +203,7 @@ export default function AdminClients({ setPathname }: { setPathname: (p: string)
         setClients(prev => prev.map(c => c.id === client.id ? { ...c, status: newStatus } : c));
         showToast(`${client.full_name ?? client.email} has been ${newStatus === 'banned' ? 'banned' : 'unbanned'}.`);
       } else if (action === 'Change Role') {
-        const nextRole = client.role === 'client' ? 'user' : 'client';
+        const nextRole = client.role === 'member' ? 'user' : 'member';
         const { error: err } = await supabase
           .from('profiles')
           .update({ role: nextRole, updated_at: new Date().toISOString() })

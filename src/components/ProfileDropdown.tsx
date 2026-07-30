@@ -44,7 +44,7 @@ export default function ProfileDropdown({ user, profile, signOut, setPathname }:
   const getRoleColor = (role: string) => {
     switch (role?.toLowerCase()) {
       case 'admin': return 'text-amber-500';
-      case 'client': return 'text-blue-500';
+      case 'member': return 'text-blue-500';
       default: return 'text-emerald-500';
     }
   };

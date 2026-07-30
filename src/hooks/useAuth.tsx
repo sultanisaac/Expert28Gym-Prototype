@@ -7,7 +7,7 @@ export type { User, AuthChangeEvent, Session };
 export interface Profile {
   id: string;
   email: string;
-  role: 'admin' | 'client' | 'user';
+  role: 'admin' | 'member' | 'user';
   status: 'active' | 'pending' | 'banned';
   full_name?: string;
   avatar_url?: string;
