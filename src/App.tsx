@@ -246,7 +246,7 @@ export default function App() {
     if (pathname === '/admin/reporting') return <AdminReporting setPathname={setPathname} />;
     if (pathname === '/admin/notifications') return <AdminNotifications setPathname={setPathname} />;
     if (pathname === '/admin/audit-logs') return <AdminAuditLogs setPathname={setPathname} />;
-    if (pathname === '/client/dashboard' || (pathname === '/dashboard' && profile?.role === 'client')) return <ClientDashboard setPathname={setPathname} />;
+    if (pathname === '/client/dashboard' || (pathname === '/dashboard' && profile?.role === 'member')) return <ClientDashboard setPathname={setPathname} />;
     if (pathname === '/client/workouts') return <ClientWorkouts setPathname={setPathname} />;
     if (pathname === '/client/notifications') return <AthleteNotifications setPathname={setPathname} />;
 
