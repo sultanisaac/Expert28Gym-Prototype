@@ -286,7 +286,7 @@ export default function App() {
   const lowestInterval = plans.find(p => p.price === lowestPrice)?.interval || 'week';
 
   return (
-    <div style={{ background: '#030712', minHeight: '100vh', color: '#f9fafb', position: 'relative' }} className="mobile-sticky-pad">
+    <div style={{ background: '#030712', minHeight: '100vh', color: '#f9fafb', position: 'relative', overflowX: 'hidden' }} className="mobile-sticky-pad">
       <div id="scroll-progress-bar" style={{ width: `${scrollPct}%` }} />
       <div className="orb" style={{ width: '42vw', height: '42vw', background: 'var(--emerald)', top: '-12%', left: '-12%' }} />
       <div className="orb" style={{ width: '32vw', height: '32vw', background: 'var(--blue-cta)', bottom: '8%', right: '-6%', animationDelay: '-5s' }} />
@@ -424,7 +424,7 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, user, profile, sign
               <ProfileDropdown user={user} profile={profile} signOut={signOut} setPathname={setPathname} />
             </div>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} className="nav-desktop">
+            <div className="hidden md:flex items-center gap-2">
               <button onClick={() => setPathname('/login')} className="btn-outline-white" style={{ padding: '0.55rem 1.4rem', fontSize: '0.8rem', fontWeight: 700 }} onMouseDown={addRipple}>Log in</button>
               <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '0.55rem 1.4rem', fontSize: '0.8rem', fontWeight: 700 }} onMouseDown={addRipple}>Join Expert28</button>
             </div>
@@ -477,7 +477,7 @@ function Hero({ goto }: { goto: (id: string) => void }) {
   const days = useCountUp(7, 0, visible);
 
   return (
-    <section id="hero" style={{ position: 'relative', width: '100vw', minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '8rem 2rem 4rem', left: '50%', right: '50%', marginLeft: '-50vw', marginRight: '-50vw' }}>
+    <section id="hero" style={{ position: 'relative', width: '100%', minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '8rem 2rem 4rem' }}>
       {/* Immersive Background */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
         <video
