@@ -91,7 +91,7 @@ export default async function handler(req: any, res: any) {
         goal: goal || '',
         plan: plan,
         user_id: user_id || '',
-        role_upgrade: 'client',
+        role_upgrade: 'member',
         plan_interval: planData.interval || 'month'
       },
       success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,

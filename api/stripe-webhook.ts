@@ -1,5 +1,11 @@
 import Stripe from 'stripe';
 import nodemailer from 'nodemailer';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL as string,
+  process.env.SUPABASE_SERVICE_ROLE_KEY as string
+);
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2023-10-16', // Fallback, normally it uses the one defined globally if not set
@@ -54,6 +60,26 @@ export default async function handler(req: any, res: any) {
 
     if (email) {
       console.log(`[Stripe Webhook] Payment successful for ${email}. Sending welcome email...`);
+      
+      const roleUpgrade = session.metadata?.role_upgrade || 'member';
+      
+      // Update the user's profile in Supabase
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          role: roleUpgrade,
+          membership_tier: plan,
+          status: 'active',
+          updated_at: new Date().toISOString()
+        })
+        .eq('email', email);
+
+      if (updateError) {
+        console.error(`[Stripe Webhook] Failed to update profile for ${email}:`, updateError);
+      } else {
+        console.log(`[Stripe Webhook] Profile updated to ${roleUpgrade} for ${email}`);
+      }
+
       // Trigger our nodemailer function to send the email directly
       const transactionId = (session.payment_intent as string) || session.id;
       await sendWelcomeEmail(email, name, plan, transactionId);
@@ -136,10 +162,10 @@ async function sendWelcomeEmail(toEmail: string, name: string, plan: string, tra
                 Protocol Details
             </div>
             
-            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; table-layout: fixed;">
                 <tr>
                     <td style="color: #9ca3af; font-size: 14px; padding-bottom: 12px; width: 40%;">Membership:</td>
-                    <td style="color: #ffffff; font-size: 14px; font-weight: 700; text-align: right; padding-bottom: 12px;">${plan}</td>
+                    <td style="color: #ffffff; font-size: 14px; font-weight: 700; text-align: right; padding-bottom: 12px; word-wrap: break-word;">${plan}</td>
                 </tr>
                 <tr>
                     <td style="color: #10b981; font-size: 14px; padding-bottom: 12px;">Status:</td>
@@ -147,7 +173,7 @@ async function sendWelcomeEmail(toEmail: string, name: string, plan: string, tra
                 </tr>
                 <tr>
                     <td style="color: #9ca3af; font-size: 14px; padding-top: 12px; border-top: 1px solid #1f2937;">Ref. ID:</td>
-                    <td style="color: #6b7280; font-size: 12px; text-align: right; padding-top: 12px; font-family: monospace;">${transactionId}</td>
+                    <td style="color: #6b7280; font-size: 12px; text-align: right; padding-top: 12px; font-family: monospace; word-break: break-all;">${transactionId}</td>
                 </tr>
             </table>
         </div>
