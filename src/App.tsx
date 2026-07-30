@@ -424,13 +424,13 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, user, profile, sign
               <ProfileDropdown user={user} profile={profile} signOut={signOut} setPathname={setPathname} />
             </div>
           ) : (
-            <div className="nav-desktop">
-              <button onClick={() => setPathname('/login')} style={{ background: 'none', border: 'none', color: '#4b5563', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', marginRight: '0.75rem' }}>Log in</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} className="nav-desktop">
+              <button onClick={() => setPathname('/login')} className="btn-outline-white" style={{ padding: '0.55rem 1.4rem', fontSize: '0.8rem', fontWeight: 700 }} onMouseDown={addRipple}>Log in</button>
               <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '0.55rem 1.4rem', fontSize: '0.8rem', fontWeight: 700 }} onMouseDown={addRipple}>Join Expert28</button>
             </div>
           )}
 
-          <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', padding: '0.4rem', color: '#f9fafb', cursor: 'pointer', zIndex: 101 }}>
+          <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', padding: '0.4rem', color: '#f9fafb', cursor: 'pointer', zIndex: 101, marginLeft: '0.5rem' }}>
             {mobileOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
@@ -439,7 +439,7 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, user, profile, sign
       <div className={`mobile-menu-overlay ${mobileOpen ? 'open' : ''}`} onClick={() => setMobileOpen(false)} />
       <div className={`mobile-menu ${mobileOpen ? 'open' : ''}`}>
         {links.map(l => (
-          <button key={l.id} onClick={() => goto(l.id)} style={{ background: 'none', border: 'none', textAlign: 'left', fontSize: '1.75rem', fontWeight: 900, color: '#f9fafb', cursor: 'pointer', letterSpacing: '-0.02em', padding: '0.25rem 0' }}>{l.label}</button>
+          <button key={l.id} onClick={() => { goto(l.id); setMobileOpen(false); }} style={{ background: 'none', border: 'none', textAlign: 'left', fontSize: '1.75rem', fontWeight: 900, color: '#f9fafb', cursor: 'pointer', letterSpacing: '-0.02em', padding: '0.25rem 0' }}>{l.label}</button>
         ))}
         {user ? (
           <div style={{ marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -457,7 +457,10 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, user, profile, sign
             </button>
           </div>
         ) : (
-          <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1.25rem', fontSize: '1rem', marginTop: '2.5rem', borderRadius: '1rem', width: '100%', fontWeight: 800 }} onMouseDown={addRipple}>Join Expert28</button>
+          <div style={{ marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <button onClick={() => { setPathname('/login'); setMobileOpen(false); }} className="btn-outline-white" style={{ padding: '1.25rem', fontSize: '1rem', borderRadius: '1rem', width: '100%', fontWeight: 800 }} onMouseDown={addRipple}>Log in</button>
+            <button onClick={() => { goto('pricing'); setMobileOpen(false); }} className="btn-blue" style={{ padding: '1.25rem', fontSize: '1rem', borderRadius: '1rem', width: '100%', fontWeight: 800 }} onMouseDown={addRipple}>Join Expert28</button>
+          </div>
         )}
       </div>
       <style>{`@keyframes pulse-amber { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.7); } }`}</style>
