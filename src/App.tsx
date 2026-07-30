@@ -443,14 +443,14 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, user, profile, sign
         ))}
         {user ? (
           <div style={{ marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <button 
-              onClick={() => { setPathname(profile?.role === 'admin' ? '/admin/dashboard' : '/client/dashboard'); setMobileOpen(false); }} 
+            <button
+              onClick={() => { setPathname(profile?.role === 'admin' ? '/admin/dashboard' : '/client/dashboard'); setMobileOpen(false); }}
               className="btn-blue" style={{ padding: '1.25rem', fontSize: '1rem', borderRadius: '1rem', width: '100%', fontWeight: 800 }}
             >
               Go to Dashboard
             </button>
-            <button 
-              onClick={() => { signOut(); setMobileOpen(false); }} 
+            <button
+              onClick={() => { signOut(); setMobileOpen(false); }}
               style={{ padding: '1.25rem', fontSize: '1rem', borderRadius: '1rem', width: '100%', fontWeight: 800, background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}
             >
               Log Out
@@ -477,11 +477,21 @@ function Hero({ goto }: { goto: (id: string) => void }) {
     <section id="hero" style={{ position: 'relative', width: '100vw', minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '8rem 2rem 4rem', left: '50%', right: '50%', marginLeft: '-50vw', marginRight: '-50vw' }}>
       {/* Immersive Background */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
-        <img
-          src="https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=2000&auto=format"
-          alt="Expert28 Gym"
-          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 30%' }}
-        />
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+        >
+          <source src="/hero-video.mp4" type="video/mp4" />
+          {/* Fallback image in case video fails to load */}
+          <img
+            src="https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=2000&auto=format"
+            alt="Expert28 Gym"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 30%' }}
+          />
+        </video>
         {/* Cinematic gradients to ensure text readability */}
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(3,7,18,0.95) 0%, rgba(3,7,18,0.5) 40%, rgba(3,7,18,0.8) 100%)' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(3,7,18,1) 0%, rgba(3,7,18,0) 30%)' }} />
@@ -491,9 +501,9 @@ function Hero({ goto }: { goto: (id: string) => void }) {
       <div style={{ position: 'absolute', right: '-2%', top: '25%', fontSize: 'clamp(300px, 45vw, 700px)', fontWeight: 900, lineHeight: 1, color: '#10b981', opacity: 0.04, userSelect: 'none', pointerEvents: 'none', letterSpacing: '-0.05em', zIndex: 1 }}>28</div>
 
       <div style={{ position: 'relative', zIndex: 2, maxWidth: '1280px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '3rem' }}>
-        
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '4rem', alignItems: 'center', marginTop: '4vh' }}>
-          
+
           {/* Main Headline */}
           <div className="hero-content">
             <h1 style={{ fontSize: 'clamp(4rem, 9vw, 7.5rem)', fontWeight: 900, lineHeight: 0.9, letterSpacing: '-0.04em', textTransform: 'uppercase', margin: 0 }}>
@@ -508,7 +518,7 @@ function Hero({ goto }: { goto: (id: string) => void }) {
             <p style={{ color: '#e5e7eb', fontSize: '1.15rem', lineHeight: 1.6, fontWeight: 500, maxWidth: '420px', borderLeft: '3px solid #10b981', paddingLeft: '1.5rem' }}>
               No crowds. Elite equipment. Real athletes. Experience the institutional standard of strength training designed for those who refuse to settle.
             </p>
-            
+
             <div className="hero-button-group">
               <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1.2rem 2.5rem', fontSize: '1rem', fontWeight: 800 }} onMouseDown={addRipple}>Join The Ranks</button>
               <button onClick={() => goto('facilities')} className="btn-outline-white" style={{ padding: '1.2rem 2.5rem', fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)' }}>
@@ -521,17 +531,17 @@ function Hero({ goto }: { goto: (id: string) => void }) {
 
         {/* Floating Glass Stats Bar */}
         <div ref={ref} className={`reveal ${visible ? 'visible' : ''}`} style={{ marginTop: '3rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1px', background: 'rgba(255,255,255,0.1)', borderRadius: '1rem', overflow: 'hidden', backdropFilter: 'blur(24px)', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
-          
+
           <div style={{ background: 'rgba(3,7,18,0.5)', padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
             <p style={{ fontWeight: 900, fontSize: '2.5rem', letterSpacing: '-0.03em', lineHeight: 1, color: '#fff', marginBottom: '0.5rem' }}>{members}+</p>
             <p style={{ color: '#9ca3af', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Elite Athletes</p>
           </div>
-          
+
           <div style={{ background: 'rgba(3,7,18,0.5)', padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
             <p style={{ fontWeight: 900, fontSize: '2.5rem', letterSpacing: '-0.03em', lineHeight: 1, color: '#fff', marginBottom: '0.5rem' }}>{rating}/5</p>
             <p style={{ color: '#9ca3af', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Avg Rating</p>
           </div>
-          
+
           <div style={{ background: 'rgba(16,185,129,0.15)', padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(16,185,129,0.2) 0%, transparent 100%)' }} />
             <p style={{ fontWeight: 900, fontSize: '2.5rem', letterSpacing: '-0.03em', lineHeight: 1, color: '#10b981', marginBottom: '0.5rem', position: 'relative' }}>{days}</p>
@@ -620,15 +630,15 @@ function Facilities({ setPathname }: { setPathname?: (path: string) => void }) {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {facilityZones.map((zone, i) => (
-              <div 
-                key={i} 
+              <div
+                key={i}
                 onClick={() => {
                   if (setPathname) {
                     window.history.pushState({}, '', `/facility/${zone.id}`);
                     setPathname(`/facility/${zone.id}`);
                   }
                 }}
-                className={`glass-card stagger-child ${visible ? 'visible' : ''}`} 
+                className={`glass-card stagger-child ${visible ? 'visible' : ''}`}
                 style={{ overflow: 'hidden', transitionDelay: `${i * 75}ms`, cursor: 'pointer', position: 'relative', display: 'flex', flexDirection: 'column' }}
               >
                 <div style={{ height: '350px', position: 'relative' }}>
@@ -687,7 +697,7 @@ function Pricing({ plans, openModal }: { plans: MembershipPlan[]; openModal: (p:
                   {getCurrencySymbol(plan.currency)}
                 </span>
                 <span style={{ fontSize: '3.5rem', fontWeight: 900, color: '#fff', letterSpacing: '-0.04em' }}>{plan.price.toLocaleString()}</span>
-                
+
                 {plan.original_price && plan.original_price > plan.price && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginLeft: '0.5rem' }}>
                     <span style={{ fontSize: '1rem', color: '#6b7280', textDecoration: 'line-through', fontWeight: 600 }}>
@@ -698,7 +708,7 @@ function Pricing({ plans, openModal }: { plans: MembershipPlan[]; openModal: (p:
                     </span>
                   </div>
                 )}
-                
+
                 <span style={{ color: '#6b7280', fontSize: '0.85rem', fontWeight: 600, marginLeft: 'auto' }}>/{plan.interval === 'week' ? 'week' : 'mo'}</span>
               </div>
               <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '1.5rem 0', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -830,7 +840,7 @@ function Footer({ goto, setPathname }: { goto: (id: string) => void; setPathname
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', color: '#9ca3af', fontSize: '0.95rem', lineHeight: '1.5' }}>
               <MapPin size={20} style={{ color: 'var(--emerald)', flexShrink: 0, marginTop: '2px' }} />
-              <span>Jl. Jend. Sudirman Kav. 52-53<br/>SCBD, Jakarta Selatan 12190</span>
+              <span>Jl. Jend. Sudirman Kav. 52-53<br />SCBD, Jakarta Selatan 12190</span>
             </li>
             <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#9ca3af', fontSize: '0.95rem' }}>
               <Phone size={20} style={{ color: 'var(--emerald)', flexShrink: 0 }} />
