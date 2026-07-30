@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Dumbbell, Zap, Users, TrendingUp, AlertTriangle, Star, Menu, X, ChevronRight, Clock, CheckCircle2, Shield, Bell } from 'lucide-react';
+import { Dumbbell, Users, TrendingUp, AlertTriangle, Star, Menu, X, ChevronRight, Clock, CheckCircle2, Shield, Bell, ArrowRight, Instagram, Twitter, Facebook, Mail, Phone, MapPin } from 'lucide-react';
 import ApplyPage from './pages/ApplyPage';
 import SuccessPage from './pages/SuccessPage';
 import JoinModal from './components/JoinModal';
@@ -22,6 +22,7 @@ import MaintenancePage from './pages/MaintenancePage';
 import { useAuth, Profile, User } from './hooks/useAuth';
 import { supabase } from './lib/supabase';
 import { QuickLogin } from './components/QuickLogin';
+import FacilityPage, { facilityZones } from './pages/FacilityPage';
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
@@ -96,7 +97,6 @@ export default function App() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [scrollPct, setScrollPct] = useState(0);
-  const [bannerVisible, setBannerVisible] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null);
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
@@ -249,6 +249,11 @@ export default function App() {
     if (pathname === '/client/workouts') return <ClientWorkouts setPathname={setPathname} />;
     if (pathname === '/client/notifications') return <AthleteNotifications setPathname={setPathname} />;
 
+    if (pathname.startsWith('/facility/')) {
+      const id = pathname.split('/')[2];
+      return <FacilityPage id={id} setPathname={setPathname} />;
+    }
+
     return (
       <main>
         <Hero goto={goto} />
@@ -257,15 +262,13 @@ export default function App() {
         <div className="section-sep" />
         <WhatsIncluded />
         <div className="section-sep" />
-        <Facilities />
+        <Facilities setPathname={setPathname} />
         <div className="section-sep" />
         <Pricing plans={plans} openModal={openPlanModal} />
         <div className="section-sep" />
         <Testimonials />
         <div className="section-sep" />
         <FAQ />
-        <div className="section-sep" />
-        <FinalCTA goto={goto} />
       </main>
     );
   };
@@ -285,14 +288,11 @@ export default function App() {
       <div className="orb" style={{ width: '32vw', height: '32vw', background: 'var(--blue-cta)', bottom: '8%', right: '-6%', animationDelay: '-5s' }} />
       <div className="orb" style={{ width: '28vw', height: '28vw', background: 'var(--amber)', top: '38%', right: '8%', animationDelay: '-10s', opacity: 0.12 }} />
 
-      <PrototypeBanner onToggle={setBannerVisible} />
-
       <Header
         scrolled={scrolled || pathname !== '/'}
         goto={goto}
         mobileOpen={mobileOpen}
         setMobileOpen={setMobileOpen}
-        bannerVisible={bannerVisible}
         user={user}
         profile={profile}
         signOut={signOut}
@@ -329,19 +329,7 @@ export default function App() {
   );
 }
 
-// ─── PROTOTYPE BANNER ─────────────────────────────────────────────────────────
 
-function PrototypeBanner({ onToggle }: { onToggle: (show: boolean) => void }) {
-  const [show, setShow] = useState(true);
-  if (!show) return null;
-  return (
-    <div id="proto-banner" className="prototype-banner" style={{ background: '#f59e0b', color: '#030712', padding: '0.4rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', fontWeight: 900, letterSpacing: '0.05em', position: 'relative', zIndex: 1100 }}>
-      <AlertTriangle size={13} />
-      <span style={{ fontSize: '0.63rem' }}>DESIGN PROTOTYPE — DEMO DATA ONLY. ALL BRANDING IS LIVE.</span>
-      <button onClick={() => { setShow(false); onToggle(false); }} style={{ position: 'absolute', right: '1rem', color: '#030712', background: 'none', border: 'none', cursor: 'pointer' }}><X size={14} /></button>
-    </div>
-  );
-}
 
 // ─── HEADER ───────────────────────────────────────────────────────────────────
 
@@ -350,18 +338,17 @@ interface HeaderProps {
   goto: (id: string) => void;
   mobileOpen: boolean;
   setMobileOpen: (v: boolean) => void;
-  bannerVisible: boolean;
   user: User | null;
   profile: Profile | null;
   signOut: () => Promise<void>;
   setPathname: (p: string) => void;
 }
 
-function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, user, profile, signOut, setPathname }: HeaderProps) {
+function Header({ scrolled, goto, mobileOpen, setMobileOpen, user, profile, signOut, setPathname }: HeaderProps) {
   const links = [
     { label: 'Home', id: 'hero' },
-    { label: 'Facilities', id: 'facilities' },
     { label: "What's Included", id: 'included' },
+    { label: 'Facilities', id: 'facilities' },
     { label: 'Pricing', id: 'pricing' },
     { label: 'Results', id: 'testimonials' },
     { label: 'FAQ', id: 'faq' },
@@ -385,8 +372,8 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, user
   return (
     <>
       <header style={{
-        position: 'fixed', top: bannerVisible ? '1.75rem' : 0, left: 0, right: 0, zIndex: 100,
-        background: scrolled ? 'rgba(3,7,18,0.92)' : (bannerVisible ? '#030712' : 'transparent'),
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+        background: scrolled ? 'rgba(3,7,18,0.92)' : 'transparent',
         backdropFilter: scrolled ? 'blur(20px)' : 'none',
         borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : 'none',
         padding: '0.9rem 2rem', display: 'flex', alignItems: 'center',
@@ -397,9 +384,10 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, bannerVisible, user
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             <span style={{ fontWeight: 800, fontSize: '0.95rem', letterSpacing: '-0.02em', lineHeight: 1, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
               Expert<span style={{ color: '#10b981' }}>28</span>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b', display: 'inline-block', animation: 'pulse-amber 2s ease-in-out infinite' }} />
             </span>
-            <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#f59e0b', letterSpacing: '0.06em' }}>PROTOTYPE</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', marginTop: '0.15rem', padding: '0.1rem 0.35rem', background: 'rgba(245, 158, 11, 0.15)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '999px', fontSize: '0.5rem', fontWeight: 800, color: '#f59e0b', letterSpacing: '0.06em' }}>
+              <AlertTriangle size={8} strokeWidth={3} /> DEMO PROTOTYPE
+            </span>
           </div>
         </div>
 
@@ -481,53 +469,72 @@ function Hero({ goto }: { goto: (id: string) => void }) {
   const days = useCountUp(7, 0, visible);
 
   return (
-    <section id="hero" style={{ position: 'relative', maxWidth: '1280px', margin: '0 auto', padding: '7rem 2rem 5rem' }} className="grid-hero">
-      <div style={{ position: 'absolute', right: '-2%', top: '50%', transform: 'translateY(-50%)', fontSize: 'clamp(280px, 40vw, 600px)', fontWeight: 900, lineHeight: 1, color: '#f9fafb', opacity: 0.032, userSelect: 'none', pointerEvents: 'none', letterSpacing: '-0.06em', zIndex: 0 }}>28</div>
-      <div style={{ position: 'absolute', top: '30%', left: '0', width: '50%', height: '60%', background: 'radial-gradient(ellipse at center, rgba(16,185,129,0.12) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
-
-      <div className="hero-content">
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '999px', padding: '0.3rem 0.85rem', marginBottom: '1.75rem' }}>
-          <Zap size={11} color="#10b981" />
-          <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#10b981' }}>Expert28 Gym — Join Now</span>
-        </div>
-
-        <h1 style={{ fontSize: 'clamp(3rem, 6vw, 4.5rem)', fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: '1.5rem' }}>
-          <span className="hero-line hero-line-1" style={{ display: 'block' }}>Get Stronger.</span>
-          <span className="hero-line hero-line-2" style={{ display: 'block', color: '#10b981' }}>Train Smarter.</span>
-          <span className="hero-line hero-line-3" style={{ display: 'block' }}>In 28 Days.</span>
-        </h1>
-
-        <p style={{ color: '#9ca3af', fontSize: '1rem', lineHeight: 1.7, maxWidth: '440px', marginBottom: '2rem' }}>
-          6x/week access · Elite equipment · Expert coaching — designed for athletes who refuse to settle for average results.
-        </p>
-
-        <div ref={ref} className={`reveal hero-stats ${visible ? 'visible' : ''}`} style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', marginBottom: '2.5rem', flexWrap: 'wrap' }}>
-          <div><p style={{ fontWeight: 900, fontSize: '1.75rem', letterSpacing: '-0.03em', lineHeight: 1 }}>{members}+</p><p style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 500, marginTop: '0.2rem' }}>Members</p></div>
-          <div className="stat-divider" />
-          <div><p style={{ fontWeight: 900, fontSize: '1.75rem', letterSpacing: '-0.03em', lineHeight: 1 }}>{rating}/5</p><p style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 500, marginTop: '0.2rem' }}>Rating</p></div>
-          <div className="stat-divider" />
-          <div><p style={{ fontWeight: 900, fontSize: '1.75rem', letterSpacing: '-0.03em', lineHeight: 1 }}>{days}</p><p style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 500, marginTop: '0.2rem' }}>Days/Wk</p></div>
-        </div>
-
-        <div className="hero-button-group">
-          <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1rem 2.25rem', fontSize: '0.9rem', fontWeight: 800, minWidth: '180px' }} onMouseDown={addRipple}>Get Started Now</button>
-          <button onClick={() => goto('facilities')} className="btn-outline-white" style={{ padding: '1rem 2rem', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            Explore Facility <ChevronRight size={16} />
-          </button>
-        </div>
+    <section id="hero" style={{ position: 'relative', width: '100vw', minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '8rem 2rem 4rem', left: '50%', right: '50%', marginLeft: '-50vw', marginRight: '-50vw' }}>
+      {/* Immersive Background */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+        <img
+          src="https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=2000&auto=format"
+          alt="Expert28 Gym"
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 30%' }}
+        />
+        {/* Cinematic gradients to ensure text readability */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(3,7,18,0.95) 0%, rgba(3,7,18,0.5) 40%, rgba(3,7,18,0.8) 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(3,7,18,1) 0%, rgba(3,7,18,0) 30%)' }} />
       </div>
 
-      <div className="hero-image-card" style={{ aspectRatio: '3/4', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
-        <img
-          src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1000&auto=format"
-          alt="Expert28 Gym"
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-        />
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '55%', background: 'linear-gradient(to top, rgba(3,7,18,0.95) 0%, transparent 100%)' }} />
-        <div style={{ position: 'absolute', bottom: '1.25rem', left: '1.25rem' }}>
-          <p style={{ color: '#10b981', fontWeight: 700, fontSize: '0.9rem' }}>Expert28 Gym</p>
-          <p style={{ color: '#9ca3af', fontSize: '0.75rem' }}>Industrial Zone — Open 7 Days</p>
+      {/* Decorative oversized typography in background */}
+      <div style={{ position: 'absolute', right: '-2%', top: '25%', fontSize: 'clamp(300px, 45vw, 700px)', fontWeight: 900, lineHeight: 1, color: '#10b981', opacity: 0.04, userSelect: 'none', pointerEvents: 'none', letterSpacing: '-0.05em', zIndex: 1 }}>28</div>
+
+      <div style={{ position: 'relative', zIndex: 2, maxWidth: '1280px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '4rem', alignItems: 'center', marginTop: '4vh' }}>
+          
+          {/* Main Headline */}
+          <div className="hero-content">
+            <h1 style={{ fontSize: 'clamp(4rem, 9vw, 7.5rem)', fontWeight: 900, lineHeight: 0.9, letterSpacing: '-0.04em', textTransform: 'uppercase', margin: 0 }}>
+              <span className="hero-line hero-line-1" style={{ display: 'block', color: '#fff' }}>Forged</span>
+              <span className="hero-line hero-line-2" style={{ display: 'block', color: 'transparent', WebkitTextStroke: '2px rgba(255,255,255,0.7)' }}>In The</span>
+              <span className="hero-line hero-line-3" style={{ display: 'block', color: '#10b981' }}>Expert Pit.</span>
+            </h1>
+          </div>
+
+          {/* Right side intro and stats */}
+          <div ref={ref} className={`reveal ${visible ? 'visible' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            <p style={{ color: '#e5e7eb', fontSize: '1.15rem', lineHeight: 1.6, fontWeight: 500, maxWidth: '420px', borderLeft: '3px solid #10b981', paddingLeft: '1.5rem' }}>
+              No crowds. Elite equipment. Real athletes. Experience the institutional standard of strength training designed for those who refuse to settle.
+            </p>
+            
+            <div className="hero-button-group">
+              <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1.2rem 2.5rem', fontSize: '1rem', fontWeight: 800 }} onMouseDown={addRipple}>Join The Ranks</button>
+              <button onClick={() => goto('facilities')} className="btn-outline-white" style={{ padding: '1.2rem 2.5rem', fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)' }}>
+                View Facility <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+
         </div>
+
+        {/* Floating Glass Stats Bar */}
+        <div ref={ref} className={`reveal ${visible ? 'visible' : ''}`} style={{ marginTop: '3rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1px', background: 'rgba(255,255,255,0.1)', borderRadius: '1rem', overflow: 'hidden', backdropFilter: 'blur(24px)', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+          
+          <div style={{ background: 'rgba(3,7,18,0.5)', padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+            <p style={{ fontWeight: 900, fontSize: '2.5rem', letterSpacing: '-0.03em', lineHeight: 1, color: '#fff', marginBottom: '0.5rem' }}>{members}+</p>
+            <p style={{ color: '#9ca3af', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Elite Athletes</p>
+          </div>
+          
+          <div style={{ background: 'rgba(3,7,18,0.5)', padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+            <p style={{ fontWeight: 900, fontSize: '2.5rem', letterSpacing: '-0.03em', lineHeight: 1, color: '#fff', marginBottom: '0.5rem' }}>{rating}/5</p>
+            <p style={{ color: '#9ca3af', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Avg Rating</p>
+          </div>
+          
+          <div style={{ background: 'rgba(16,185,129,0.15)', padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(16,185,129,0.2) 0%, transparent 100%)' }} />
+            <p style={{ fontWeight: 900, fontSize: '2.5rem', letterSpacing: '-0.03em', lineHeight: 1, color: '#10b981', marginBottom: '0.5rem', position: 'relative' }}>{days}</p>
+            <p style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', position: 'relative' }}>Days/Week Access</p>
+          </div>
+
+        </div>
+
       </div>
     </section>
   );
@@ -557,10 +564,10 @@ function WhatsIncluded() {
   const { ref, visible } = useReveal();
   const items = [
     { icon: Clock, title: '6x/week Access', desc: 'Unrestricted access to all zones, any time, any day.' },
-    { icon: Dumbbell, title: 'Olympic Equipment', desc: 'Rogue racks, platforms, and premium iron — no compromises.' },
-    { icon: Users, title: 'Expert Coaching', desc: 'Guided sessions with certified performance coaches on-site.' },
-    { icon: CheckCircle2, title: 'Institutional Standards', desc: 'A meticulously maintained, professional-grade environment.' },
-    { icon: TrendingUp, title: 'Progress Tracking', desc: 'Built-in structure to track your lifts, habits, and results.' },
+    { icon: Dumbbell, title: 'Olympic Equipment', desc: 'Rogue racks, platforms, and premium iron no compromises.' },
+    { icon: Users, title: 'Expert Coaching', desc: 'Guided sessions with certified performance coaches onsite.' },
+    { icon: CheckCircle2, title: 'Institutional Standards', desc: 'A meticulously maintained, professional grade environment.' },
+    { icon: TrendingUp, title: 'Progress Tracking', desc: 'Built in structure to track your lifts, habits, and results.' },
     { icon: Star, title: 'Community Network', desc: 'Train alongside a community of 500+ dedicated athletes.' },
   ];
 
@@ -571,7 +578,7 @@ function WhatsIncluded() {
         <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '1rem' }}>
           Everything <span style={{ color: '#10b981' }}>Included.</span>
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {items.map((item, i) => {
             const Icon = item.icon;
             return (
@@ -594,28 +601,40 @@ function WhatsIncluded() {
 
 // ─── FACILITIES ───────────────────────────────────────────────────────────────
 
-function Facilities() {
+function Facilities({ setPathname }: { setPathname?: (path: string) => void }) {
   const { ref, visible } = useReveal();
-  const zones = [
-    { badge: 'Strength', title: 'The Expert Pit', desc: 'Olympic platforms, deadlift jacks, squat stands, and heavy iron from Rogue.', image: 'https://images.unsplash.com/photo-1534367610401-9f5ed68180aa?q=80&w=800' },
-    { badge: 'Conditioning', title: 'High-Octane Turf', desc: 'Sleds, battle ropes, 30m sprint turf, and functional training rigs.', image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=800' },
-    { badge: 'Coaching', title: 'The Crucible', desc: 'Dedicated coaching zone for guided high-intensity circuits and assessments.', image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=800' },
-  ];
 
   return (
     <section id="facilities" style={{ background: 'rgba(16,185,129,0.025)', padding: 'var(--section-pad) 2rem' }}>
       <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
         <div ref={ref} className={`reveal ${visible ? 'visible' : ''}`}>
-          <p className="section-label" style={{ marginBottom: '0.75rem' }}>The Facility</p>
-          <div className="facilities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
-            {zones.map((zone, i) => (
-              <div key={i} className={`glass-card stagger-child ${visible ? 'visible' : ''}`} style={{ overflow: 'hidden', transitionDelay: `${i * 75}ms` }}>
-                <div style={{ height: '200px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+            <h2 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 900, letterSpacing: '-0.02em' }}>
+              The <span style={{ color: '#10b981' }}>Facility.</span>
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {facilityZones.map((zone, i) => (
+              <div 
+                key={i} 
+                onClick={() => {
+                  if (setPathname) {
+                    window.history.pushState({}, '', `/facility/${zone.id}`);
+                    setPathname(`/facility/${zone.id}`);
+                  }
+                }}
+                className={`glass-card stagger-child ${visible ? 'visible' : ''}`} 
+                style={{ overflow: 'hidden', transitionDelay: `${i * 75}ms`, cursor: 'pointer', position: 'relative', display: 'flex', flexDirection: 'column' }}
+              >
+                <div style={{ height: '350px', position: 'relative' }}>
                   <img src={zone.image} alt={zone.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-                <div style={{ padding: '1.25rem' }}>
-                  <h3 style={{ fontWeight: 800, fontSize: '1rem', marginBottom: '0.4rem' }}>{zone.title}</h3>
-                  <p style={{ color: '#6b7280', fontSize: '0.78rem' }}>{zone.desc}</p>
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(3,7,18,0.95) 0%, rgba(3,7,18,0) 70%)' }} />
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '2rem' }}>
+                    <h3 style={{ fontWeight: 800, fontSize: '1.5rem', color: '#fff', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      {zone.title}
+                      <ArrowRight size={20} color="#10b981" />
+                    </h3>
+                  </div>
                 </div>
               </div>
             ))}
@@ -708,6 +727,8 @@ function Testimonials() {
   const reviews = [
     { name: 'Rafi M.', text: 'Absolute elite environment. No crowds, top-tier iron, and a community that actually trains hard.' },
     { name: 'Dina K.', text: 'The standard here is institutional. Everything is built for real athletic progress, not casual fitness.' },
+    { name: 'Marcus T.', text: 'The conditioning turf and elite coaching completely changed my approach to functional fitness. Unmatched quality.' },
+    { name: 'Sarah L.', text: 'Finally a space that takes recovery as seriously as the training. The plunge pool and saunas are a game changer.' },
   ];
 
   return (
@@ -735,8 +756,12 @@ function FAQ() {
   const [open, setOpen] = useState<number | null>(null);
   const { ref, visible } = useReveal();
   const faqs = [
-    { q: 'Is Expert28 for beginners?', a: 'Expert28 is for anyone serious about progress.' },
-    { q: 'Are there long-term contracts?', a: 'No. Flexible and cancellable monthly.' },
+    { q: 'Is Expert28 for beginners?', a: 'Expert28 is for anyone serious about progress, with tailored coaching that adapts to all skill levels.' },
+    { q: 'Are there long-term contracts?', a: 'No. All of our memberships are fully flexible and can be cancelled or modified monthly.' },
+    { q: 'What is included in the Elite Expert plan?', a: 'You get full 24/7 facility access, a dedicated coach, customized weekly workout routines, and 1-on-1 nutritional guidance.' },
+    { q: 'Do I need to book facility zones in advance?', a: 'Walk-ins are perfectly fine, though premium zones like the Recovery Lounge can be reserved via your dashboard to guarantee a spot.' },
+    { q: 'Can I freeze my membership if I go on holiday?', a: 'Yes, you can pause your membership for up to 2 months per year directly from your billing settings at no extra cost.' },
+    { q: 'What are your operating hours?', a: 'Expert28 is open 24/7 for all members, allowing you to train on your own schedule without restrictions.' },
   ];
 
   return (
@@ -754,29 +779,67 @@ function FAQ() {
   );
 }
 
-// ─── FINAL CTA ────────────────────────────────────────────────────────────────
 
-function FinalCTA({ goto }: { goto: (id: string) => void }) {
-  return (
-    <section style={{ padding: 'var(--section-pad) 2rem', textAlign: 'center' }}>
-      <h2 style={{ fontSize: 'clamp(2.5rem, 6vw, 5rem)', fontWeight: 900, marginBottom: '2.5rem' }}>Join the community.</h2>
-      <button onClick={() => goto('pricing')} className="btn-blue" style={{ padding: '1.25rem 3.5rem', fontSize: '1.1rem', fontWeight: 800 }}>Start Now</button>
-    </section>
-  );
-}
 
 // ─── FOOTER ───────────────────────────────────────────────────────────────────
 
 function Footer({ goto }: { goto: (id: string) => void }) {
   return (
-    <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '5rem 2rem 8rem', maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '3rem' }}>
-      <div>
-        <span style={{ fontWeight: 800, fontSize: '1rem' }}>Expert<span style={{ color: '#10b981' }}>28</span></span>
-        <p style={{ color: '#4b5563', fontSize: '0.8rem', marginTop: '1rem' }}>Modern institutional gym.</p>
+    <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '5rem 2rem 3rem', maxWidth: '1280px', margin: '0 auto' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '4rem', marginBottom: '4rem' }}>
+        {/* Brand */}
+        <div>
+          <span style={{ fontWeight: 900, fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+            <img src="/Logo.png" alt="Expert28" style={{ height: '36px', width: '36px', borderRadius: '8px', objectFit: 'cover' }} />
+            Expert<span style={{ color: 'var(--emerald)' }}>28</span>
+          </span>
+          <p style={{ color: '#9ca3af', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '1.5rem' }}>
+            A modern institutional gym designed for serious athletes. We provide the tools, environment, and coaching to unlock your peak performance.
+          </p>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <a href="#" style={{ color: '#4b5563', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = '#fff'} onMouseOut={e => e.currentTarget.style.color = '#4b5563'}><Instagram size={22} /></a>
+            <a href="#" style={{ color: '#4b5563', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = '#fff'} onMouseOut={e => e.currentTarget.style.color = '#4b5563'}><Twitter size={22} /></a>
+            <a href="#" style={{ color: '#4b5563', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = '#fff'} onMouseOut={e => e.currentTarget.style.color = '#4b5563'}><Facebook size={22} /></a>
+          </div>
+        </div>
+
+        {/* Links */}
+        <div>
+          <p style={{ color: '#fff', fontWeight: 800, fontSize: '0.9rem', marginBottom: '1.5rem', letterSpacing: '0.05em' }}>QUICK LINKS</p>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <li><button onClick={() => goto('facilities')} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 0, fontSize: '0.95rem', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = 'var(--emerald)'} onMouseOut={e => e.currentTarget.style.color = '#9ca3af'}>What's Included</button></li>
+            <li><button onClick={() => goto('elite')} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 0, fontSize: '0.95rem', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = 'var(--emerald)'} onMouseOut={e => e.currentTarget.style.color = '#9ca3af'}>Facility</button></li>
+            <li><button onClick={() => goto('pricing')} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 0, fontSize: '0.95rem', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = 'var(--emerald)'} onMouseOut={e => e.currentTarget.style.color = '#9ca3af'}>Pricing</button></li>
+            <li><button onClick={() => goto('faq')} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 0, fontSize: '0.95rem', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = 'var(--emerald)'} onMouseOut={e => e.currentTarget.style.color = '#9ca3af'}>FAQ</button></li>
+          </ul>
+        </div>
+
+        {/* Contact */}
+        <div>
+          <p style={{ color: '#fff', fontWeight: 800, fontSize: '0.9rem', marginBottom: '1.5rem', letterSpacing: '0.05em' }}>CONTACT</p>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', color: '#9ca3af', fontSize: '0.95rem', lineHeight: '1.5' }}>
+              <MapPin size={20} style={{ color: 'var(--emerald)', flexShrink: 0, marginTop: '2px' }} />
+              <span>Jl. Jend. Sudirman Kav. 52-53<br/>SCBD, Jakarta Selatan 12190</span>
+            </li>
+            <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#9ca3af', fontSize: '0.95rem' }}>
+              <Phone size={20} style={{ color: 'var(--emerald)', flexShrink: 0 }} />
+              +62 811-1234-5678
+            </li>
+            <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#9ca3af', fontSize: '0.95rem' }}>
+              <Mail size={20} style={{ color: 'var(--emerald)', flexShrink: 0 }} />
+              hello@expert28.com
+            </li>
+          </ul>
+        </div>
       </div>
-      <div>
-        <p style={{ color: '#9ca3af', fontWeight: 800, fontSize: '0.7rem', marginBottom: '1.5rem' }}>NAVIGATE</p>
-        <button onClick={() => goto('pricing')} style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', padding: 0 }}>Pricing</button>
+
+      <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', color: '#4b5563', fontSize: '0.85rem' }}>
+        <p>&copy; {new Date().getFullYear()} Expert28. All rights reserved.</p>
+        <div style={{ display: 'flex', gap: '2rem' }}>
+          <a href="#" style={{ color: '#4b5563', textDecoration: 'none', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = '#9ca3af'} onMouseOut={e => e.currentTarget.style.color = '#4b5563'}>Privacy Policy</a>
+          <a href="#" style={{ color: '#4b5563', textDecoration: 'none', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = '#9ca3af'} onMouseOut={e => e.currentTarget.style.color = '#4b5563'}>Terms of Service</a>
+        </div>
       </div>
     </footer>
   );

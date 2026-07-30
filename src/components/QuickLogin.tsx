@@ -20,9 +20,14 @@ const ACCOUNTS: Account[] = [
   { email: 'peter.alban26@gmail.com', pas: 'Peter123.', role: 'Admin' },
 ];
 
+import { useAuth } from '../hooks/useAuth';
+
 export function QuickLogin() {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
+
+  if (user) return null;
   const [filter, setFilter] = useState<'All' | 'User' | 'Member' | 'Admin'>('All');
 
   const handleLogin = async (account: Account) => {

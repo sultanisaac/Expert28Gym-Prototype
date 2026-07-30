@@ -56,7 +56,7 @@ export default function ApplyPage() {
   };
 
   return (
-    <div style={{ background: '#030712', minHeight: '100vh', color: '#f9fafb', position: 'relative', overflowX: 'hidden', padding: '5rem 2rem' }}>
+    <div style={{ position: 'relative', padding: '5rem 2rem' }}>
       {/* Background Orbs */}
       <div className="orb" style={{ width: '40vw', height: '40vw', background: 'var(--emerald)', top: '-10%', left: '-10%', opacity: 0.15 }} />
       <div className="orb" style={{ width: '30vw', height: '30vw', background: 'var(--blue-cta)', bottom: '5%', right: '-5%', opacity: 0.1 }} />
