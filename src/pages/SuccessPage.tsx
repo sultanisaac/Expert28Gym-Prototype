@@ -2,7 +2,7 @@ import { CheckCircle2, Instagram, Mail, LayoutGrid } from 'lucide-react';
 
 export default function SuccessPage() {
   return (
-    <div style={{ background: '#030712', minHeight: '100vh', color: '#f9fafb', position: 'relative', overflowX: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+    <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6rem 2rem 2rem 2rem', minHeight: '100vh' }}>
       {/* Background Orbs */}
       <div className="orb" style={{ width: '50vw', height: '50vw', background: 'var(--emerald)', top: '10%', left: '10%', opacity: 0.2, animationDelay: '-2s' }} />
 
