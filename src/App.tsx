@@ -23,7 +23,8 @@ import { useAuth, Profile, User } from './hooks/useAuth';
 import { supabase } from './lib/supabase';
 import { QuickLogin } from './components/QuickLogin';
 import FacilityPage, { facilityZones } from './pages/FacilityPage';
-
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsPage from './pages/TermsPage';
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
 interface MembershipPlan {
@@ -254,6 +255,9 @@ export default function App() {
       return <FacilityPage id={id} setPathname={setPathname} />;
     }
 
+    if (pathname === '/privacy') return <PrivacyPolicyPage />;
+    if (pathname === '/terms') return <TermsPage />;
+
     return (
       <main>
         <Hero goto={goto} />
@@ -301,20 +305,21 @@ export default function App() {
 
       {renderContent()}
 
+      {['/', '/privacy', '/terms'].includes(pathname) && (
+        <Footer goto={goto} setPathname={setPathname} />
+      )}
+
       {pathname === '/' && (
-        <>
-          <Footer goto={goto} />
-          <div className="mobile-sticky-bar">
-            <div>
-              <p style={{ fontWeight: 800, fontSize: '0.85rem', lineHeight: 1 }}>Join Expert<span style={{ color: '#10b981' }}>28</span></p>
-              <p style={{ color: '#6b7280', fontSize: '0.65rem', marginTop: '0.15rem' }}>From <span style={{ color: '#10b981' }}>Rp {lowestPrice.toLocaleString()}</span> / {lowestInterval}</p>
-            </div>
-            <button onClick={() => {
-              const trial = plans.find(p => p.name.toLowerCase().includes('trial')) || plans[0];
-              if (trial) openPlanModal(trial.name);
-            }} className="btn-blue" style={{ padding: '0.75rem 1.5rem', fontSize: '0.78rem', flexShrink: 0 }} onMouseDown={addRipple}>Join Now</button>
+        <div className="mobile-sticky-bar">
+          <div>
+            <p style={{ fontWeight: 800, fontSize: '0.85rem', lineHeight: 1 }}>Join Expert<span style={{ color: '#10b981' }}>28</span></p>
+            <p style={{ color: '#6b7280', fontSize: '0.65rem', marginTop: '0.15rem' }}>From <span style={{ color: '#10b981' }}>Rp {lowestPrice.toLocaleString()}</span> / {lowestInterval}</p>
           </div>
-        </>
+          <button onClick={() => {
+            const trial = plans.find(p => p.name.toLowerCase().includes('trial')) || plans[0];
+            if (trial) openPlanModal(trial.name);
+          }} className="btn-blue" style={{ padding: '0.75rem 1.5rem', fontSize: '0.78rem', flexShrink: 0 }} onMouseDown={addRipple}>Join Now</button>
+        </div>
       )}
 
       <JoinModal
@@ -379,7 +384,7 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, user, profile, sign
         padding: '0.9rem 2rem', display: 'flex', alignItems: 'center',
         justifyContent: 'space-between', transition: 'all 0.3s',
       }}>
-        <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+        <div onClick={() => { window.history.pushState({}, '', '/'); if (setPathname) setPathname('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
           <img src="/Logo.png" alt="Expert28" style={{ height: 32, width: 'auto', borderRadius: '0.2rem' }} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             <span style={{ fontWeight: 800, fontSize: '0.95rem', letterSpacing: '-0.02em', lineHeight: 1, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
@@ -783,7 +788,7 @@ function FAQ() {
 
 // ─── FOOTER ───────────────────────────────────────────────────────────────────
 
-function Footer({ goto }: { goto: (id: string) => void }) {
+function Footer({ goto, setPathname }: { goto: (id: string) => void; setPathname?: (path: string) => void }) {
   return (
     <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '5rem 2rem 3rem', maxWidth: '1280px', margin: '0 auto' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '4rem', marginBottom: '4rem' }}>
@@ -791,7 +796,12 @@ function Footer({ goto }: { goto: (id: string) => void }) {
         <div>
           <span style={{ fontWeight: 900, fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
             <img src="/Logo.png" alt="Expert28" style={{ height: '36px', width: '36px', borderRadius: '8px', objectFit: 'cover' }} />
-            Expert<span style={{ color: 'var(--emerald)' }}>28</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              <span style={{ lineHeight: 1, display: 'flex', alignItems: 'center' }}>Expert<span style={{ color: 'var(--emerald)' }}>28</span></span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', marginTop: '0.25rem', padding: '0.1rem 0.35rem', background: 'rgba(245, 158, 11, 0.15)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '999px', fontSize: '0.5rem', fontWeight: 800, color: '#f59e0b', letterSpacing: '0.06em', width: 'fit-content' }}>
+                <AlertTriangle size={8} strokeWidth={3} /> DEMO PROTOTYPE
+              </span>
+            </div>
           </span>
           <p style={{ color: '#9ca3af', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '1.5rem' }}>
             A modern institutional gym designed for serious athletes. We provide the tools, environment, and coaching to unlock your peak performance.
@@ -807,8 +817,8 @@ function Footer({ goto }: { goto: (id: string) => void }) {
         <div>
           <p style={{ color: '#fff', fontWeight: 800, fontSize: '0.9rem', marginBottom: '1.5rem', letterSpacing: '0.05em' }}>QUICK LINKS</p>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <li><button onClick={() => goto('facilities')} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 0, fontSize: '0.95rem', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = 'var(--emerald)'} onMouseOut={e => e.currentTarget.style.color = '#9ca3af'}>What's Included</button></li>
-            <li><button onClick={() => goto('elite')} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 0, fontSize: '0.95rem', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = 'var(--emerald)'} onMouseOut={e => e.currentTarget.style.color = '#9ca3af'}>Facility</button></li>
+            <li><button onClick={() => goto('included')} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 0, fontSize: '0.95rem', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = 'var(--emerald)'} onMouseOut={e => e.currentTarget.style.color = '#9ca3af'}>What's Included</button></li>
+            <li><button onClick={() => goto('facilities')} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 0, fontSize: '0.95rem', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = 'var(--emerald)'} onMouseOut={e => e.currentTarget.style.color = '#9ca3af'}>Facility</button></li>
             <li><button onClick={() => goto('pricing')} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 0, fontSize: '0.95rem', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = 'var(--emerald)'} onMouseOut={e => e.currentTarget.style.color = '#9ca3af'}>Pricing</button></li>
             <li><button onClick={() => goto('faq')} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 0, fontSize: '0.95rem', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = 'var(--emerald)'} onMouseOut={e => e.currentTarget.style.color = '#9ca3af'}>FAQ</button></li>
           </ul>
@@ -837,8 +847,8 @@ function Footer({ goto }: { goto: (id: string) => void }) {
       <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', color: '#4b5563', fontSize: '0.85rem' }}>
         <p>&copy; {new Date().getFullYear()} Expert28. All rights reserved.</p>
         <div style={{ display: 'flex', gap: '2rem' }}>
-          <a href="#" style={{ color: '#4b5563', textDecoration: 'none', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = '#9ca3af'} onMouseOut={e => e.currentTarget.style.color = '#4b5563'}>Privacy Policy</a>
-          <a href="#" style={{ color: '#4b5563', textDecoration: 'none', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = '#9ca3af'} onMouseOut={e => e.currentTarget.style.color = '#4b5563'}>Terms of Service</a>
+          <button onClick={() => { window.history.pushState({}, '', '/privacy'); if (setPathname) setPathname('/privacy'); window.scrollTo(0, 0); }} style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', padding: 0, fontSize: '0.85rem', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = '#9ca3af'} onMouseOut={e => e.currentTarget.style.color = '#4b5563'}>Privacy Policy</button>
+          <button onClick={() => { window.history.pushState({}, '', '/terms'); if (setPathname) setPathname('/terms'); window.scrollTo(0, 0); }} style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', padding: 0, fontSize: '0.85rem', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = '#9ca3af'} onMouseOut={e => e.currentTarget.style.color = '#4b5563'}>Terms of Service</button>
         </div>
       </div>
     </footer>
