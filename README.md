@@ -97,12 +97,9 @@ npm run dev
 ```
 Open your browser and navigate to `http://localhost:5173`.
 
-To validate build performance and code splitting optimization before deployment:
+To validate build performance and code splitting optimization before deployment, you can test the production build locally:
 ```bash
 npm run build
-```
-Wait, we should build:
-```bash
 npm run preview
 ```
 
