@@ -267,8 +267,6 @@ export default function App() {
       <main>
         <Hero goto={goto} />
         <div className="section-sep" />
-        <Ticker />
-        <div className="section-sep" />
         <WhatsIncluded />
         <div className="section-sep" />
         <Facilities setPathname={setPathname} />
@@ -276,6 +274,8 @@ export default function App() {
         <Pricing plans={plans} openModal={openPlanModal} />
         <div className="section-sep" />
         <Testimonials />
+        <div className="section-sep" />
+        <LocationAbout />
         <div className="section-sep" />
         <FAQ />
       </main>
@@ -291,7 +291,7 @@ export default function App() {
   const lowestInterval = plans.find(p => p.price === lowestPrice)?.interval || 'week';
 
   return (
-    <div style={{ background: '#030712', minHeight: '100vh', color: '#f9fafb', position: 'relative', overflowX: 'hidden' }} className="mobile-sticky-pad">
+    <div style={{ background: '#030712', minHeight: '100vh', color: '#f9fafb', position: 'relative' }} className="mobile-sticky-pad">
       <div id="scroll-progress-bar" style={{ width: `${scrollPct}%` }} />
       <div className="orb" style={{ width: '42vw', height: '42vw', background: 'var(--emerald)', top: '-12%', left: '-12%' }} />
       <div className="orb" style={{ width: '32vw', height: '32vw', background: 'var(--blue-cta)', bottom: '8%', right: '-6%', animationDelay: '-5s' }} />
@@ -311,7 +311,7 @@ export default function App() {
       {renderContent()}
 
       {['/', '/privacy', '/terms'].includes(pathname) && (
-        <Footer goto={goto} setPathname={setPathname} />
+        <Footer setPathname={setPathname} />
       )}
 
       {pathname === '/' && (
@@ -355,14 +355,6 @@ interface HeaderProps {
 }
 
 function Header({ scrolled, goto, mobileOpen, setMobileOpen, user, profile, signOut, setPathname }: HeaderProps) {
-  const links = [
-    { label: 'Home', id: 'hero' },
-    { label: "What's Included", id: 'included' },
-    { label: 'Facilities', id: 'facilities' },
-    { label: 'Pricing', id: 'pricing' },
-    { label: 'Results', id: 'testimonials' },
-    { label: 'FAQ', id: 'faq' },
-  ];
 
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifCount, setNotifCount] = useState(0);
@@ -387,30 +379,23 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, user, profile, sign
         backdropFilter: scrolled ? 'blur(20px)' : 'none',
         borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : 'none',
         padding: '0.9rem 2rem', display: 'flex', alignItems: 'center',
-        justifyContent: 'space-between', transition: 'all 0.3s',
+        justifyContent: 'center', transition: 'all 0.3s',
       }}>
-        <div onClick={() => { window.history.pushState({}, '', '/'); if (setPathname) setPathname('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
-          <img src="/Logo.png" alt="Expert28" style={{ height: 32, width: 'auto', borderRadius: '0.2rem' }} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-            <span style={{ fontWeight: 800, fontSize: '0.95rem', letterSpacing: '-0.02em', lineHeight: 1, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              Expert<span style={{ color: '#10b981' }}>28</span>
-            </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', marginTop: '0.15rem', padding: '0.1rem 0.35rem', background: 'rgba(245, 158, 11, 0.15)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '999px', fontSize: '0.5rem', fontWeight: 800, color: '#f59e0b', letterSpacing: '0.06em' }}>
-              <AlertTriangle size={8} strokeWidth={3} /> DEMO PROTOTYPE
-            </span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth: '1000px' }}>
+          <div onClick={() => { window.history.pushState({}, '', '/'); if (setPathname) setPathname('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+            <img src="/Logo.png" alt="Expert28" style={{ height: 32, width: 'auto', borderRadius: '0.2rem' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              <span style={{ fontWeight: 800, fontSize: '0.95rem', letterSpacing: '-0.02em', lineHeight: 1, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                Expert<span style={{ color: '#10b981' }}>28</span>
+              </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', marginTop: '0.15rem', padding: '0.1rem 0.35rem', background: 'rgba(245, 158, 11, 0.15)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '999px', fontSize: '0.5rem', fontWeight: 800, color: '#f59e0b', letterSpacing: '0.06em' }}>
+                <AlertTriangle size={8} strokeWidth={3} /> DEMO PROTOTYPE
+              </span>
+            </div>
           </div>
-        </div>
 
-        <nav className="nav-desktop">
-          {links.map(l => (
-            <button key={l.id} onClick={() => goto(l.id)} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', transition: 'color 0.2s', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-              {l.label}
-            </button>
-          ))}
-        </nav>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          {user ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {user ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <div style={{ position: 'relative' }}>
                 <button
@@ -435,19 +420,17 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, user, profile, sign
             </div>
           )}
 
-          <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', padding: '0.4rem', color: '#f9fafb', cursor: 'pointer', zIndex: 101, marginLeft: '0.5rem' }}>
-            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-          </button>
+            <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', padding: '0.4rem', color: '#f9fafb', cursor: 'pointer', zIndex: 101, marginLeft: '0.5rem' }}>
+              {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+          </div>
         </div>
       </header>
 
       <div className={`mobile-menu-overlay ${mobileOpen ? 'open' : ''}`} onClick={() => setMobileOpen(false)} />
       <div className={`mobile-menu ${mobileOpen ? 'open' : ''}`}>
-        {links.map(l => (
-          <button key={l.id} onClick={() => { goto(l.id); setMobileOpen(false); }} style={{ background: 'none', border: 'none', textAlign: 'left', fontSize: '1.75rem', fontWeight: 900, color: '#f9fafb', cursor: 'pointer', letterSpacing: '-0.02em', padding: '0.25rem 0' }}>{l.label}</button>
-        ))}
         {user ? (
-          <div style={{ marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <button
               onClick={() => { setPathname(profile?.role === 'admin' ? '/admin/dashboard' : '/client/dashboard'); setMobileOpen(false); }}
               className="btn-blue" style={{ padding: '1.25rem', fontSize: '1rem', borderRadius: '1rem', width: '100%', fontWeight: 800 }}
@@ -462,7 +445,7 @@ function Header({ scrolled, goto, mobileOpen, setMobileOpen, user, profile, sign
             </button>
           </div>
         ) : (
-          <div style={{ marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <button onClick={() => { setPathname('/login'); setMobileOpen(false); }} className="btn-outline-white" style={{ padding: '1.25rem', fontSize: '1rem', borderRadius: '1rem', width: '100%', fontWeight: 800 }} onMouseDown={addRipple}>Log in</button>
             <button onClick={() => { goto('pricing'); setMobileOpen(false); }} className="btn-blue" style={{ padding: '1.25rem', fontSize: '1rem', borderRadius: '1rem', width: '100%', fontWeight: 800 }} onMouseDown={addRipple}>Join Expert28</button>
           </div>
@@ -527,8 +510,7 @@ function Hero({ goto }: { goto: (id: string) => void }) {
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(3,7,18,1) 0%, rgba(3,7,18,0) 30%)' }} />
       </div>
 
-      {/* Decorative oversized typography in background */}
-      <div style={{ position: 'absolute', right: '-2%', top: '25%', fontSize: 'clamp(300px, 45vw, 700px)', fontWeight: 900, lineHeight: 1, color: '#10b981', opacity: 0.04, userSelect: 'none', pointerEvents: 'none', letterSpacing: '-0.05em', zIndex: 1 }}>28</div>
+
 
       <div style={{ position: 'relative', zIndex: 2, maxWidth: '1280px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '3rem' }}>
 
@@ -585,23 +567,6 @@ function Hero({ goto }: { goto: (id: string) => void }) {
   );
 }
 
-// ─── TICKER ───────────────────────────────────────────────────────────────────
-
-function Ticker() {
-  const items = ['ELITE EQUIPMENT', 'EXPERT COACHING', '7-DAY ACCESS', 'ZERO LOCK-IN', '500+ MEMBERS', 'OPEN EVERY DAY', 'OLYMPIC PLATFORMS', 'INSTANT RESULTS'];
-  return (
-    <div className="ticker-wrap" style={{ padding: '0.75rem 0', margin: '2rem 0' }}>
-      <div className="ticker-track">
-        {[...items, ...items].map((item, i) => (
-          <span key={i} style={{ padding: '0 1.75rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.15em', color: '#9ca3af', display: 'inline-flex', alignItems: 'center', gap: '1.75rem' }}>
-            {item}
-            <span style={{ color: '#10b981', fontSize: '0.5rem' }}>●</span>
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 // ─── WHAT'S INCLUDED ──────────────────────────────────────────────────────────
 
@@ -619,21 +584,53 @@ function WhatsIncluded() {
   return (
     <section id="included" style={{ maxWidth: '1280px', margin: '0 auto', padding: 'var(--section-pad) 2rem' }}>
       <div ref={ref} className={`reveal ${visible ? 'visible' : ''}`}>
-        <p className="section-label" style={{ marginBottom: '0.75rem' }}>What You'll Get</p>
-        <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '1rem' }}>
-          Everything <span style={{ color: '#10b981' }}>Included.</span>
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+          <p className="section-label" style={{ marginBottom: '0.75rem', display: 'inline-block' }}>What You'll Get</p>
+          <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '1rem' }}>
+            Everything <span style={{ color: '#10b981' }}>Included.</span>
+          </h2>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {items.map((item, i) => {
             const Icon = item.icon;
             return (
-              <div key={i} className={`glass-card stagger-child ${visible ? 'visible' : ''}`} style={{ padding: '1.5rem', display: 'flex', gap: '1rem', transitionDelay: `${i * 75}ms` }}>
-                <div style={{ width: 36, height: 36, borderRadius: '0.5rem', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Icon size={18} color="#10b981" />
+              <div 
+                key={i} 
+                className={`glass-card stagger-child ${visible ? 'visible' : ''}`} 
+                style={{ 
+                  padding: '2.5rem 2rem', 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  gap: '1.25rem', 
+                  transitionDelay: `${i * 75}ms`,
+                  position: 'relative',
+                  overflow: 'hidden',
+                  transition: 'transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease',
+                  cursor: 'default'
+                }}
+                onMouseOver={e => {
+                  e.currentTarget.style.transform = 'translateY(-5px)';
+                  e.currentTarget.style.borderColor = 'rgba(16,185,129,0.3)';
+                  e.currentTarget.style.boxShadow = '0 10px 30px -10px rgba(16,185,129,0.1)';
+                }}
+                onMouseOut={e => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                {/* Decorative background icon */}
+                <div style={{ position: 'absolute', right: '-10%', top: '-10%', opacity: 0.02, pointerEvents: 'none', transform: 'rotate(-15deg)' }}>
+                  <Icon size={160} />
+                </div>
+                
+                <div style={{ width: 56, height: 56, borderRadius: '1rem', background: 'linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(16,185,129,0.05) 100%)', border: '1px solid rgba(16,185,129,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon size={26} color="#10b981" />
                 </div>
                 <div>
-                  <p style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.25rem' }}>{item.title}</p>
-                  <p style={{ color: '#6b7280', fontSize: '0.78rem', lineHeight: 1.6 }}>{item.desc}</p>
+                  <p style={{ fontWeight: 800, fontSize: '1.15rem', marginBottom: '0.5rem', color: '#fff' }}>{item.title}</p>
+                  <p style={{ color: '#9ca3af', fontSize: '0.95rem', lineHeight: 1.6 }}>{item.desc}</p>
                 </div>
               </div>
             );
@@ -658,31 +655,57 @@ function Facilities({ setPathname }: { setPathname?: (path: string) => void }) {
               The <span style={{ color: '#10b981' }}>Facility.</span>
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {facilityZones.map((zone, i) => (
-              <div
-                key={i}
-                onClick={() => {
-                  if (setPathname) {
-                    window.history.pushState({}, '', `/facility/${zone.id}`);
-                    setPathname(`/facility/${zone.id}`);
-                  }
-                }}
-                className={`glass-card stagger-child ${visible ? 'visible' : ''}`}
-                style={{ overflow: 'hidden', transitionDelay: `${i * 75}ms`, cursor: 'pointer', position: 'relative', display: 'flex', flexDirection: 'column' }}
-              >
-                <div style={{ height: '350px', position: 'relative' }}>
-                  <img src={zone.image} alt={zone.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(3,7,18,0.95) 0%, rgba(3,7,18,0) 70%)' }} />
-                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '2rem' }}>
-                    <h3 style={{ fontWeight: 800, fontSize: '1.5rem', color: '#fff', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      {zone.title}
-                      <ArrowRight size={20} color="#10b981" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+            {facilityZones.map((zone, i) => {
+              const isEven = i % 2 !== 0; // Alternating layout
+              return (
+                <div
+                  key={i}
+                  onClick={() => {
+                    if (setPathname) {
+                      window.history.pushState({}, '', `/facility/${zone.id}`);
+                      setPathname(`/facility/${zone.id}`);
+                    }
+                  }}
+                  className={`glass-card stagger-child ${visible ? 'visible' : ''} flex flex-col ${isEven ? 'md:flex-row-reverse' : 'md:flex-row'}`}
+                  style={{ overflow: 'hidden', transitionDelay: `${i * 75}ms`, cursor: 'pointer', position: 'relative' }}
+                >
+                  {/* Image Section */}
+                  <div className="w-full md:w-1/2" style={{ position: 'relative', minHeight: '300px' }}>
+                    <img src={zone.image} alt={zone.title} style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(3,7,18,0.85) 0%, rgba(3,7,18,0) 60%)' }} />
+                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1.5rem 2rem' }}>
+                      <div style={{ display: 'inline-flex', padding: '0.2rem 0.6rem', background: 'rgba(16,185,129,0.2)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '999px', color: '#10b981', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                        {zone.badge}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Info Section */}
+                  <div className="w-full md:w-1/2" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <h3 style={{ fontWeight: 900, fontSize: '1.8rem', color: '#fff', marginBottom: '1.5rem' }}>
+                      {i + 1}. {zone.title}
                     </h3>
+                    
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '1rem', flexGrow: 1 }}>
+                      {zone.desc.map((item, j) => (
+                        <li key={j} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <div style={{ color: '#10b981', flexShrink: 0 }}>
+                            <CheckCircle2 size={18} />
+                          </div>
+                          <span style={{ fontWeight: 700, color: '#e5e7eb', fontSize: '1.05rem' }}>{item.name}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    <div style={{ marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                       <span style={{ color: '#9ca3af', fontSize: '0.95rem', fontWeight: 700 }}>Explore Zone Details</span>
+                       <ArrowRight size={20} color="#10b981" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
@@ -721,25 +744,35 @@ function Pricing({ plans, openModal }: { plans: MembershipPlan[]; openModal: (p:
                   {plan.badge}
                 </div>
               )}
-              <h3 style={{ fontWeight: 800, fontSize: '1.2rem', marginBottom: '0.3rem' }}>{plan.name}</h3>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#10b981' }}>
-                  {getCurrencySymbol(plan.currency)}
-                </span>
-                <span style={{ fontSize: '3.5rem', fontWeight: 900, color: '#fff', letterSpacing: '-0.04em' }}>{plan.price.toLocaleString()}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', minHeight: '160px', marginBottom: '1.5rem' }}>
+                <h3 style={{ fontWeight: 800, fontSize: '1.2rem', marginBottom: '1rem' }}>{plan.name}</h3>
+                
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                  <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#10b981', paddingBottom: '0.4rem' }}>
+                    {getCurrencySymbol(plan.currency)}
+                  </span>
+                  <span style={{ fontSize: '3.5rem', fontWeight: 900, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1 }}>
+                    {plan.price.toLocaleString()}
+                  </span>
+                  <span style={{ color: '#6b7280', fontSize: '0.85rem', fontWeight: 600, marginLeft: 'auto', paddingBottom: '0.4rem' }}>
+                    /{plan.interval === 'week' ? 'week' : 'mo'}
+                  </span>
+                </div>
 
-                {plan.original_price && plan.original_price > plan.price && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginLeft: '0.5rem' }}>
-                    <span style={{ fontSize: '1rem', color: '#6b7280', textDecoration: 'line-through', fontWeight: 600 }}>
-                      {getCurrencySymbol(plan.currency)}{plan.original_price.toLocaleString()}
-                    </span>
-                    <span style={{ fontSize: '0.65rem', color: '#10b981', fontWeight: 800, background: 'rgba(16,185,129,0.1)', padding: '0.1rem 0.4rem', borderRadius: '4px', textTransform: 'uppercase' }}>
-                      Save {Math.round(((plan.original_price - plan.price) / plan.original_price) * 100)}%
-                    </span>
-                  </div>
-                )}
-
-                <span style={{ color: '#6b7280', fontSize: '0.85rem', fontWeight: 600, marginLeft: 'auto' }}>/{plan.interval === 'week' ? 'week' : 'mo'}</span>
+                <div style={{ marginTop: 'auto' }}>
+                  {plan.original_price && plan.original_price > plan.price ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <span style={{ fontSize: '1rem', color: '#6b7280', textDecoration: 'line-through', fontWeight: 600 }}>
+                        {getCurrencySymbol(plan.currency)}{plan.original_price.toLocaleString()}
+                      </span>
+                      <span style={{ fontSize: '0.65rem', color: '#10b981', fontWeight: 800, background: 'rgba(16,185,129,0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px', textTransform: 'uppercase' }}>
+                        Save {Math.round(((plan.original_price - plan.price) / plan.original_price) * 100)}%
+                      </span>
+                    </div>
+                  ) : (
+                    <div style={{ height: '24px' }} />
+                  )}
+                </div>
               </div>
               <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '1.5rem 0', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {plan.features?.map((f, j) => (
@@ -770,10 +803,10 @@ function Pricing({ plans, openModal }: { plans: MembershipPlan[]; openModal: (p:
 function Testimonials() {
   const { ref, visible } = useReveal();
   const reviews = [
-    { name: 'Rafi M.', text: 'Absolute elite environment. No crowds, top-tier iron, and a community that actually trains hard.' },
-    { name: 'Dina K.', text: 'The standard here is institutional. Everything is built for real athletic progress, not casual fitness.' },
-    { name: 'Marcus T.', text: 'The conditioning turf and elite coaching completely changed my approach to functional fitness. Unmatched quality.' },
-    { name: 'Sarah L.', text: 'Finally a space that takes recovery as seriously as the training. The plunge pool and saunas are a game changer.' },
+    { name: 'Rafi M.', avatar: '/avatar_rafi.png', text: 'Absolute elite environment. No crowds, top-tier iron, and a community that actually trains hard.' },
+    { name: 'Dina K.', avatar: '/avatar_dina.png', text: 'The standard here is institutional. Everything is built for real athletic progress, not casual fitness.' },
+    { name: 'Marcus T.', avatar: '/avatar_marcus.png', text: 'The conditioning turf and elite coaching completely changed my approach to functional fitness. Unmatched quality.' },
+    { name: 'Sarah L.', avatar: '/avatar_sarah.png', text: 'Finally a space that takes recovery as seriously as the training. The plunge pool and saunas are a game changer.' },
   ];
 
   return (
@@ -783,11 +816,81 @@ function Testimonials() {
           <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 900, textAlign: 'center', marginBottom: '3.5rem' }}>Elite Results.</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
             {reviews.map((r, i) => (
-              <div key={i} className="glass-card" style={{ padding: '1.75rem' }}>
-                <p style={{ color: '#d1d5db', fontSize: '0.9rem', fontStyle: 'italic', marginBottom: '1rem' }}>"{r.text}"</p>
-                <p style={{ fontWeight: 700, fontSize: '0.85rem' }}>— {r.name}</p>
+              <div key={i} className="glass-card" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                  <img src={r.avatar} alt={r.name} style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover' }} />
+                  <div>
+                    <p style={{ fontWeight: 700, fontSize: '0.95rem', margin: 0 }}>{r.name}</p>
+                    <div style={{ display: 'flex', gap: '0.15rem', marginTop: '0.25rem' }}>
+                      {[...Array(5)].map((_, j) => (
+                        <Star key={j} size={14} fill="#f59e0b" color="#f59e0b" />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <p style={{ color: '#d1d5db', fontSize: '0.9rem', fontStyle: 'italic', lineHeight: 1.6, margin: 0 }}>"{r.text}"</p>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── LOCATION & ABOUT ─────────────────────────────────────────────────────────
+
+function LocationAbout() {
+  const { ref, visible } = useReveal();
+  
+  return (
+    <section id="location" style={{ maxWidth: '1280px', margin: '0 auto', padding: 'var(--section-pad) 2rem' }}>
+      <div ref={ref} className={`reveal ${visible ? 'visible' : ''}`}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          {/* About Text */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div>
+              <p className="section-label" style={{ marginBottom: '0.75rem' }}>About Us</p>
+              <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+                The <span style={{ color: '#10b981' }}>Expert</span> Standard.
+              </h2>
+            </div>
+            <p style={{ color: '#d1d5db', fontSize: '1.05rem', lineHeight: 1.7 }}>
+              Expert28 was founded on a simple principle: serious athletes deserve an environment built for performance, not a crowded fitness club. Our facility in the heart of SCBD provides top-tier equipment, pristine training zones, and the highest standard of professional coaching.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                <div style={{ padding: '0.75rem', background: 'rgba(16,185,129,0.1)', borderRadius: '0.5rem', color: '#10b981' }}>
+                  <MapPin size={24} />
+                </div>
+                <div>
+                  <p style={{ fontWeight: 800, fontSize: '1rem', marginBottom: '0.25rem' }}>Location</p>
+                  <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: 1.5 }}>Jl. Jend. Sudirman Kav. 52-53<br />SCBD, Jakarta Selatan 12190</p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                <div style={{ padding: '0.75rem', background: 'rgba(16,185,129,0.1)', borderRadius: '0.5rem', color: '#10b981' }}>
+                  <Phone size={24} />
+                </div>
+                <div>
+                  <p style={{ fontWeight: 800, fontSize: '1rem', marginBottom: '0.25rem' }}>Contact</p>
+                  <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: 1.5 }}>+62 811-1234-5678<br />hello@expert28.id</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Google Maps Embed */}
+          <div className="glass-card" style={{ padding: '0.5rem', borderRadius: '1rem', overflow: 'hidden', height: '400px' }}>
+            <iframe 
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.272186831131!2d106.80613291535496!3d-6.227801895491741!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f15053673f47%3A0x6b7727ab1705e32!2sSudirman%20Central%20Business%20District%20(SCBD)!5e0!3m2!1sen!2sid!4v1689255231139!5m2!1sen!2sid" 
+              width="100%" 
+              height="100%" 
+              style={{ border: 0, borderRadius: '0.75rem', filter: 'invert(90%) hue-rotate(180deg)' }} 
+              allowFullScreen={false} 
+              loading="lazy" 
+              referrerPolicy="no-referrer-when-downgrade"
+            ></iframe>
           </div>
         </div>
       </div>
@@ -814,9 +917,19 @@ function FAQ() {
       <div ref={ref} className={`reveal ${visible ? 'visible' : ''}`}>
         <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 900, textAlign: 'center', marginBottom: '3rem' }}>FAQ</h2>
         {faqs.map((faq, i) => (
-          <div key={i} style={{ marginBottom: '1rem' }}>
-            <button onClick={() => setOpen(open === i ? null : i)} style={{ width: '100%', padding: '1.25rem', background: 'rgba(255,255,255,0.03)', border: 'none', borderRadius: '0.75rem', color: '#fff', textAlign: 'left', fontWeight: 700 }}>{faq.q}</button>
-            {open === i && <div style={{ padding: '1rem', color: '#9ca3af' }}>{faq.a}</div>}
+          <div key={i} style={{ marginBottom: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '0.75rem', overflow: 'hidden' }}>
+            <button 
+              onClick={() => setOpen(open === i ? null : i)} 
+              style={{ width: '100%', padding: '1.25rem', background: 'transparent', border: 'none', color: '#fff', textAlign: 'left', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+            >
+              {faq.q}
+              <ChevronRight size={20} style={{ transform: open === i ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease', flexShrink: 0, marginLeft: '1rem' }} />
+            </button>
+            <div style={{ display: 'grid', gridTemplateRows: open === i ? '1fr' : '0fr', transition: 'grid-template-rows 0.3s ease' }}>
+              <div style={{ overflow: 'hidden' }}>
+                <div style={{ padding: '0 1.25rem 1.25rem', color: '#9ca3af' }}>{faq.a}</div>
+              </div>
+            </div>
           </div>
         ))}
       </div>
@@ -828,12 +941,12 @@ function FAQ() {
 
 // ─── FOOTER ───────────────────────────────────────────────────────────────────
 
-function Footer({ goto, setPathname }: { goto: (id: string) => void; setPathname?: (path: string) => void }) {
+function Footer({ setPathname }: { setPathname?: (path: string) => void }) {
   return (
     <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '5rem 2rem 3rem', maxWidth: '1280px', margin: '0 auto' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '4rem', marginBottom: '4rem' }}>
+      <div className="flex flex-col md:flex-row justify-between gap-12 md:gap-8 mb-16">
         {/* Brand */}
-        <div>
+        <div style={{ maxWidth: '450px' }}>
           <span style={{ fontWeight: 900, fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
             <img src="/Logo.png" alt="Expert28" style={{ height: '36px', width: '36px', borderRadius: '8px', objectFit: 'cover' }} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
@@ -853,16 +966,7 @@ function Footer({ goto, setPathname }: { goto: (id: string) => void; setPathname
           </div>
         </div>
 
-        {/* Links */}
-        <div>
-          <p style={{ color: '#fff', fontWeight: 800, fontSize: '0.9rem', marginBottom: '1.5rem', letterSpacing: '0.05em' }}>QUICK LINKS</p>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <li><button onClick={() => goto('included')} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 0, fontSize: '0.95rem', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = 'var(--emerald)'} onMouseOut={e => e.currentTarget.style.color = '#9ca3af'}>What's Included</button></li>
-            <li><button onClick={() => goto('facilities')} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 0, fontSize: '0.95rem', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = 'var(--emerald)'} onMouseOut={e => e.currentTarget.style.color = '#9ca3af'}>Facility</button></li>
-            <li><button onClick={() => goto('pricing')} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 0, fontSize: '0.95rem', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = 'var(--emerald)'} onMouseOut={e => e.currentTarget.style.color = '#9ca3af'}>Pricing</button></li>
-            <li><button onClick={() => goto('faq')} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 0, fontSize: '0.95rem', transition: 'color 0.2s ease' }} onMouseOver={e => e.currentTarget.style.color = 'var(--emerald)'} onMouseOut={e => e.currentTarget.style.color = '#9ca3af'}>FAQ</button></li>
-          </ul>
-        </div>
+
 
         {/* Contact */}
         <div>

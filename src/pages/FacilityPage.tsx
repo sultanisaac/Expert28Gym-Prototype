@@ -75,54 +75,66 @@ export default function FacilityPage({ id, setPathname }: FacilityPageProps) {
       {/* Background Effect */}
       <div className="orb" style={{ width: '40vw', height: '40vw', background: 'var(--emerald)', top: '-10%', left: '-10%', opacity: 0.15 }} />
       
-      <div style={{ padding: '0 2rem', position: 'relative', zIndex: 10, maxWidth: '1000px', margin: '0 auto' }}>
-        <button 
-          onClick={() => { window.history.pushState({}, '', '/'); setPathname('/'); }}
-          style={{ 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            gap: '0.5rem', 
-            padding: '0.75rem 1.25rem',
-            background: 'rgba(255,255,255,0.05)', 
-            border: '1px solid rgba(255,255,255,0.1)', 
-            borderRadius: '999px',
-            color: '#fff', 
-            cursor: 'pointer', 
-            fontWeight: 700, 
-            fontSize: '0.9rem',
-            transition: 'all 0.2s'
-          }}
-          onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
-          onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
-        >
-          <ArrowLeft size={18} /> Back to Home
-        </button>
-      </div>
 
-      <main style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem', position: 'relative', zIndex: 10 }}>
+
+      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem', position: 'relative', zIndex: 10 }}>
         <div style={{ animation: 'fade-in 0.6s ease-out forwards' }}>
-          <div style={{ display: 'inline-flex', padding: '0.25rem 0.75rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '999px', color: '#10b981', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '1.5rem' }}>
-            {zone.badge}
-          </div>
-          
-          <h1 style={{ fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: '3rem' }}>
-            {zone.title}
-          </h1>
-
-          <div style={{ borderRadius: '1.5rem', overflow: 'hidden', marginBottom: '4rem', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <img src={zone.image} alt={zone.title} style={{ width: '100%', maxHeight: '500px', objectFit: 'cover' }} />
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            <h2 style={{ fontSize: '1.75rem', fontWeight: 800 }}>What to Expect</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {zone.desc.map((item, i) => (
-                <div key={i} className="glass-card" style={{ padding: '1.75rem' }}>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#10b981', marginBottom: '0.75rem' }}>{item.name}</h3>
-                  <p style={{ color: '#9ca3af', fontSize: '0.95rem', lineHeight: 1.6 }}>{item.text}</p>
-                </div>
-              ))}
+          <div className="flex flex-col md:flex-row gap-10 lg:gap-16 items-start">
+            
+            {/* Image on the left */}
+            <div className="w-full md:w-1/2 relative md:sticky md:top-32 h-[45vh] md:h-[calc(100vh-10rem)] mb-8 md:mb-0">
+              <div style={{ borderRadius: '1.5rem', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)', boxShadow: '0 20px 40px rgba(0,0,0,0.5)', height: '100%' }}>
+                <img src={zone.image} alt={zone.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
             </div>
+
+            {/* Information on the right */}
+            <div className="w-full md:w-1/2" style={{ display: 'flex', flexDirection: 'column' }}>
+              <button 
+                onClick={() => { window.history.pushState({}, '', '/'); setPathname('/'); }}
+                style={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  gap: '0.5rem', 
+                  color: '#9ca3af', 
+                  cursor: 'pointer', 
+                  fontWeight: 600, 
+                  fontSize: '0.9rem',
+                  transition: 'color 0.2s',
+                  marginBottom: '2rem',
+                  alignSelf: 'flex-start',
+                  background: 'none',
+                  border: 'none',
+                  padding: 0
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.color = '#fff'; }}
+                onMouseOut={(e) => { e.currentTarget.style.color = '#9ca3af'; }}
+              >
+                <ArrowLeft size={18} /> Back to Home
+              </button>
+
+              <div style={{ display: 'inline-flex', alignSelf: 'flex-start', padding: '0.25rem 0.75rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '999px', color: '#10b981', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '1.25rem' }}>
+                {zone.badge}
+              </div>
+              
+              <h1 style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.15rem)', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: '2rem' }}>
+                {zone.title}
+              </h1>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.5rem' }}>What to Expect</h2>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  {zone.desc.map((item, i) => (
+                    <div key={i} className="glass-card" style={{ padding: '2rem' }}>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#10b981', marginBottom: '0.75rem' }}>{item.name}</h3>
+                      <p style={{ color: '#9ca3af', fontSize: '1rem', lineHeight: 1.6 }}>{item.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </main>
