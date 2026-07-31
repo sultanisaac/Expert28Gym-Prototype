@@ -311,7 +311,7 @@ export default function App() {
       {renderContent()}
 
       {['/', '/privacy', '/terms'].includes(pathname) && (
-        <Footer goto={goto} setPathname={setPathname} />
+        <Footer setPathname={setPathname} />
       )}
 
       {pathname === '/' && (
@@ -941,7 +941,7 @@ function FAQ() {
 
 // ─── FOOTER ───────────────────────────────────────────────────────────────────
 
-function Footer({ goto, setPathname }: { goto: (id: string) => void; setPathname?: (path: string) => void }) {
+function Footer({ setPathname }: { setPathname?: (path: string) => void }) {
   return (
     <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '5rem 2rem 3rem', maxWidth: '1280px', margin: '0 auto' }}>
       <div className="flex flex-col md:flex-row justify-between gap-12 md:gap-8 mb-16">
