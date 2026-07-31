@@ -32,11 +32,14 @@
   html {
     scroll-behavior: smooth;
     font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    width: 100%;
   }
   body {
     background-color: #030712;
     color: #f9fafb;
     overflow-x: hidden;
+    width: 100%;
     -webkit-font-smoothing: antialiased;
     position: relative;
   }
