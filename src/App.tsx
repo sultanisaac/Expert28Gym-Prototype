@@ -475,26 +475,48 @@ function Hero({ goto }: { goto: (id: string) => void }) {
   const members = useCountUp(500, 0, visible);
   const rating = useCountUp(4.9, 1, visible);
   const days = useCountUp(7, 0, visible);
+  const [isSlowConnection, setIsSlowConnection] = useState(false);
+
+  useEffect(() => {
+    const conn = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+    if (conn) {
+      const checkConnection = () => {
+        setIsSlowConnection(conn.saveData || ['slow-2g', '2g', '3g'].includes(conn.effectiveType));
+      };
+      checkConnection();
+      conn.addEventListener('change', checkConnection);
+      return () => conn.removeEventListener('change', checkConnection);
+    }
+  }, []);
 
   return (
     <section id="hero" style={{ position: 'relative', width: '100%', minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '8rem 2rem 4rem' }}>
       {/* Immersive Background */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
-        >
-          <source src="/hero-video.mp4" type="video/mp4" />
-          {/* Fallback image in case video fails to load */}
+        {isSlowConnection ? (
           <img
-            src="https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=2000&auto=format"
+            src="/hero-image.jpg"
             alt="Expert28 Gym"
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 30%' }}
           />
-        </video>
+        ) : (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            poster="/hero-image.jpg"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+          >
+            <source src="/hero-video.mp4" type="video/mp4" />
+            {/* Fallback image in case video fails to load */}
+            <img
+              src="/hero-image.jpg"
+              alt="Expert28 Gym"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 30%' }}
+            />
+          </video>
+        )}
         {/* Cinematic gradients to ensure text readability */}
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(3,7,18,0.95) 0%, rgba(3,7,18,0.5) 40%, rgba(3,7,18,0.8) 100%)' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(3,7,18,1) 0%, rgba(3,7,18,0) 30%)' }} />
