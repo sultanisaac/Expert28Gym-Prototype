@@ -81,6 +81,11 @@ function addRipple(e: React.MouseEvent<HTMLButtonElement>) {
   const rect = btn.getBoundingClientRect();
   circle.style.cssText = `width:${diameter}px;height:${diameter}px;left:${e.clientX - rect.left - radius}px;top:${e.clientY - rect.top - radius}px;`;
   circle.classList.add('ripple');
+  
+  circle.addEventListener('animationend', () => {
+    circle.remove();
+  });
+  
   btn.querySelector('.ripple')?.remove();
   btn.appendChild(circle);
 }

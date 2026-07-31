@@ -360,6 +360,8 @@
     justify-content: center;
     gap: 0.6rem;
     backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
   }
   .btn-outline-white:hover {
     background: rgba(255,255,255,0.08);
@@ -376,7 +378,7 @@
     position: absolute;
     border-radius: 50%;
     background: rgba(255,255,255,0.25);
-    animation: ripple-out 0.55s linear;
+    animation: ripple-out 0.55s linear forwards;
     pointer-events: none;
   }
   @keyframes ripple-out {
