@@ -61,11 +61,26 @@ export default function FacilityPage({ id, setPathname }: FacilityPageProps) {
     window.scrollTo(0, 0);
   }, []);
 
+  const handleBack = () => {
+    window.history.back();
+    // Fallback if history.back() fails (e.g., opened in new tab)
+    setTimeout(() => {
+      if (window.location.pathname.startsWith('/facility')) {
+        window.history.pushState({}, '', '/'); 
+        setPathname('/'); 
+        setTimeout(() => {
+          const el = document.getElementById('facilities');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    }, 100);
+  };
+
   if (!zone) {
     return (
       <div style={{ minHeight: '100vh', background: '#030712', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#f9fafb' }}>
         <h2>Facility not found</h2>
-        <button onClick={() => { window.history.pushState({}, '', '/'); setPathname('/'); }} className="btn-blue" style={{ padding: '0.75rem 1.5rem', marginTop: '1rem' }}>Go Back</button>
+        <button onClick={handleBack} className="btn-blue" style={{ padding: '0.75rem 1.5rem', marginTop: '1rem' }}>Back</button>
       </div>
     );
   }
@@ -91,26 +106,25 @@ export default function FacilityPage({ id, setPathname }: FacilityPageProps) {
             {/* Information on the right */}
             <div className="w-full md:w-1/2" style={{ display: 'flex', flexDirection: 'column' }}>
               <button 
-                onClick={() => { window.history.pushState({}, '', '/'); setPathname('/'); }}
+                onClick={handleBack}
                 style={{ 
                   display: 'inline-flex', 
                   alignItems: 'center', 
                   gap: '0.5rem', 
                   color: '#9ca3af', 
                   cursor: 'pointer', 
-                  fontWeight: 600, 
-                  fontSize: '0.9rem',
-                  transition: 'color 0.2s',
-                  marginBottom: '2rem',
-                  alignSelf: 'flex-start',
-                  background: 'none',
-                  border: 'none',
-                  padding: 0
+                  background: 'none', 
+                  border: 'none', 
+                  padding: 0,
+                  marginBottom: '2.5rem',
+                  transition: 'color 0.2s ease',
+                  alignSelf: 'flex-start'
                 }}
-                onMouseOver={(e) => { e.currentTarget.style.color = '#fff'; }}
-                onMouseOut={(e) => { e.currentTarget.style.color = '#9ca3af'; }}
+                onMouseOver={e => e.currentTarget.style.color = '#fff'}
+                onMouseOut={e => e.currentTarget.style.color = '#9ca3af'}
               >
-                <ArrowLeft size={18} /> Back to Home
+                <ArrowLeft size={16} />
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Back</span>
               </button>
 
               <div style={{ display: 'inline-flex', alignSelf: 'flex-start', padding: '0.25rem 0.75rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '999px', color: '#10b981', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '1.25rem' }}>
